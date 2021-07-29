@@ -1,0 +1,29 @@
+/*
+ * Copyright (c) 2017 BayLibre, SAS.
+ * Author: Neil Armstrong <narmstrong@baylibre.com>
+ *
+ * SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+ */
+
+/*
+ * Overlay aimed to enable a spidev interface on SPICC bus with CS0
+ */
+
+/dts-v1/;
+/plugin/;
+
+/ {
+	compatible = "libretech,cc", "amlogic,s905x", "amlogic,meson-gxl";
+
+	fragment@0 {
+		target = <&spicc>;
+		
+		__overlay__ {
+			spidev@0 {
+				compatible = "spidev", "linux,spidev";
+				reg = <0>;
+				spi-max-frequency = <30000000>;
+			};
+		};
+	};
+};

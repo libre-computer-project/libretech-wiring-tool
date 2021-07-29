@@ -1,0 +1,47 @@
+/*
+ * Copyright (c) 2017 BayLibre, SAS.
+ * Author: Neil Armstrong <narmstrong@baylibre.com>
+ *
+ * SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+ */
+
+/*
+ * Overlay aimed to enable I2C_B on Header 7J1 :
+ * Pins 27 (SDA), 28 (SCL)
+ */
+
+/dts-v1/;
+/plugin/;
+
+/ {
+	compatible = "libretech,cc", "amlogic,s905x", "amlogic,meson-gxl";
+
+	fragment@0 {
+		target-path = "/aliases";
+
+		__overlay__ {
+			i2c2 = "/soc/cbus@c1100000/i2c@87c0";
+		};
+	};
+
+	fragment@1 {
+		target = <&i2c_b_pins>;
+
+		__overlay__ {
+			cfg {
+				pins = "GPIODV_26", "GPIODV_27";
+				bias-pull-up;
+			};
+		};
+	};
+
+	fragment@2 {
+		target = <&i2c_B>;
+		
+		__overlay__ {
+			status = "okay";
+			pinctrl-0 = <&i2c_b_pins>;
+			pinctrl-names = "default";
+		};
+	};
+};

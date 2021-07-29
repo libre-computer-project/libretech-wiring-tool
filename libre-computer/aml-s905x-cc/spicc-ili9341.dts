@@ -1,0 +1,55 @@
+/*
+ * Copyright (c) 2018 BayLibre, SAS.
+ * Author: Neil Armstrong <narmstrong@baylibre.com>
+ *
+ * SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+ */
+
+/*
+ * Overlay aimed to enable the Ilitek ILI9341 based panels such as the :
+ * - Adafruit 2.2" SPI display
+ * - Adafruit 2.8" Touch Shield V2 (SPI)
+ * - Adafruit 2.4" TFT LCD with Touchscreen Breakout w/MicroSD Socket
+ * - Adafruit 2.8" TFT LCD with Touchscreen Breakout Board w/MicroSD Socket
+ * - Adafruit 2.2" 18-bit color TFT LCD display with microSD card breakout
+ * - Adafruit TFT FeatherWing - 2.4" 320x240 Touchscreen For All Feathers
+ * Pins 19 (MOSI), 21 (MISO), 23 (CLK), 24 (CS), 29 (DC), 31 (Reset)
+ */
+
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/gpio/meson-gxl-gpio.h>
+
+/ {
+	compatible = "libretech,cc", "amlogic,s905x", "amlogic,meson-gxl";
+
+	fragment@0 {
+		target = <&spicc>;
+		
+		__overlay__ {
+			/*
+			 * The display signals are connected to :
+			 * - SDO(MISO) to Pin21 (SPI_MISO)
+			 * - LED/Backlight to Pin2 (5v)
+			 * - SCK to Pin23 (SPI_CLK)
+			 * - SDI(MOSI) to Pin19 (SPI_MOSI)
+			 * - D/C to Pin29 (GPIOX_17)
+			 * - RESET to Pin31 (GPIOX_18)
+			 * - (LCD) CS to Pin24 (GPIOX_10)
+			 * - GND to Pin25 (GND)
+			 * - VCC/VIN to Pin17 (3.3V)
+			 */
+			display@0 {
+				compatible = "adafruit,yx240qv29", "ilitek,ili9341";
+				reg = <0>;
+				buswidth = <8>;
+				spi-max-frequency = <30000000>;
+				dc-gpios = <&gpio GPIOX_17 GPIO_ACTIVE_HIGH>;
+				reset-gpios = <&gpio GPIOX_18 GPIO_ACTIVE_HIGH>;
+				status = "okay";
+			};
+		};
+	};
+};

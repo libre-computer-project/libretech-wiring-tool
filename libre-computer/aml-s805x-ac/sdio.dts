@@ -1,0 +1,99 @@
+/*
+ * Copyright (c) 2020 BayLibre, SAS.
+ * Author: Nicolas Belin <nbelin@baylibre.com>
+ *
+ * SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+ */
+
+/*
+ * Overlay aimed to enable SDIO on emmc_a. This includes enabling pwm-e and
+ * uartc.
+ */
+
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/gpio/meson-gxl-gpio.h>
+#include <dt-bindings/clock/gxbb-clkc.h>
+
+/ {
+	compatible = "libretech,aml-s805x-ac", "amlogic,s805x",
+		     "amlogic,meson-gxl";
+	fragment@0 {
+		target = <&pwm_ef>;
+
+		__overlay__ {
+			status = "okay";
+			pinctrl-0 = <&pwm_e_pins>;
+			pinctrl-names = "default";
+			clocks = <&clkc CLKID_FCLK_DIV4>;
+			clock-names = "clkin0";
+		};
+	};
+
+	fragment@1 {
+		target-path = "/aliases";
+
+		__overlay__ {
+			serial1 = "/soc/bus@c1100000/serial@8700";
+		};
+	};
+
+	fragment@2 {
+		target = <&uart_C>;
+
+		__overlay__ {
+			status = "okay";
+			pinctrl-0 = <&uart_c_pins>, <&uart_c_cts_rts_pins>;
+			pinctrl-names = "default";
+			uart-has-rtscts;
+		};
+	};
+
+	fragment@3 {
+		target-path = "/";
+
+		__overlay__ {
+			wifi32k: wifi32k {
+				compatible = "pwm-clock";
+				#clock-cells = <0>;
+				clock-frequency = <32768>;
+				pwms = <&pwm_ef 0 30518 0>; /* PWM_E at 32.768KHz */
+			};
+
+			sdio_pwrseq: sdio-pwrseq {
+				compatible = "mmc-pwrseq-simple";
+				reset-gpios = <&gpio GPIOX_6 GPIO_ACTIVE_LOW>;
+				clocks = <&wifi32k>;
+				clock-names = "ext_clock";
+			};
+		};
+	};
+
+	fragment@4 {
+		target = <&sd_emmc_a>;
+
+		__overlay__ {
+			status = "okay";
+			pinctrl-0 = <&sdio_pins>;
+			pinctrl-1 = <&sdio_clk_gate_pins>;
+			pinctrl-names = "default", "clk-gate";
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			bus-width = <4>;
+			cap-sd-highspeed;
+			max-frequency = <50000000>;
+
+			non-removable;
+			disable-wp;
+
+			mmc-pwrseq = <&sdio_pwrseq>;
+
+			vmmc-supply = <&vcc_3v3>;
+			vqmmc-supply = <&vcc_3v3>;
+		};
+	};
+};
+

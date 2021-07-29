@@ -1,0 +1,57 @@
+/*
+ * Copyright (c) 2017 BayLibre, SAS.
+ * Author: Neil Armstrong <narmstrong@baylibre.com>
+ *
+ * SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+ */
+
+/*
+ * Overlay aimed to add support for the Raspberry Pi Sense Hat
+ */
+
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/gpio/meson-gxl-gpio.h>
+
+/ {
+	compatible = "libretech,cc", "amlogic,s905x", "amlogic,meson-gxl";
+
+	fragment@1 {
+		target = <&i2c_AO>;
+		
+		__overlay__ {
+			rpi-sense@46 {
+				compatible = "rpi,rpi-sense";
+				reg = <0x46>;
+				keys-int-gpios = <&gpio GPIOX_14 GPIO_ACTIVE_LOW>;
+				status = "okay";
+			};
+
+			lsm9ds1-magn@1c {
+				compatible = "st,lsm9ds1-magn";
+				reg = <0x1c>;
+				status = "okay";
+			};
+
+			lsm9ds1-accel6a {
+				compatible = "st,lsm9ds1-accel";
+				reg = <0x6a>;
+				status = "okay";
+			};
+
+			lps25h-press@5c {
+				compatible = "st,lps25h-press";
+				reg = <0x5c>;
+				status = "okay";
+			};
+
+			hts221-humid@5f {
+				compatible = "st,hts221-humid";
+				reg = <0x5f>;
+				status = "okay";
+			};
+		};
+	};
+};

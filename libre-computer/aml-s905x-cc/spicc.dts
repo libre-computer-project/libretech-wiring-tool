@@ -1,0 +1,41 @@
+/*
+ * Copyright (c) 2017 BayLibre, SAS.
+ * Author: Neil Armstrong <narmstrong@baylibre.com>
+ *
+ * SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+ */
+
+/*
+ * Overlay aimed to enable SPICC on Header 7J1 :
+ * Pins 19 (MOSI), 21 (MISO), 23 (CLK), 24 (SS0)
+ */
+
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/gpio/meson-gxl-gpio.h>
+
+/ {
+	compatible = "libretech,cc", "amlogic,s905x", "amlogic,meson-gxl";
+
+	fragment@0 {
+		target-path = "/aliases";
+
+		__overlay__ {
+			spi0 = "/soc/cbus@c1100000/spi@8d80";
+		};
+	};
+
+	fragment@1 {
+		target = <&spicc>;
+		
+		__overlay__ {
+			status = "okay";
+			pinctrl-0 = <&spi_pins>;
+			pinctrl-names = "default";
+
+			cs-gpios = <&gpio GPIOX_10 GPIO_ACTIVE_LOW>;
+		};
+	};
+};

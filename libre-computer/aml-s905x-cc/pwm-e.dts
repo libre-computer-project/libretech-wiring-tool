@@ -1,0 +1,31 @@
+/*
+ * Copyright (c) 2017 BayLibre, SAS.
+ * Author: Neil Armstrong <narmstrong@baylibre.com>
+ *
+ * SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+ */
+
+/*
+ * Overlay aimed to enable PWM E on Header 7J1 Pin 32
+ */
+
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/clock/gxbb-clkc.h>
+
+/ {
+	compatible = "libretech,cc", "amlogic,s905x", "amlogic,meson-gxl";
+
+	fragment@0 {
+		target = <&pwm_ef>;
+		
+		__overlay__ {
+			status = "okay";
+			pinctrl-0 = <&pwm_e_pins>;
+			pinctrl-names = "default";
+			clocks = <&clkc CLKID_FCLK_DIV4>;
+			clock-names = "clkin0";
+		};
+	};
+};
