@@ -10,7 +10,7 @@ if ! ./ldto isActive spicc-cs1; then
 	sleep 1
 fi
 if ./ldto isActive spidev-spicc-cs1; then
-	./ldto disable spidev-cc-cs1
+	./ldto disable spidev-spicc-cs1
 	sleep 1
 fi
 if ! ./ldto isActive spidev-spicc-cs1; then
@@ -22,4 +22,21 @@ echo spidev > /sys/bus/spi/devices/spi0.1/driver_override
 sleep 1
 echo spi0.0 > /sys/bus/spi/drivers/spidev/bind
 echo spi0.1 > /sys/bus/spi/drivers/spidev/bind
+sleep 1
+for spic in 0 1; do
+	for mode in 0 1 2 3; do
+		for speed in 500000 1000000 2000000 4000000 8000000 16000000; do
+			dev=/dev/spidev0.$spic
+			count=$((speed * 2048 / 1000 / 1000))
+			size=$((count >> 1))
+			echo
+			echo "Testing $dev in mode $mode at speed $speed Hz with $size KB"
+			echo
+			spi-config -d $dev -m $mode -s $speed -w &
+			pid=$!
+			tr '\0' '4' < /dev/zero | dd bs=512 count=$count of=$dev
+			kill $pid
+		done
+	done
+done
 
