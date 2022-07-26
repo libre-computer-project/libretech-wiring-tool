@@ -99,6 +99,7 @@ LDTO_isActiveOverlay()
 LDTO_showHelp()
 {
 	echo "$0 list"
+	echo "$0 isActive [OVERLAY]"
 	echo "$0 enable [OVERLAY]"
 	echo "$0 disable [OVERLAY]"
 }
