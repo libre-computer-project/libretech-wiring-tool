@@ -24,8 +24,8 @@ echo spi0.0 > /sys/bus/spi/drivers/spidev/bind
 echo spi0.1 > /sys/bus/spi/drivers/spidev/bind
 sleep 1
 for spic in 0 1; do
-	for mode in 0 1 2 3; do
-		for speed in 500000 1000000 2000000 4000000 8000000 16000000; do
+	for speed in 500000 1000000 2000000 4000000 8000000 16000000; do
+		for mode in 0 1 2 3; do
 			dev=/dev/spidev0.$spic
 			count=$((speed * 2048 / 1000 / 1000))
 			size=$((count >> 1))
