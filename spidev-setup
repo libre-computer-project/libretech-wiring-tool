@@ -1,0 +1,42 @@
+#!/bin/bash
+
+set -e
+
+if [ -z "$1" -o -z "$2" ]; then
+	echo "$0 NAME CS [NUM]" >&2
+	exit 1
+fi
+
+SPI=spi$1
+SPI_CS=0
+if [ "$2" -gt 0 ]; then
+	SPI=$SPI-cs$2
+	CS=1
+fi
+
+SPI_NUM=0
+if [ ! -z "$3" ]; then
+	SPI_NUM=$3
+fi
+
+if ./ldto isActive $SPI || ./ldto isActive $SPI-cs1; then #need to check all CS
+	echo "SPI $1 is already active." >&2
+	exit 1
+fi
+
+./ldto enable $SPI
+sleep 1
+
+./ldto enable $SPI-spidev
+sleep 1
+
+echo spidev > /sys/bus/spi/devices/spi${SPI_NUM}.0/driver_override
+if [ "$CS" -gt 0 ]; then #need to account for more cs
+	echo spidev > /sys/bus/spi/devices/spi${SPI_NUM}.1/driver_override
+fi
+sleep 1
+
+echo spi$${SPI_NUM}.0 > /sys/bus/spi/drivers/spidev/bind
+if [ "$CS" -eq 1 ]; then #need to account for more cs
+	echo spi${SPI_NUM}.1 > /sys/bus/spi/drivers/spidev/bind
+fi
