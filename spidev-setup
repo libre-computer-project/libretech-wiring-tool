@@ -1,4 +1,7 @@
-#!/bin/bash
+#!/bin/sh
+
+# Copyright (C) 2021 Da Xue <da@libre.computer>
+# All rights reserved. 
 
 set -e
 
@@ -36,7 +39,19 @@ if [ "$CS" -gt 0 ]; then #need to account for more cs
 fi
 sleep 1
 
-echo spi$${SPI_NUM}.0 > /sys/bus/spi/drivers/spidev/bind
+echo spi${SPI_NUM}.0 > /sys/bus/spi/drivers/spidev/bind
 if [ "$CS" -eq 1 ]; then #need to account for more cs
 	echo spi${SPI_NUM}.1 > /sys/bus/spi/drivers/spidev/bind
 fi
+
+sleep 1
+ret=0
+if [ ! -e /dev/spidev${SPI_NUM}.0 ]; then
+	echo "SPI $1 C0 failed." >&2
+	ret=1
+fi
+if [ ! -e /dev/spidev${SPI_NUM}.1 ]; then #need to account for more cs
+	echo "SPI $1 C$CS failed." >&2
+	ret=1
+fi
+exit $ret

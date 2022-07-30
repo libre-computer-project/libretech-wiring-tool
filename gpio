@@ -1,0 +1,165 @@
+#!/bin/bash
+
+# Copyright (C) 2021 Da Xue <da@libre.computer>
+# All rights reserved. 
+# PURPOSE: GPIO mapping and testing
+
+#set -x
+set -e
+
+if [ -z "$VENDOR" ]; then
+	if [ ! -e /sys/class/dmi/id/board_vendor ]; then
+		echo "No vendor found!" >&2
+		exit 1
+	fi
+	VENDOR=$(tr -d '\0' < /sys/class/dmi/id/board_vendor)
+fi
+
+
+if [ -z "$BOARD" ]; then
+	if [ ! -e /sys/class/dmi/id/board_name ]; then
+		echo "No boardname found!" >&2
+		exit 1
+	fi
+	BOARD=$(tr -d '\0' < /sys/class/dmi/id/board_name)
+fi
+
+cd $(CDPATH= cd -- "$(dirname -- "$0")" && pwd -P)
+
+if [ ! -f "$VENDOR/$BOARD/gpio.map" ]; then
+	echo "GPIO map not available for this board." >&2
+	exit 1
+fi
+
+MAP_FILE="$VENDOR/$BOARD/gpio.map"
+TAB_CHAR='	'
+
+LDTO_GPIO_help(){
+	echo "$0 {info,rpi}" >&2
+	exit 1
+}
+LDTO_GPIO_getColumn(){
+	local cols=$(grep -i "#header" "$MAP_FILE" | grep -io "^.*$1$TAB_CHAR")
+	if [ -z "$cols" ]; then
+		echo "$FUNCNAME: invalid column name: $1" >&2
+		exit 1
+	fi
+	local col=$(echo "${cols//[^	]}" | wc -c)
+	echo $((col - 1))
+}
+LDTO_GPIO_info(){
+	if [ $# -lt 1 ]; then
+		echo "$0 info [header] pin [type=all,chip,line,sysfs,name,pad,ref,desc]" >&2
+		exit 1
+	fi
+	
+	local header
+	if [ "$1" -eq "$1" ] 2> /dev/null; then
+		header=$(grep -v '^#' "$MAP_FILE" | head -n 1 | cut -f 1 -d "$TAB_CHAR")
+	else
+		header="$1"
+		shift
+	fi
+	if ! grep -i "^$header$TAB_CHAR" "$MAP_FILE" > /dev/null; then
+		echo "FUNCNAME: header does not exist." >&2
+		exit 1
+	fi
+	
+	local pin
+	if [ "$1" -ne "$1" ] 2> /dev/null; then
+		echo "$FUNCNAME: pin must be a number" >&2
+		exit 1
+	fi
+	pin="$1"
+	shift
+	if ! grep -i "^$header$TAB_CHAR$pin$TAB_CHAR" "$MAP_FILE"> /dev/null; then
+		echo "FUNCNAME: pin does not exist." >&2
+		exit 1
+	fi
+	
+	if [ -z "$1" -o "${1,,}" = "all" ]; then
+		grep -i "#header" "$MAP_FILE" | cut -f 3- -d "$TAB_CHAR"
+		grep -i "^$header$TAB_CHAR$pin$TAB_CHAR" "$MAP_FILE" | cut -f 3- -d "$TAB_CHAR"
+	elif [ "$1" = "${1/,}" ]; then
+		grep -i "^$header$TAB_CHAR$pin$TAB_CHAR" "$MAP_FILE" | cut -f $(LDTO_GPIO_getColumn "$1") -d "$TAB_CHAR"
+	else
+		local colnames
+		for col in $@; do
+			colnames="$colnames ${col//,/ }"
+		done
+		local cols=""
+		for colname in $colnames; do
+			cols="$cols,$(LDTO_GPIO_getColumn "$colname")"
+		done
+		grep -i "#header" "$MAP_FILE" | cut -f "${cols:1}" -d "$TAB_CHAR"
+		grep -i "^$header$TAB_CHAR$pin$TAB_CHAR" "$MAP_FILE" | cut -f "${cols:1}" -d "$TAB_CHAR"
+	fi
+}
+LDTO_GPIO_rpi(){
+	if [ $# -lt 1 ]; then
+		echo "$0 rpi pin [type=all,chip,line,sysfs,name,pad,ref,desc]" >&2
+		exit 1
+	fi
+	declare -A RPI_GPIO2PIN
+	RPI_GPIO2PIN[2]=3
+	RPI_GPIO2PIN[3]=5
+	RPI_GPIO2PIN[4]=7
+	RPI_GPIO2PIN[14]=8
+	RPI_GPIO2PIN[15]=10
+	RPI_GPIO2PIN[17]=11
+	RPI_GPIO2PIN[18]=12
+	RPI_GPIO2PIN[27]=13
+	RPI_GPIO2PIN[22]=15
+	RPI_GPIO2PIN[23]=16
+	RPI_GPIO2PIN[24]=18
+	RPI_GPIO2PIN[10]=19
+	RPI_GPIO2PIN[9]=21
+	RPI_GPIO2PIN[25]=22
+	RPI_GPIO2PIN[11]=23
+	RPI_GPIO2PIN[8]=24
+	RPI_GPIO2PIN[7]=26
+	RPI_GPIO2PIN[SDA0]=27
+	RPI_GPIO2PIN[SCL0]=28
+	RPI_GPIO2PIN[ID_SD]=27
+	RPI_GPIO2PIN[ID_SC]=28
+	RPI_GPIO2PIN[5]=29
+	RPI_GPIO2PIN[6]=31
+	RPI_GPIO2PIN[12]=32
+	RPI_GPIO2PIN[13]=33
+	RPI_GPIO2PIN[19]=35
+	RPI_GPIO2PIN[16]=36
+	RPI_GPIO2PIN[26]=37
+	RPI_GPIO2PIN[20]=38
+	RPI_GPIO2PIN[21]=40
+	local rpi_gpio=$1
+	shift
+	if [[ ! -v RPI_GPIO2PIN[$rpi_gpio] ]]; then
+		echo "$FUNCNAME: rpi gpio does not exist." >&2
+		exit 1
+	fi
+	LDTO_GPIO_info ${RPI_GPIO2PIN[$rpi_gpio]} $@
+}
+
+LDTO_GPIO_root(){
+	if [ "$USER" != "root" ]; then
+		echo "Please run this as root." >&2
+		exit 1
+	fi
+}
+
+cmd=LDTO_GPIO_help
+case "${1,,}" in
+	info)
+		cmd=LDTO_GPIO_info
+		;;
+	rpi)
+		cmd=LDTO_GPIO_rpi
+		;;
+	*)
+		$cmd
+		exit 1
+		;;
+esac
+shift
+$cmd $@
+

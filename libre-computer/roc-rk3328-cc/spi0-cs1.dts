@@ -1,0 +1,27 @@
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/pinctrl/rockchip.h>
+
+/ {
+	compatible = "rockchip,rk3328";
+
+	fragment@0 {
+		target-path = "/aliases";
+		
+		__overlay__ {
+			spi0 = "/soc/spi@ff190000";
+		};
+	};
+	fragment@1 {
+		target = <&spi0>;
+		
+		__overlay__ {
+			status = "okay";
+			num-cs = <2>;
+			pinctrl-names = "default", "default";
+			pinctrl-1 = <&spi0m0_cs1>;
+		};
+	};
+};

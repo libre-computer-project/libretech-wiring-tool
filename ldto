@@ -26,6 +26,8 @@ if [ -z "$BOARD" ]; then
 	BOARD=$(tr -d '\0' < /sys/class/dmi/id/board_name)
 fi
 
+cd $(CDPATH= cd -- "$(dirname -- "$0")" && pwd -P)
+
 OVERLAYS=/sys/kernel/config/device-tree/overlays
 
 FIRMWARE=$VENDOR/$BOARD
