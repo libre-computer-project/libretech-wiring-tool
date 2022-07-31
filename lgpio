@@ -1,7 +1,6 @@
 #!/bin/bash
-
+# SPDX-License-Identifier: CC-BY-NC-4.0
 # Copyright (C) 2021 Da Xue <da@libre.computer>
-# All rights reserved. 
 # PURPOSE: GPIO mapping and testing
 
 #set -x
@@ -34,11 +33,11 @@ fi
 MAP_FILE="$VENDOR/$BOARD/gpio.map"
 TAB_CHAR='	'
 
-LDTO_GPIO_help(){
-	echo "$0 {info,rpi}" >&2
+LGPIO_help(){
+	echo "$0 {info,bcm}" >&2
 	exit 1
 }
-LDTO_GPIO_getColumn(){
+LGPIO_getColumn(){
 	local cols=$(grep -i "#header" "$MAP_FILE" | grep -io "^.*$1$TAB_CHAR")
 	if [ -z "$cols" ]; then
 		echo "$FUNCNAME: invalid column name: $1" >&2
@@ -47,7 +46,7 @@ LDTO_GPIO_getColumn(){
 	local col=$(echo "${cols//[^	]}" | wc -c)
 	echo $((col - 1))
 }
-LDTO_GPIO_info(){
+LGPIO_info(){
 	if [ $# -lt 1 ]; then
 		echo "$0 info [header] pin [type=all,chip,line,sysfs,name,pad,ref,desc]" >&2
 		exit 1
@@ -81,7 +80,7 @@ LDTO_GPIO_info(){
 		grep -i "#header" "$MAP_FILE" | cut -f 3- -d "$TAB_CHAR"
 		grep -i "^$header$TAB_CHAR$pin$TAB_CHAR" "$MAP_FILE" | cut -f 3- -d "$TAB_CHAR"
 	elif [ "$1" = "${1/,}" ]; then
-		grep -i "^$header$TAB_CHAR$pin$TAB_CHAR" "$MAP_FILE" | cut -f $(LDTO_GPIO_getColumn "$1") -d "$TAB_CHAR"
+		grep -i "^$header$TAB_CHAR$pin$TAB_CHAR" "$MAP_FILE" | cut -f $(LGPIO_getColumn "$1") -d "$TAB_CHAR"
 	else
 		local colnames
 		for col in $@; do
@@ -89,71 +88,71 @@ LDTO_GPIO_info(){
 		done
 		local cols=""
 		for colname in $colnames; do
-			cols="$cols,$(LDTO_GPIO_getColumn "$colname")"
+			cols="$cols,$(LGPIO_getColumn "$colname")"
 		done
 		grep -i "#header" "$MAP_FILE" | cut -f "${cols:1}" -d "$TAB_CHAR"
 		grep -i "^$header$TAB_CHAR$pin$TAB_CHAR" "$MAP_FILE" | cut -f "${cols:1}" -d "$TAB_CHAR"
 	fi
 }
-LDTO_GPIO_rpi(){
+LGPIO_bcm(){
 	if [ $# -lt 1 ]; then
-		echo "$0 rpi pin [type=all,chip,line,sysfs,name,pad,ref,desc]" >&2
+		echo "$0 bcm pin [type=all,chip,line,sysfs,name,pad,ref,desc]" >&2
 		exit 1
 	fi
-	declare -A RPI_GPIO2PIN
-	RPI_GPIO2PIN[2]=3
-	RPI_GPIO2PIN[3]=5
-	RPI_GPIO2PIN[4]=7
-	RPI_GPIO2PIN[14]=8
-	RPI_GPIO2PIN[15]=10
-	RPI_GPIO2PIN[17]=11
-	RPI_GPIO2PIN[18]=12
-	RPI_GPIO2PIN[27]=13
-	RPI_GPIO2PIN[22]=15
-	RPI_GPIO2PIN[23]=16
-	RPI_GPIO2PIN[24]=18
-	RPI_GPIO2PIN[10]=19
-	RPI_GPIO2PIN[9]=21
-	RPI_GPIO2PIN[25]=22
-	RPI_GPIO2PIN[11]=23
-	RPI_GPIO2PIN[8]=24
-	RPI_GPIO2PIN[7]=26
-	RPI_GPIO2PIN[SDA0]=27
-	RPI_GPIO2PIN[SCL0]=28
-	RPI_GPIO2PIN[ID_SD]=27
-	RPI_GPIO2PIN[ID_SC]=28
-	RPI_GPIO2PIN[5]=29
-	RPI_GPIO2PIN[6]=31
-	RPI_GPIO2PIN[12]=32
-	RPI_GPIO2PIN[13]=33
-	RPI_GPIO2PIN[19]=35
-	RPI_GPIO2PIN[16]=36
-	RPI_GPIO2PIN[26]=37
-	RPI_GPIO2PIN[20]=38
-	RPI_GPIO2PIN[21]=40
-	local rpi_gpio=$1
+	declare -A BCM_GPIO2PIN
+	BCM_GPIO2PIN[2]=3
+	BCM_GPIO2PIN[3]=5
+	BCM_GPIO2PIN[4]=7
+	BCM_GPIO2PIN[14]=8
+	BCM_GPIO2PIN[15]=10
+	BCM_GPIO2PIN[17]=11
+	BCM_GPIO2PIN[18]=12
+	BCM_GPIO2PIN[27]=13
+	BCM_GPIO2PIN[22]=15
+	BCM_GPIO2PIN[23]=16
+	BCM_GPIO2PIN[24]=18
+	BCM_GPIO2PIN[10]=19
+	BCM_GPIO2PIN[9]=21
+	BCM_GPIO2PIN[25]=22
+	BCM_GPIO2PIN[11]=23
+	BCM_GPIO2PIN[8]=24
+	BCM_GPIO2PIN[7]=26
+	BCM_GPIO2PIN[SDA0]=27
+	BCM_GPIO2PIN[SCL0]=28
+	BCM_GPIO2PIN[ID_SD]=27
+	BCM_GPIO2PIN[ID_SC]=28
+	BCM_GPIO2PIN[5]=29
+	BCM_GPIO2PIN[6]=31
+	BCM_GPIO2PIN[12]=32
+	BCM_GPIO2PIN[13]=33
+	BCM_GPIO2PIN[19]=35
+	BCM_GPIO2PIN[16]=36
+	BCM_GPIO2PIN[26]=37
+	BCM_GPIO2PIN[20]=38
+	BCM_GPIO2PIN[21]=40
+	local bcm_gpio=$1
 	shift
-	if [[ ! -v RPI_GPIO2PIN[$rpi_gpio] ]]; then
-		echo "$FUNCNAME: rpi gpio does not exist." >&2
+	if [[ ! -v BCM_GPIO2PIN[$bcm_gpio] ]]; then
+		echo "$FUNCNAME: bcm gpio does not exist." >&2
 		exit 1
 	fi
-	LDTO_GPIO_info ${RPI_GPIO2PIN[$rpi_gpio]} $@
+	LGPIO_info ${BCM_GPIO2PIN[$bcm_gpio]} $@
 }
 
-LDTO_GPIO_root(){
+LGPIO_root(){
 	if [ "$USER" != "root" ]; then
 		echo "Please run this as root." >&2
 		exit 1
 	fi
 }
 
-cmd=LDTO_GPIO_help
+cmd=LGPIO_help
 case "${1,,}" in
 	info)
-		cmd=LDTO_GPIO_info
+		cmd=LGPIO_info
 		;;
-	rpi)
-		cmd=LDTO_GPIO_rpi
+	bcm)
+		cmd=LGPIO_bcm
 		;;
 	*)
 		$cmd

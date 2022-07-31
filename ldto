@@ -1,7 +1,6 @@
 #!/bin/sh
-
+# SPDX-License-Identifier: CC-BY-NC-4.0
 # Copyright (C) 2021 Da Xue <da@libre.computer>
-# All rights reserved. 
 # PURPOSE: Manage the application and removal of device tree overlays in the Linux kernel.
 
 if [ "$USER" != "root" ]; then
