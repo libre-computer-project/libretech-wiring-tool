@@ -15,14 +15,14 @@ SPICSMAX="0"
 while true; do
 	if [ ! -e "/dev/spidev${SPIDEVNUM}.${SPICSMAX}" ]; then
 		if [ "$SPICSMAX" -eq 0 ]; then
-			echo "SPIDEV $SPIDEV does not exist." >&2
+			echo "SPIDEV $SPIDEVNUM does not exist." >&2
 			exit 1
 		fi
 		break
 	fi
 	((SPICSMAX++))
 done
-echo "SPIDEV $0 has $SPICSMAX chip enable(s)." >&2
+echo "SPIDEV $SPIDEVNUM has $SPICSMAX chip enable(s)." >&2
 
 freq=500000
 chip=0
