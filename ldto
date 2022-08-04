@@ -76,7 +76,7 @@ LDTO_listActiveOverlays()
 LDTO_listOverlays()
 {
 	local dtbos=$FIRMWARE/*.dtbo
-	if [ "$dtbos" = "$FIRMWARE/*.dtbo" ]; then
+	if [ -z "$(ls $dtbos)" ]; then
 		echo "No overlays detected. Did you run make?" >&2
 		return 1
 	fi
