@@ -1,0 +1,31 @@
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/gpio/meson-gxl-gpio.h>
+
+/ {
+	compatible = "libretech,cc", "amlogic,s905x", "amlogic,meson-gxl";
+
+	fragment@0 {
+		target-path = "/";
+		
+		__overlay__ {
+			spigpio {
+				compatible = "spi-gpio";
+				#address-cells = <1>;
+				#size-cells = <0>;
+				ranges;
+	
+				gpio-sck = <&gpio GPIOX_11 GPIO_ACTIVE_HIGH>;
+				gpio-miso = <&gpio GPIOX_9 GPIO_ACTIVE_HIGH>;
+				gpio-mosi = <&gpio GPIOX_8 GPIO_ACTIVE_HIGH>;
+				cs-gpios = <&gpio GPIOX_10 GPIO_ACTIVE_LOW>, <&gpio GPIOX_1 GPIO_ACTIVE_LOW>;
+				num-chipselects = <2>;
+				status = "okay";
+			};
+
+		};
+	};
+};
+
