@@ -34,7 +34,7 @@ stop=0
 echo "Press q to quit, m to change mode, c to change chip select, w and s to double/half freq." >&2
 
 while [ $stop -eq 0 ]; do
-	echo "Testing SPI ${SPIDEVNUM} CHIP ${chip} MODE ${mode} @ ${freq}Hz ." >&2
+	echo "Testing SPI ${SPIDEVNUM} CHIP ${chip} MODE ${mode} @ ${freq}Hz." >&2
 	dev=/dev/spidev$SPIDEVNUM.$chip
 	spi-config -d $dev -m $mode -s $freq -w &
 	spi_config_pid=$!
