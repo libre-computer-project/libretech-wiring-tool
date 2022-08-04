@@ -7,6 +7,9 @@ set -e
 
 if [ -z "$1" -o -z "$2" ]; then
 	echo "$0 NAME CS [NUM]" >&2
+	echo "NAME is the overlay name, eg. 0 or cc or gpio." >&2
+	echo "CS is the number of additional overlay chip select, eg 0 for one chip select, 1 for two chip select." >&2
+	echo "NUM is the SPI number, eg 0 or 1." >&2
 	exit 1
 fi
 
