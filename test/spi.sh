@@ -10,6 +10,11 @@ if [ -z "$1" ]; then
 	exit 1
 fi
 
+if ! which spi-config > /dev/null; then
+	echo "$0 requires spi-config from spi-tools." >&2
+	exit 1
+fi
+
 SPIDEVNUM="$1"
 SPICSMAX="0"
 while true; do
