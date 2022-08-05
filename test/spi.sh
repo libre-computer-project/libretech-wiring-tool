@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: CC-BY-NC-4.0             
+# Copyright (C) 2021 Da Xue <da@libre.computer>                                                          
+# PURPOSE: testing SPI chip select, modes, and frequency   
 
 if [ "$USER" != "root" ]; then
 	echo "Please run this as root." >&2
@@ -36,7 +39,11 @@ data='S'
 block=512
 stop=0
 
-echo "Press q to quit, m to change mode, c to change chip select, w and s to double/half freq." >&2
+function TEST_SPI_help(){
+	echo "Press q to quit, m to change mode, c to change chip select, w and s to double/half freq." >&2
+}
+
+TEST_SPI_help
 
 while [ $stop -eq 0 ]; do
 	echo "Testing SPI ${SPIDEVNUM} CHIP ${chip} MODE ${mode} @ ${freq}Hz." >&2
@@ -68,9 +75,13 @@ while [ $stop -eq 0 ]; do
 			else
 				freq=$((freq >> 1))
 			fi
-			;;	
+			;;
+		h)
+			TEST_SPI_help
+			;;
 		*)
 			echo "Unrecognized command character $ctrl_char." >&2
+			TEST_SPI_help
 			;;
 	esac
 done
