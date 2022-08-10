@@ -33,7 +33,9 @@
 		__overlay__ {
 			status = "okay";
 			pinctrl-0 = <&spi_pins>;
-			pinctrl-names = "default";
+			pinctrl-1 = <&spi_pins>, <&spi_idle_high_pins>;
+			pinctrl-2 = <&spi_pins>, <&spi_idle_low_pins>;
+			pinctrl-names = "default", "idle-high", "idle-low";
 
 			cs-gpios = <&gpio GPIOX_10 GPIO_ACTIVE_LOW>, <&gpio GPIOX_1 GPIO_ACTIVE_LOW>;
 		};
