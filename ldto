@@ -25,11 +25,16 @@ if [ -z "$BOARD" ]; then
 	BOARD=$(tr -d '\0' < /sys/class/dmi/id/board_name)
 fi
 
+PATH_OF_CONFIG=/sys/kernel/config/device-tree/overlays
+
+if [ ! -d "$PATH_OF_CONFIG" ]; then
+	echo "Please use a Libre Computer kernel. The current kernel is not supported."
+	exit 1
+fi
+
 cd $(CDPATH= cd -- "$(dirname -- "$0")" && pwd -P)
 
-OVERLAYS=/sys/kernel/config/device-tree/overlays
-
-FIRMWARE=$VENDOR/$BOARD
+PATH_DTBO=$VENDOR/$BOARD/dt
 
 LDTO_enableOverlay()
 {
@@ -37,18 +42,18 @@ LDTO_enableOverlay()
 		LDTO_listOverlays
 		return 1
 	fi
-	DTBO="$FIRMWARE/$1.dtbo"
+	DTBO="$PATH_DTBO/$1.dtbo"
 	if [ ! -f $DTBO ]; then
 		echo "Overlay $1: does not exist and cannot be added" >&2
 		return 1
 	fi
-	if [ -e $OVERLAYS/$1 ]; then
+	if [ -e $PATH_OF_CONFIG/$1 ]; then
 		echo "Overlay $1: already exists" >&2
 		return 1
 	fi
-	mkdir $OVERLAYS/$1
-	cat $FIRMWARE/$1.dtbo > $OVERLAYS/$1/dtbo
-	echo "Overlay $1: `cat $OVERLAYS/$1/status`" >&2
+	mkdir $PATH_OF_CONFIG/$1
+	cat $PATH_DTBO/$1.dtbo > $PATH_OF_CONFIG/$1/dtbo
+	echo "Overlay $1: `cat $PATH_OF_CONFIG/$1/status`" >&2
 }
 
 LDTO_disableOverlay()
@@ -57,25 +62,25 @@ LDTO_disableOverlay()
 		listActiveOverlays
 		return 1
 	fi
-	if [ ! -e "$OVERLAYS/$1" ]; then
+	if [ ! -e "$PATH_OF_CONFIG/$1" ]; then
 		echo "Overlay $1: does not exist and cannot be removed" >&2
 		return 1
 	fi
-	rmdir $OVERLAYS/$1
+	rmdir $PATH_OF_CONFIG/$1
 	echo "Overlay $1: removed" >&2
 }
 
 LDTO_listActiveOverlays()
 {
 	echo "#Active Overlays:" >&2
-	for i in `ls $OVERLAYS`;
+	for i in `ls $PATH_OF_CONFIG`;
 	do
 		basename $i
 	done
 }
 LDTO_listOverlays()
 {
-	local dtbos=$FIRMWARE/*.dtbo
+	local dtbos=$PATH_DTBO/*.dtbo
 	if [ -z "$(ls $dtbos)" ]; then
 		echo "No overlays detected. Did you run make?" >&2
 		return 1
@@ -92,7 +97,7 @@ LDTO_isActiveOverlay()
 	if [ -z "$1" ]; then
 		return 1
 	fi
-	for i in `ls $OVERLAYS`;
+	for i in `ls $PATH_OF_CONFIG`;
 	do
 		if [ "$1" = $(basename $i) ]; then
 			return 0

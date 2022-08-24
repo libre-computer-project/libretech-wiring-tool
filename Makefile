@@ -2,7 +2,7 @@ GCC?=gcc
 DTC?=dtc
 DTC_OPTIONS?=-@ -q
 
-OBJECTS:= $(patsubst %.dts,%.dtbo,$(wildcard libre-computer/*/*.dts))
+OBJECTS:= $(patsubst %.dts,%.dtbo,$(wildcard libre-computer/*/dt/*.dts))
 
 all: $(OBJECTS)
 
