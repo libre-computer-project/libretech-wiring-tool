@@ -1,5 +1,5 @@
-#!/bin/sh
-# SPDX-License-Identifier: CC-BY-NC-4.0
+#!/bin/bash
+# SPDX-License-Identifier: GPL-2.0
 # Copyright (C) 2021 Da Xue <da@libre.computer>
 # PURPOSE: Manage the application and removal of device tree overlays in the Linux kernel.
 
@@ -19,7 +19,7 @@ fi
 
 if [ -z "$BOARD" ]; then
 	if [ ! -e /sys/class/dmi/id/board_name ]; then
-		echo "No boardname found!" >&2
+		echo "No board name found!" >&2
 		exit 1
 	fi
 	BOARD=$(tr -d '\0' < /sys/class/dmi/id/board_name)
@@ -28,15 +28,15 @@ fi
 PATH_OF_CONFIG=/sys/kernel/config/device-tree/overlays
 
 if [ ! -d "$PATH_OF_CONFIG" ]; then
-	echo "Please use a Libre Computer kernel. The current kernel is not supported."
+	echo "The running kernel does not supported by this tool." >&2
 	exit 1
 fi
 
-cd $(CDPATH= cd -- "$(dirname -- "$0")" && pwd -P)
+cd $(dirname $(readlink -f "${BASH_SOURCE[0]}"))
 
 PATH_DTBO=$VENDOR/$BOARD/dt
 
-LDTO_enableOverlay()
+LDTO_enable()
 {
 	if [ -z "$1" ]; then
 		LDTO_listOverlays
@@ -44,7 +44,7 @@ LDTO_enableOverlay()
 	fi
 	DTBO="$PATH_DTBO/$1.dtbo"
 	if [ ! -f $DTBO ]; then
-		echo "Overlay $1: does not exist and cannot be added" >&2
+		echo "$FUNCNAME: $1 does not exist and cannot be added" >&2
 		return 1
 	fi
 	if [ -e $PATH_OF_CONFIG/$1 ]; then
@@ -56,7 +56,7 @@ LDTO_enableOverlay()
 	echo "Overlay $1: `cat $PATH_OF_CONFIG/$1/status`" >&2
 }
 
-LDTO_disableOverlay()
+LDTO_disable()
 {
 	if [ -z "$1" ]; then
 		listActiveOverlays
@@ -70,15 +70,28 @@ LDTO_disableOverlay()
 	echo "Overlay $1: removed" >&2
 }
 
-LDTO_listActiveOverlays()
+LDTO_active()
 {
-	echo "#Active Overlays:" >&2
-	for i in `ls $PATH_OF_CONFIG`;
-	do
-		basename $i
-	done
+	if [ -z "$1" ]; then
+		echo "#Active Overlays:" >&2
+		for i in `ls $PATH_OF_CONFIG`;
+		do
+			basename $i
+		done
+	else
+		if [ -z "$1" ]; then
+			return 1
+		fi
+		for i in `ls $PATH_OF_CONFIG`;
+		do
+			if [ "$1" = $(basename $i) ]; then
+				return 0
+			fi
+		done
+		return 1
+	fi
 }
-LDTO_listOverlays()
+LDTO_list()
 {
 	local dtbos=$PATH_DTBO/*.dtbo
 	if [ -z "$(ls $dtbos)" ]; then
@@ -90,52 +103,19 @@ LDTO_listOverlays()
 	do
 		basename $i .dtbo
 	done
-	LDTO_listActiveOverlays
-}
-LDTO_isActiveOverlay()
-{
-	if [ -z "$1" ]; then
-		return 1
-	fi
-	for i in `ls $PATH_OF_CONFIG`;
-	do
-		if [ "$1" = $(basename $i) ]; then
-			return 0
-		fi
-	done
-	return 1
+	LDTO_active
 }
 
-LDTO_showHelp()
-{
+LDTO_showHelp(){
 	echo "$0 list"
-	echo "$0 isActive [OVERLAY]"
-	echo "$0 enable [OVERLAY]"
-	echo "$0 disable [OVERLAY]"
+	echo "$0 active [DTBO]"
+	echo "$0 enable [DTBO]"
+	echo "$0 disable [DTBO]"
 }
 
-cmd=LDTO_showHelp
-case "$1" in
-	enable)
-		cmd=LDTO_enableOverlay
-		;;
-	disable)
-		cmd=LDTO_disableOverlay
-		;;
-	list)
-		cmd=LDTO_listOverlays
-		;;
-	listActive)
-		cmd=LDTO_listActiveOverlays
-		;;
-	isActive)
-		cmd=LDTO_isActiveOverlay
-		;;
-	*)
-		$cmd
-		exit 1
-		;;
-esac
-shift
-$cmd $@
-
+cmd=showHelp
+if [ ! -z "$1" ]; then
+	cmd=$1
+	shift
+fi
+LDTO_$cmd $@
