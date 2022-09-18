@@ -1,6 +1,7 @@
 #!/bin/bash
-# SPDX-License-Identifier: CC-BY-NC-4.0             
-# Copyright (C) 2021 Da Xue <da@libre.computer>                                                          
+# SPDX-License-Identifier: GPL-2.0
+# Copyright (C) 2021 Da Xue <da@libre.computer>
+
 # PURPOSE: testing SPI chip select, modes, and frequency   
 
 if [ "$USER" != "root" ]; then

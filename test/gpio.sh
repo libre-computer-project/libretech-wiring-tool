@@ -1,4 +1,6 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-2.0
+# Copyright (C) 2021 Da Xue <da@libre.computer>
 
 if [ "$USER" != "root" ]; then
 	echo "Please run this as root." >&2
@@ -48,7 +50,7 @@ if [ ! -z "$1" ]; then
 	esac
 fi
 
-cd $(CDPATH= cd -- "$(dirname -- "$0")" && pwd -P)/..
+cd $(readlink -f $(dirname ${BASH_SOURCE[0]}))
 
 if [ ! -f "$VENDOR/$BOARD/gpio.map" ]; then
 	echo "GPIO map not available for this board." >&2

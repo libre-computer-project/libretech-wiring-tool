@@ -47,11 +47,14 @@ Chip	Line	sysfs	Name	Pad	Ref	Desc
 
 ## Device Tree Overlay Usage
 ```bash
-sudo ./ldto list # lists overlays
+./ldto list # lists overlays
 sudo ./ldto isActive OVERLAY
 sudo ./ldto enable OVERLAY
 sudo ./ldto disable OVERLAY
 ```
+
+## DTO Alias Stability
+Please note that we will be changing the ldto names and features in the future. This is not yet stable. Once names are stable, we will remove this.
 
 ## Help and Support
 - [Libre Computer Hub](https://hub.libre.computer/t/libre-computer-wiring-tool/40)
