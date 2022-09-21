@@ -1,0 +1,46 @@
+ /*
+ * Copyright (c) Libre Computer
+ * Author: Thomas McKahan <tonymckahan@gmail.com>
+ *
+ * SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+ */
+
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/gpio/meson-gxl-gpio.h>
+
+/ {
+    compatible = "libretech,cc", "amlogic,s905x", "amlogic,meson-gxl";
+
+    /* clock for controller */
+    fragment@0 {
+        target-path = "/";
+        __overlay__ {
+            /* external oscillator of mcp2515 on SPI0.0 */
+            osc_can0: osc_can0 {
+                compatible = "fixed-clock";
+                #clock-cells = <0>;
+                clock-frequency  = <12000000>;
+            };
+        };
+    };
+
+    fragment@1 {
+        target = <&spicc>;
+        __overlay__ {
+            #address-cells = <1>;
+            #size-cells = <0>;
+            can0: mcp2515@0 {
+                compatible = "microchip,mcp2515";
+                reg = <0>;
+                clocks = <&osc_can0>;
+                interrupt-parent = <&gpio_intc>;
+                interrupts = <GPIOX_0 2>;
+                spi-max-frequency = <10000000>;
+            };
+        };
+    };
+};
+
