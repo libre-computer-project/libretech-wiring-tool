@@ -36,10 +36,25 @@ cd $(dirname $(readlink -f "${BASH_SOURCE[0]}"))
 
 PATH_DTBO=$VENDOR/$BOARD/dt
 
+LDTO_list()
+{
+	local dtbos=$PATH_DTBO/*.dtbo
+	if [ -z "$(ls $dtbos 2> /dev/null)" ]; then
+		echo "No overlays detected. Did you run make?" >&2
+		return 1
+	fi
+	echo "#Available Overlays:" >&2
+	for i in $dtbos
+	do
+		basename $i .dtbo
+	done
+	LDTO_active
+}
+
 LDTO_enable()
 {
 	if [ -z "$1" ]; then
-		LDTO_listOverlays
+		LDTO_list
 		return 1
 	fi
 	DTBO="$PATH_DTBO/$1.dtbo"
@@ -59,7 +74,7 @@ LDTO_enable()
 LDTO_disable()
 {
 	if [ -z "$1" ]; then
-		listActiveOverlays
+		LDTO_active
 		return 1
 	fi
 	if [ ! -e "$PATH_OF_CONFIG/$1" ]; then
@@ -90,20 +105,6 @@ LDTO_active()
 		done
 		return 1
 	fi
-}
-LDTO_list()
-{
-	local dtbos=$PATH_DTBO/*.dtbo
-	if [ -z "$(ls $dtbos)" ]; then
-		echo "No overlays detected. Did you run make?" >&2
-		return 1
-	fi
-	echo "#Available Overlays:" >&2
-	for i in $dtbos
-	do
-		basename $i .dtbo
-	done
-	LDTO_active
 }
 
 LDTO_showHelp(){
