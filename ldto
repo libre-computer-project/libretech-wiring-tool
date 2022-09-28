@@ -3,6 +3,8 @@
 # Copyright (C) 2021 Da Xue <da@libre.computer>
 # PURPOSE: Manage the application and removal of device tree overlays in the Linux kernel.
 
+set -e
+
 if [ "$USER" != "root" ]; then
 	echo "Please run this as root." >&2
 	exit 1
@@ -26,6 +28,7 @@ if [ -z "$BOARD" ]; then
 fi
 
 PATH_OF_CONFIG=/sys/kernel/config/device-tree/overlays
+PATH_OF_DT=/sys/firmware/fdt
 
 if [ ! -d "$PATH_OF_CONFIG" ]; then
 	echo "The running kernel does not supported by this tool." >&2
@@ -35,6 +38,7 @@ fi
 cd $(dirname $(readlink -f "${BASH_SOURCE[0]}"))
 
 PATH_DTBO=$VENDOR/$BOARD/dt
+PATH_DTCFG=$VENDOR/$BOARD/dt.config
 
 LDTO_list()
 {
@@ -107,11 +111,99 @@ LDTO_active()
 	fi
 }
 
+LDTO_importDTConfig()
+{
+	if [ -f "$PATH_DTCFG" ]; then
+		. "$PATH_DTCFG"
+	else
+		echo "$FUNCNAME: board device tree configuration cannot be found." >&2
+		return 1
+	fi
+}
+
+LDTO_checkFirmwareDT()
+{
+	if [ ! -e "$PATH_OF_DT" ]; then
+		echo "$FUNCNAME: running system device tree cannot be found." >&2
+		return 1
+	fi
+}
+
+LDTO_findBootPartPath()
+{
+	local mnt_boot=$(cut -f 2 -d " " /proc/mounts  | grep ^/boot)
+	local mnt_boot_count=$(echo "$mnt_boot" | wc -l)
+	if [ $mnt_boot_count -lt 1 ]; then
+		echo "$FUNCNAME: no mounts found under /boot directory." >&2
+		return 1
+	fi
+	for mnt_dir in $mnt_boot; do
+		if [ -d "$mnt_dir"/EFI/BOOT ]; then
+			echo "$mnt_dir"
+			return
+		fi
+	done
+	echo "$FUNCNAME: no EFI boot path found." >&2
+	return 1
+}
+
+LDTO_apply()
+{
+	local path_dtb=$(LDTO_findBootPartPath)/dtb
+	if [ ! -d "$path_dtb" ]; then
+		mkdir -p "$path_dtb"
+	fi
+	local base_dtb="$PATH_OF_DT"
+	local target_dtb="$path_dtb/$DT_OVERRIDE"
+	local target_dtb_path="${target_dtb%/*}"
+	if [ ! -d "$target_dtb_path" ]; then
+		mkdir "$target_dtb_path"
+	fi
+	if [ -f "$target_dtb" ]; then
+		local base_dtb="$target_dtb"
+	fi
+	fdtoverlay -i "$base_dtb" -o "$target_dtb" "$1"
+}
+
+LDTO_merge()
+{
+	LDTO_checkFirmwareDT
+	LDTO_importDTConfig
+	if [ -z "$1" ]; then
+		LDTO_list
+		return 1
+	fi
+	DTBO="$PATH_DTBO/$1.dtbo"
+	if [ ! -f "$DTBO" ]; then
+		echo "$FUNCNAME: $1 does not exist and cannot be added." >&2
+		return 1
+	fi
+	LDTO_apply "$DTBO"
+	echo "Overlay $1: merged for next boot" >&2
+}
+
+LDTO_reset()
+{
+	LDTO_checkFirmwareDT
+	LDTO_importDTConfig
+	local path_dtb=$(LDTO_findBootPartPath)/dtb
+	local target_dtb="$path_dtb/$DT_OVERRIDE"
+	if [ -f "$target_dtb" ]; then
+		rm "$target_dtb"
+		echo "Overlay: reset  for next boot" >&2
+	else
+		echo "$FUNCNAME: no merged overlays detected on system." >&2
+		return 1
+	fi
+}
+
 LDTO_showHelp(){
 	echo "$0 list"
 	echo "$0 active [DTBO]"
 	echo "$0 enable [DTBO]"
 	echo "$0 disable [DTBO]"
+	echo "$0 merge [DTBO]"
+	echo "$0 reset"
 }
 
 cmd=showHelp
