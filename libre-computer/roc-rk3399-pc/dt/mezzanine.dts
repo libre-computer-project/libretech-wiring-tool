@@ -1,0 +1,42 @@
+/dts-v1/;
+/plugin/;
+
+/ {
+	compatible = "libre-computer,roc-rk3399-pc", "rockchip,rk3399";
+	
+	
+	fragment@0 {
+		target-path = "/aliases";
+		
+		__overlay__ {
+			mmc2 = <&sdio0>;
+		};
+	};
+	
+	fragment@1 {
+		target = <&sdio0>;
+		__overlay__ {
+			bus-width = <4>;
+			cap-sd-highspeed;
+			cap-sdio-irq;
+			keep-power-in-suspend;
+			mmc-pwrseq = <&sdio_pwrseq>;
+			pinctrl-names = "default";
+			pinctrl-0 = <&sdio0_bus4 &sdio0_cmd &sdio0_clk>;
+			sd-uhs-sdr104;
+			vmmc-supply = <&vcc3v3_ngff>;
+			vqmmc-supply = <&vcc_1v8>;
+			status = "okay";
+		};
+	};
+
+	fragment@2 {
+		target = <&uart0>;
+		__overlay__ {
+			pinctrl-names = "default";
+			pinctrl-0 = <&uart0_xfer &uart0_cts &uart0_rts>;
+			status = "okay";
+		};
+	};
+	
+};
