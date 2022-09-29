@@ -4,6 +4,25 @@
 #include <dt-bindings/gpio/gpio.h>
 #include <dt-bindings/gpio/meson-gxl-gpio.h>
 
+/*
+32MHz Fmax
+1,17	3.3V		3.3V		3.3V
+2,4	5V		5V		5V
+3,5,7,8,10,12,13,15,16	NC		NC
+6, 9, 14, 20, 25	GND		Power ground
+11	TP_IRQ		GPIOAO_8	The touch panel is interrupted, and it is detected that the touch panel is pressed low
+18	LCD_RS		GPIOX_15	Instruction/data register selection, low level is instruction, high level is data
+19	LCD_SI / TP_SI	GPIOX_8		LCD display / touch panel SPI data input
+21	TP_SO		GPIOX_9		Touch panel SPI data output
+22	RST		GPIOX_0		Reset signal, low reset
+23	LCD_SCK/TP_SCK	GPIOX_11	LCD display / touch panel SPI clock signal
+24	LCD_CS		GPIOX_10	LCD chip select signal, low level enable
+26	TP_CS		GPIOX_1		Touch panel chip select signal, low level enable
+init = <0x10000f1 0x36 0x04 0x00 0x3c 0x0f 0x8f 0x10000f2 0x18 0xa3 0x12 0x02 0xb2 0x12 0xff 0x10 0x00 0x10000f8 0x21 0x04 0x10000f9 0x00 0x08 0x1000036 0x08 0x10000b4 0x00 0x10000c1 0x41 0x10000c5 0x00 0x91 0x80 0x00 0x10000e0 0x0f 0x1f 0x1c 0x0c 0x0f 0x08 0x48 0x98 0x37 0x0a 0x13 0x04 0x11 0x0d 0x00 0x10000e1 0x0f 0x32 0x2e 0x0b 0x0d 0x05 0x47 0x75 0x37 0x06 0x10 0x03 0x24 0x20 0x00 0x100003a 0x55 0x1000011 0x1000036 0x28 0x20000ff 0x1000029>;
+	interrupts = <0x11 0x02>;
+	interrupt-parent = <0xdeadbeef>;
+*/
+
 / {
 	compatible = "libretech,cc", "amlogic,s905x", "amlogic,meson-gxl";
 
@@ -11,23 +30,27 @@
 		target = <&spicc>;
 		
 		__overlay__ {
+			
 			display@0 {
 				compatible = "waveshare,rpi-lcd-35", "ilitek,ili9486";
 				reg = <0>;
-				buswidth = <8>;
 				spi-max-frequency = <30000000>;
-				dc-gpios = <&gpio GPIOX_15 GPIO_ACTIVE_HIGH>;
+				txbuflen = <0x8000>;
+				rotate = <0x5a>;
+				bgr = <0x00>;
+				fps = <0x1e>;
+				buswidth = <8>;
+				regwidth = <16>;
 				reset-gpios = <&gpio GPIOX_0 GPIO_ACTIVE_HIGH>;
-				rotation = <0>;
+				dc-gpios = <&gpio GPIOX_15 GPIO_ACTIVE_HIGH>;
 				status = "okay";
 			};
+			
 			touchscreen@1 {
 				compatible = "ti,ads7846";
 				reg = <1>;
 				spi-max-frequency = <2000000>;
-
 				pendown-gpio = <&gpio GPIOAO_8 GPIO_ACTIVE_HIGH>;
-				
 				ti,x-plate-ohms = /bits/ 16 <60>;
 				ti,pressure-max = /bits/ 16 <255>;
 				status = "okay";
