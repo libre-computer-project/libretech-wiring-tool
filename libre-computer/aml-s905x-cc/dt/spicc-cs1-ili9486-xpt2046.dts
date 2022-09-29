@@ -30,22 +30,22 @@ init = <0x10000f1 0x36 0x04 0x00 0x3c 0x0f 0x8f 0x10000f2 0x18 0xa3 0x12 0x02 0x
 		target = <&spicc>;
 		
 		__overlay__ {
-			
+
 			display@0 {
 				compatible = "waveshare,rpi-lcd-35", "ilitek,ili9486";
 				reg = <0>;
 				spi-max-frequency = <30000000>;
-				txbuflen = <0x8000>;
-				rotate = <0x5a>;
-				bgr = <0x00>;
-				fps = <0x1e>;
+				txbuflen = <32768>;
+				rotate = <90>;
+				bgr = <0>;
+				fps = <30>;
 				buswidth = <8>;
 				regwidth = <16>;
 				reset-gpios = <&gpio GPIOX_0 GPIO_ACTIVE_HIGH>;
 				dc-gpios = <&gpio GPIOX_15 GPIO_ACTIVE_HIGH>;
 				status = "okay";
 			};
-			
+
 			touchscreen@1 {
 				compatible = "ti,ads7846";
 				reg = <1>;
