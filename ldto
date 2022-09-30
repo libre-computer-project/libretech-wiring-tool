@@ -182,19 +182,30 @@ LDTO_merge()
 	echo "Overlay $1: merged for next boot" >&2
 }
 
-LDTO_reset()
+LDTO_checkOverrideDT()
 {
 	LDTO_checkFirmwareDT
 	LDTO_importDTConfig
 	local path_dtb=$(LDTO_findBootPartPath)/dtb
 	local target_dtb="$path_dtb/$DT_OVERRIDE"
-	if [ -f "$target_dtb" ]; then
-		rm "$target_dtb"
-		echo "Overlay: reset  for next boot" >&2
-	else
+	if [ ! -f "$target_dtb" ]; then
 		echo "$FUNCNAME: no merged overlays detected on system." >&2
 		return 1
 	fi
+	echo "$target_dtb"
+}
+
+LDTO_diff()
+{
+	local target_dtb=$(LDTO_checkOverrideDT)
+	diff -y --suppress-common-lines <(dtc -I dtb -O dts "$PATH_OF_DT" 2> /dev/null) <(dtc -I dtb -O dts "$target_dtb" 2> /dev/null)
+}
+
+LDTO_reset()
+{
+	local target_dtb=$(LDTO_checkOverrideDT)
+	rm "$target_dtb"
+	echo "Overlay: reset for next boot" >&2
 }
 
 LDTO_showHelp(){
@@ -203,6 +214,7 @@ LDTO_showHelp(){
 	echo "$0 enable [DTBO]"
 	echo "$0 disable [DTBO]"
 	echo "$0 merge [DTBO]"
+	echo "$0 diff"
 	echo "$0 reset"
 }
 
