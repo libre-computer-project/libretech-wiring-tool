@@ -25,6 +25,6 @@ if [ "${#packages[@]}" -gt 0 ]; then
 	apt install -y ${packages[@]}
 fi
 
-make
+make -j`nproc`
 
 echo "Libre Computer Wiring Tool installed!"
