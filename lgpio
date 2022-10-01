@@ -112,27 +112,34 @@ LGPIO_info(){
 
 LGPIO_get(){
 	if [ $# -lt 1 -o -z "$1" ]; then
-		echo "$0 get [HEADER_][PIN]={0,1}" >&2
+		echo "$0 get [HEADER] PIN" >&2
 		return 1
-	elif [ $# -gt 1 ]; then
+	elif [ $# -gt 2 ]; then
 		echo "$FUNCNAME: only support one pin at a time." >&2
 		return 1
 	fi
-	if [ -z "${1//*_*}" ]; then
-		local header="${1//_[0-9]*}"
-		local pin="${1//*_}"
-		if [ ! -z "${pin//[0-9]}" ]; then
-			echo "$FUNCNAME: pin must be numeric." >&2
+	if [ -z "$2" ]; then
+		local header=$(LGPIO_getDefaultHeader)
+	else
+		local header_match=0
+		for header in $(LGPIO_headers); do
+			if [ $header = "${1^^}" ]; then
+				header_match=1
+				break
+			fi
+		done
+		if [ "$header_match" -eq 0 ]; then
+			echo "$FUNCNAME: header $1 not found." >&2
 			return 1
 		fi
-	elif [ -z "${1//[0-9]}" ]; then
-		local header=$(LGPIO_getDefaultHeader)
-		local pin="${1}"
-	else
-		echo "$FUNCNAME: unable to determine header or pin from parameter." >&2
+		shift
+	fi
+	local pin="$1"
+	if [ ! -z "${pin//[0-9]}" ]; then
+		echo "$FUNCNAME: pin must be numeric." >&2
 		return 1
 	fi
-	local gpiod=$(LGPIO_info $pin gpiod)
+	local gpiod=$(LGPIO_info $header $pin gpiod)
 	if [ -z "${gpiod//[0-9$TAB_CHAR]}" ]; then
 		gpioget $gpiod
 	else
