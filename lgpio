@@ -44,25 +44,43 @@ LGPIO_getColumn(){
 	echo $((col - 1))
 }
 
+LGPIO_headersHelp(){
+	echo "$0 headers" >&2
+}
+
 LGPIO_headers(){
+	if [ $# -gt 0 ]; then
+		LGPIO_headersHelp
+		return 1
+	fi
 	grep -v '^#' "$MAP_FILE" | cut -f 1 -d "$TAB_CHAR" | uniq
 }
 
+LGPIO_headerHelp(){
+	echo "$0 header [HEADER]" >&2
+}
+
 LGPIO_header(){
-	if [ ! -z "$1" ]; then
-		echo "#Pin	Chip	Line" >&2
-		grep "${1^^}" "$MAP_FILE" | cut -f 2,3,4 -d "$TAB_CHAR"
+	if [ -z "$1" ]; then
+		LGPIO_headerHelp
+		return 1
 	fi
+	grep -iE "^#\s*header" "$MAP_FILE" | cut -f 2- -d "$TAB_CHAR"
+	grep -i "$1$TAB_CHAR" "$MAP_FILE" | cut -f 2- -d "$TAB_CHAR"
 }
 
 LGPIO_getDefaultHeader(){
 	echo $(grep -v '^#' "$MAP_FILE" | head -n 1 | cut -f 1 -d "$TAB_CHAR")
 }
 
+LGPIO_infoHelp(){
+	echo "$0 info [header] pin [type=all,chip,line,sysfs,name,pad,ref,desc]" >&2
+}
+
 LGPIO_info(){
 	if [ $# -lt 1 ]; then
-		echo "$0 info [header] pin [type=all,chip,line,sysfs,name,pad,ref,desc]" >&2
-		exit 1
+		LGPIO_infoHelp
+		return 1
 	fi
 	
 	local header
@@ -110,9 +128,13 @@ LGPIO_info(){
 	fi
 }
 
+LGPIO_getHelp(){
+	echo "$0 get [HEADER] PIN" >&2
+}
+
 LGPIO_get(){
 	if [ $# -lt 1 -o -z "$1" ]; then
-		echo "$0 get [HEADER] PIN" >&2
+		LGPIO_getHelp
 		return 1
 	elif [ $# -gt 2 ]; then
 		echo "$FUNCNAME: only support one pin at a time." >&2
@@ -123,7 +145,7 @@ LGPIO_get(){
 	else
 		local header_match=0
 		for header in $(LGPIO_headers); do
-			if [ $header = "${1^^}" ]; then
+			if [ "${header^^}" = "${1^^}" ]; then
 				header_match=1
 				break
 			fi
@@ -148,10 +170,68 @@ LGPIO_get(){
 	fi
 }
 
+LGPIO_setHelp(){
+	echo "$0 set [HEADER_][PIN]={0,1} [HEADER_][PIN]={0,1}" >&2
+}
+
+LGPIO_set(){
+	if [ $# -lt 1 -o -z "$1" ]; then
+		LGPIO_setHelp
+		return 1
+	fi
+	while [ ! -z "$1" ]; do
+		if [ -z "${1//*_*=*}" ]; then
+			local header="${1//_*}"
+			if [ -z "$header" ]; then
+				echo "$FUNCNAME: unable to determine header parameter." >&2
+				return 1
+			fi
+			local pin="${1//*_}"
+			local pin="${pin//=*}"
+		elif [ -z "${1//*=*}" ]; then
+			local header=$(LGPIO_getDefaultHeader)
+			local pin="${1//=*}"
+		else
+			echo "$FUNCNAME: unable to determine header or pin from parameter." >&2
+			return 1
+		fi
+		if [ -z "$pin" ]; then
+			echo "$FUNCNAME: unable to determine header parameter." >&2
+			return 1
+		elif [ ! -z "${pin//[0-9]}" ]; then
+			echo "$FUNCNAME: pin must be numeric." >&2
+			return 1
+		fi
+		set -x
+		local value="${1//*=}"
+		if [ ! -z "${value/[01]}" ]; then
+			echo "$FUNCNAME: invalid GPIO value $value." >&2
+			return 1
+		fi
+		set +x
+		if [ -z "$pin" ]; then
+			echo "$FUNCNAME: unable to determine pin value parameter." >&2
+			return 1
+		fi
+		local gpiod=$(LGPIO_info $header $pin gpiod)
+		if [ -z "${gpiod//[0-9$TAB_CHAR]}" ]; then
+			gpioset $gpiod=$value
+		else
+			echo "$FUNCNAME: header $header pin $pin is not a GPIO." >&2
+			return 1
+		fi
+		shift
+	done
+}
+
+LGPIO_bcmHelp(){
+	echo "$0 bcm [PIN] [TYPE={all,gpiod,chip,line,sysfs,name,pad,ref,desc}]" >&2
+}
+
 LGPIO_bcm(){
 	if [ $# -lt 1 ]; then
-		echo "$0 bcm [PIN] [TYPE={all,gpiod,chip,line,sysfs,name,pad,ref,desc}]" >&2
-		exit 1
+		LGPIO_bcmHelp
+		return 1
 	fi
 	declare -A BCM_GPIO2PIN
 	BCM_GPIO2PIN[2]=3
@@ -194,11 +274,12 @@ LGPIO_bcm(){
 }
 
 LGPIO_help(){
-	echo "$0 headers" >&2
-	echo "$0 header [HEADER]" >&2
-	echo "$0 info [HEADER] PIN [TYPE={all,gpiod,chip,line,sysfs,name,pad,ref,desc}]" >&2
-	echo "$0 get [HEADER_][PIN]={0,1}" >&2
-	echo "$0 bcm [PIN] [TYPE={all,gpiod,chip,line,sysfs,name,pad,ref,desc}]" >&2
+	LGPIO_headersHelp
+	LGPIO_headerHelp
+	LGPIO_infoHelp
+	LGPIO_getHelp
+	LGPIO_setHelp
+	LGPIO_bcmHelp
 	exit 1
 }
 
