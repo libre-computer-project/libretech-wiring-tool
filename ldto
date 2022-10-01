@@ -198,7 +198,7 @@ LDTO_checkOverrideDT()
 LDTO_diff()
 {
 	local target_dtb=$(LDTO_checkOverrideDT)
-	diff -y --suppress-common-lines <(dtc -I dtb -O dts "$PATH_OF_DT" 2> /dev/null) <(dtc -I dtb -O dts "$target_dtb" 2> /dev/null)
+	diff --suppress-common-lines <(dtc -I dtb -O dts "$PATH_OF_DT" 2> /dev/null) <(dtc -I dtb -O dts "$target_dtb" 2> /dev/null)
 }
 
 LDTO_reset()
