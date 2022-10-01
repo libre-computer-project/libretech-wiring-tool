@@ -272,4 +272,4 @@ if [ ! -z "$1" ]; then
 	cmd=$1
 	shift
 fi
-LDTO_$cmd $@
+LDTO_${cmd,,} $@
