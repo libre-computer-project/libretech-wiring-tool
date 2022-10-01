@@ -1,4 +1,4 @@
-# Libre Computer Wiring Tool
+sudo ./ldto diff # show difference between running device tree and new device tree effective after reboot# Libre Computer Wiring Tool
 ## Objective
 
 These utilities were designed to work with Libre Computer OS images to control GPIO and various buses such as I2C, SPI, UART, and SDIO.
@@ -52,6 +52,7 @@ sudo ./ldto active [OVERLAY] # returns list of active overlays, if OVERLAY is sp
 sudo ./ldto enable OVERLAY # apply overlay temporarily, effective until reboot
 sudo ./ldto disable OVERLAY # remove temporary overlay, can crash system if overlay is hardware based
 sudo ./ldto merge OVERLAY # apply overlay permanently, effective after reboot
+sudo ./ldto show # show new device tree effective after reboot
 sudo ./ldto diff # show difference between running device tree and new device tree effective after reboot
 sudo ./ldto reset # remove all overlays, effective after reboot
 ```

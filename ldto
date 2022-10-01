@@ -5,11 +5,6 @@
 
 set -e
 
-if [ "$USER" != "root" ]; then
-	echo "Please run this as root." >&2
-	exit 1
-fi
-
 if [ -z "$VENDOR" ]; then
 	if [ ! -e /sys/class/dmi/id/board_vendor ]; then
 		echo "No vendor found!" >&2
@@ -30,7 +25,7 @@ fi
 PATH_OF_CONFIG=/sys/kernel/config/device-tree/overlays
 PATH_OF_DT=/sys/firmware/fdt
 PATH_OF_DTB_OVERRIDE=
-PATH_OF_EFI=
+PATH_OF_EFI_DTB=
 
 if [ ! -d "$PATH_OF_CONFIG" ]; then
 	echo "The running kernel does not supported by this tool." >&2
@@ -44,7 +39,7 @@ PATH_DTCFG=$VENDOR/$BOARD/dt.config
 
 LDTO_list()
 {
-	local dtbos=$PATH_DTBO/*.dtbo
+	local dtbos="$PATH_DTBO"/*.dtbo
 	if [ -z "$(ls $dtbos 2> /dev/null)" ]; then
 		echo "No overlays detected. Did you run make?" >&2
 		return 1
@@ -55,6 +50,21 @@ LDTO_list()
 		basename $i .dtbo
 	done
 	LDTO_active
+}
+
+LDTO_checkOFConfig()
+{
+	if [ $# -eq 0 ]; then
+		if ! test -r "$PATH_OF_CONFIG"; then
+			echo "$FUNCNAME: OF path not readable! sudo?" >&2
+			return 1
+		fi
+	else
+		if ! test -w "$PATH_OF_CONFIG"; then
+			echo "$FUNCNAME: OF path not writable! sudo?" >&2
+			return 1
+		fi
+	fi
 }
 
 LDTO_enable()
@@ -68,12 +78,13 @@ LDTO_enable()
 		echo "$FUNCNAME: $1 does not exist and cannot be added" >&2
 		return 1
 	fi
-	if [ -e $PATH_OF_CONFIG/$1 ]; then
+	LDTO_checkOFConfig RW
+	if [ -e "$PATH_OF_CONFIG/$1" ]; then
 		echo "Overlay $1: already exists" >&2
 		return 1
 	fi
-	mkdir $PATH_OF_CONFIG/$1
-	cat $PATH_DTBO/$1.dtbo > $PATH_OF_CONFIG/$1/dtbo
+	mkdir "$PATH_OF_CONFIG/$1"
+	cat "$PATH_DTBO/$1.dtbo" > "$PATH_OF_CONFIG/$1/dtbo"
 	echo "Overlay $1: `cat $PATH_OF_CONFIG/$1/status`" >&2
 }
 
@@ -83,6 +94,7 @@ LDTO_disable()
 		LDTO_active
 		return 1
 	fi
+	LDTO_checkOFConfig RW
 	if [ ! -e "$PATH_OF_CONFIG/$1" ]; then
 		echo "Overlay $1: does not exist and cannot be removed" >&2
 		return 1
@@ -93,6 +105,7 @@ LDTO_disable()
 
 LDTO_active()
 {
+	LDTO_checkOFConfig
 	if [ -z "$1" ]; then
 		echo "#Active Overlays:" >&2
 		for i in `ls $PATH_OF_CONFIG`;
@@ -141,18 +154,20 @@ LDTO_findEFIDTBPath()
 	fi
 	for mnt_dir in $mnt_boot; do
 		if [ -d "$mnt_dir"/EFI/BOOT ]; then
-			PATH_OF_EFI="$mnt_dir"/dtb
-			if [ -d "$PATH_OF_EFI" ]; then
-				if ! test -w "$PATH_OF_EFI"; then
-					echo "$FUNCNAME: EFI path not writable!" >&2
-					return 1
+			PATH_OF_EFI_DTB="$mnt_dir"/dtb
+			if [ $# -ne 0 ]; then
+				if [ -d "$PATH_OF_EFI_DTB" ]; then
+					if ! test -w "$PATH_OF_EFI_DTB"; then
+						echo "$FUNCNAME: EFI path not writable! sudo?" >&2
+						return 1
+					fi
+				else
+					if ! test -w "$mnt_dir"; then
+						echo "$FUNCNAME: EFI path not writable! sudo?" >&2
+						return 1
+					fi
+					mkdir "$PATH_OF_EFI_DTB"
 				fi
-			else
-				if ! test -w "$mnt_dir"; then
-					echo "$FUNCNAME: EFI path not writable!" >&2
-					return 1
-				fi
-				mkdir "$PATH_OF_EFI"
 			fi
 			return
 		fi
@@ -163,9 +178,9 @@ LDTO_findEFIDTBPath()
 
 LDTO_apply()
 {
-	LDTO_findEFIDTBPath
+	LDTO_findEFIDTBPath RW
 	local base_dtb="$PATH_OF_DT"
-	local target_dtb="$PATH_OF_EFI/$DT_OVERRIDE"
+	local target_dtb="$PATH_OF_EFI_DTB/$DT_OVERRIDE"
 	local target_dtb_path="${target_dtb%/*}"
 	if [ ! -d "$target_dtb_path" ]; then
 		mkdir "$target_dtb_path"
@@ -197,8 +212,8 @@ LDTO_checkOverrideDT()
 {
 	LDTO_checkFirmwareDT
 	LDTO_importDTConfig
-	LDTO_findEFIDTBPath
-	PATH_OF_DTB_OVERRIDE="$PATH_OF_EFI/$DT_OVERRIDE"
+	LDTO_findEFIDTBPath $1
+	PATH_OF_DTB_OVERRIDE="$PATH_OF_EFI_DTB/$DT_OVERRIDE"
 	if [ ! -f "$PATH_OF_DTB_OVERRIDE" ]; then
 		echo "$FUNCNAME: no merged overlays detected on system." >&2
 		return 1
@@ -211,9 +226,15 @@ LDTO_diff()
 	diff -u --color --suppress-common-lines --label=CURRENT <(dtc -I dtb -O dts "$PATH_OF_DT" 2> /dev/null) --label=NEXT <(dtc -I dtb -O dts "$PATH_OF_DTB_OVERRIDE" 2> /dev/null)
 }
 
-LDTO_reset()
+LDTO_show()
 {
 	LDTO_checkOverrideDT
+	dtc -I dtb -O dts "$PATH_OF_DTB_OVERRIDE" 2> /dev/null | less
+}
+
+LDTO_reset()
+{
+	LDTO_checkOverrideDT RW
 	rm -f "$PATH_OF_DTB_OVERRIDE"
 	echo "Overlay: reset for next boot" >&2
 }
@@ -224,6 +245,7 @@ LDTO_showHelp(){
 	echo "$0 enable [DTBO]"
 	echo "$0 disable [DTBO]"
 	echo "$0 merge [DTBO]"
+	echo "$0 show"
 	echo "$0 diff"
 	echo "$0 reset"
 }
