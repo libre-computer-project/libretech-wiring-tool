@@ -65,7 +65,7 @@ LGPIO_header(){
 		LGPIO_headerHelp
 		return 1
 	fi
-	grep -iE "^#\s*header" "$MAP_FILE" | cut -f 2- -d "$TAB_CHAR"
+	grep -iE "^#\s*header" "$MAP_FILE" | cut -f 2- -d "$TAB_CHAR" >&2
 	grep -i "$1$TAB_CHAR" "$MAP_FILE" | cut -f 2- -d "$TAB_CHAR"
 }
 
@@ -74,7 +74,7 @@ LGPIO_getDefaultHeader(){
 }
 
 LGPIO_infoHelp(){
-	echo "$0 info [header] pin [type=all,chip,line,sysfs,name,pad,ref,desc]" >&2
+	echo "$0 info [HEADER] PIN [type=all,gpiod,chip,line,sysfs,name,pad,ref,desc]" >&2
 }
 
 LGPIO_info(){
