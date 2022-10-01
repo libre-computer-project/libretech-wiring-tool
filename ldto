@@ -73,19 +73,21 @@ LDTO_enable()
 		LDTO_list
 		return 1
 	fi
-	DTBO="$PATH_DTBO/$1.dtbo"
-	if [ ! -f $DTBO ]; then
-		echo "$FUNCNAME: $1 does not exist and cannot be added" >&2
-		return 1
-	fi
-	LDTO_checkOFConfig RW
-	if [ -e "$PATH_OF_CONFIG/$1" ]; then
-		echo "Overlay $1: already exists" >&2
-		return 1
-	fi
-	mkdir "$PATH_OF_CONFIG/$1"
-	cat "$PATH_DTBO/$1.dtbo" > "$PATH_OF_CONFIG/$1/dtbo"
-	echo "Overlay $1: `cat $PATH_OF_CONFIG/$1/status`" >&2
+	for dtbo in "$@"; do
+		DTBO="$PATH_DTBO/$dtbo.dtbo"
+		if [ ! -f $DTBO ]; then
+			echo "$FUNCNAME: $dtbo does not exist and cannot be added" >&2
+			return 1
+		fi
+		LDTO_checkOFConfig RW
+		if [ -e "$PATH_OF_CONFIG/$dtbo" ]; then
+			echo "Overlay $dtbo: already exists" >&2
+			return 1
+		fi
+		mkdir "$PATH_OF_CONFIG/$dtbo"
+		cat "$PATH_DTBO/$dtbo.dtbo" > "$PATH_OF_CONFIG/$dtbo/dtbo"
+		echo "Overlay $dtbo: `cat $PATH_OF_CONFIG/$dtbo/status`" >&2
+	done
 }
 
 LDTO_disable()
@@ -94,13 +96,15 @@ LDTO_disable()
 		LDTO_active
 		return 1
 	fi
-	LDTO_checkOFConfig RW
-	if [ ! -e "$PATH_OF_CONFIG/$1" ]; then
-		echo "Overlay $1: does not exist and cannot be removed" >&2
-		return 1
-	fi
-	rmdir $PATH_OF_CONFIG/$1
-	echo "Overlay $1: removed" >&2
+	for dtbo in "$@"; do
+		LDTO_checkOFConfig RW
+		if [ ! -e "$PATH_OF_CONFIG/$dtbo" ]; then
+			echo "Overlay $dtbo: does not exist and cannot be removed" >&2
+			return 1
+		fi
+		rmdir $PATH_OF_CONFIG/$dtbo
+		echo "Overlay $dtbo: removed" >&2
+	done
 }
 
 LDTO_active()
