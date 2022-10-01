@@ -29,6 +29,8 @@ fi
 
 PATH_OF_CONFIG=/sys/kernel/config/device-tree/overlays
 PATH_OF_DT=/sys/firmware/fdt
+PATH_OF_DTB_OVERRIDE=
+PATH_OF_EFI=
 
 if [ ! -d "$PATH_OF_CONFIG" ]; then
 	echo "The running kernel does not supported by this tool." >&2
@@ -129,7 +131,7 @@ LDTO_checkFirmwareDT()
 	fi
 }
 
-LDTO_findBootPartPath()
+LDTO_findEFIDTBPath()
 {
 	local mnt_boot=$(cut -f 2 -d " " /proc/mounts  | grep ^/boot)
 	local mnt_boot_count=$(echo "$mnt_boot" | wc -l)
@@ -139,7 +141,19 @@ LDTO_findBootPartPath()
 	fi
 	for mnt_dir in $mnt_boot; do
 		if [ -d "$mnt_dir"/EFI/BOOT ]; then
-			echo "$mnt_dir"
+			PATH_OF_EFI="$mnt_dir"/dtb
+			if [ -d "$PATH_OF_EFI" ]; then
+				if ! test -w "$PATH_OF_EFI"; then
+					echo "$FUNCNAME: EFI path not writable!" >&2
+					return 1
+				fi
+			else
+				if ! test -w "$mnt_dir"; then
+					echo "$FUNCNAME: EFI path not writable!" >&2
+					return 1
+				fi
+				mkdir "$PATH_OF_EFI"
+			fi
 			return
 		fi
 	done
@@ -149,12 +163,9 @@ LDTO_findBootPartPath()
 
 LDTO_apply()
 {
-	local path_dtb=$(LDTO_findBootPartPath)/dtb
-	if [ ! -d "$path_dtb" ]; then
-		mkdir -p "$path_dtb"
-	fi
+	LDTO_findEFIDTBPath
 	local base_dtb="$PATH_OF_DT"
-	local target_dtb="$path_dtb/$DT_OVERRIDE"
+	local target_dtb="$PATH_OF_EFI/$DT_OVERRIDE"
 	local target_dtb_path="${target_dtb%/*}"
 	if [ ! -d "$target_dtb_path" ]; then
 		mkdir "$target_dtb_path"
@@ -186,25 +197,24 @@ LDTO_checkOverrideDT()
 {
 	LDTO_checkFirmwareDT
 	LDTO_importDTConfig
-	local path_dtb=$(LDTO_findBootPartPath)/dtb
-	local target_dtb="$path_dtb/$DT_OVERRIDE"
-	if [ ! -f "$target_dtb" ]; then
+	LDTO_findEFIDTBPath
+	PATH_OF_DTB_OVERRIDE="$PATH_OF_EFI/$DT_OVERRIDE"
+	if [ ! -f "$PATH_OF_DTB_OVERRIDE" ]; then
 		echo "$FUNCNAME: no merged overlays detected on system." >&2
 		return 1
 	fi
-	echo "$target_dtb"
 }
 
 LDTO_diff()
 {
-	local target_dtb=$(LDTO_checkOverrideDT)
-	diff --suppress-common-lines <(dtc -I dtb -O dts "$PATH_OF_DT" 2> /dev/null) <(dtc -I dtb -O dts "$target_dtb" 2> /dev/null)
+	LDTO_checkOverrideDT
+	diff -u --color --suppress-common-lines --label=CURRENT <(dtc -I dtb -O dts "$PATH_OF_DT" 2> /dev/null) --label=NEXT <(dtc -I dtb -O dts "$PATH_OF_DTB_OVERRIDE" 2> /dev/null)
 }
 
 LDTO_reset()
 {
-	local target_dtb=$(LDTO_checkOverrideDT)
-	rm "$target_dtb"
+	LDTO_checkOverrideDT
+	rm -f "$PATH_OF_DTB_OVERRIDE"
 	echo "Overlay: reset for next boot" >&2
 }
 
