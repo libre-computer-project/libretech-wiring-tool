@@ -44,12 +44,11 @@ LDTO_list()
 		echo "No overlays detected. Did you run make?" >&2
 		return 1
 	fi
-	echo "#Available Overlays:" >&2
+	echo "#Overlays available" >&2
 	for i in $dtbos
 	do
 		basename $i .dtbo
 	done
-	LDTO_active
 }
 
 LDTO_checkOFConfig()
@@ -111,7 +110,7 @@ LDTO_active()
 {
 	LDTO_checkOFConfig
 	if [ -z "$1" ]; then
-		echo "#Active Overlays:" >&2
+		echo "#Overlays active:" >&2
 		for i in `ls $PATH_OF_CONFIG`;
 		do
 			basename $i
@@ -255,7 +254,7 @@ LDTO_reset()
 	echo "Overlay: reset for next boot" >&2
 }
 
-LDTO_showHelp(){
+LDTO_help(){
 	echo "$0 list"
 	echo "$0 active [DTBO]"
 	echo "$0 enable [DTBO]"
@@ -267,7 +266,7 @@ LDTO_showHelp(){
 	echo "$0 reset"
 }
 
-cmd=showHelp
+cmd=help
 if [ ! -z "$1" ]; then
 	cmd=$1
 	shift
