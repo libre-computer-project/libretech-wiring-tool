@@ -48,11 +48,13 @@ Chip	Line	sysfs	Name	Pad	Ref	Desc
 ## Device Tree Overlay Usage
 ```bash
 ./ldto list # lists overlays
-sudo ./ldto active [OVERLAY] # returns list of active overlays, if OVERLAY is specified: returns 0 if active, 1 if inactive
+./ldto active [OVERLAY] # returns list of active overlays, if OVERLAY is specified: returns 0 if active, 1 if inactive
 sudo ./ldto enable OVERLAY # apply overlay temporarily, effective until reboot
 sudo ./ldto disable OVERLAY # remove temporary overlay, can crash system if overlay is hardware based
+
+sudo ./ldto current # show current system device tree
 sudo ./ldto merge OVERLAY # apply overlay permanently, effective after reboot
-sudo ./ldto show # show new device tree effective after reboot
+./ldto show # show new system device tree effective after reboot
 sudo ./ldto diff # show difference between running device tree and new device tree effective after reboot
 sudo ./ldto reset # remove all overlays, effective after reboot
 ```

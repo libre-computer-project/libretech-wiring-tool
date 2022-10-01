@@ -139,7 +139,11 @@ LDTO_importDTConfig()
 LDTO_checkFirmwareDT()
 {
 	if [ ! -e "$PATH_OF_DT" ]; then
-		echo "$FUNCNAME: running system device tree cannot be found." >&2
+		echo "$FUNCNAME: system device tree cannot be found." >&2
+		return 1
+	fi
+	if ! test -r "$PATH_OF_DT"; then
+		echo "$FUNCNAME: system device tree cannot be read! sudo?" >&2
 		return 1
 	fi
 }
@@ -210,7 +214,6 @@ LDTO_merge()
 
 LDTO_checkOverrideDT()
 {
-	LDTO_checkFirmwareDT
 	LDTO_importDTConfig
 	LDTO_findEFIDTBPath $1
 	PATH_OF_DTB_OVERRIDE="$PATH_OF_EFI_DTB/$DT_OVERRIDE"
@@ -222,6 +225,7 @@ LDTO_checkOverrideDT()
 
 LDTO_diff()
 {
+	LDTO_checkFirmwareDT
 	LDTO_checkOverrideDT
 	diff -u --color --suppress-common-lines --label=CURRENT <(dtc -I dtb -O dts "$PATH_OF_DT" 2> /dev/null) --label=NEXT <(dtc -I dtb -O dts "$PATH_OF_DTB_OVERRIDE" 2> /dev/null)
 }
@@ -230,6 +234,12 @@ LDTO_show()
 {
 	LDTO_checkOverrideDT
 	dtc -I dtb -O dts "$PATH_OF_DTB_OVERRIDE" 2> /dev/null | less
+}
+
+LDTO_current()
+{
+	LDTO_checkFirmwareDT
+	dtc -I dtb -O dts "$PATH_OF_DT" 2> /dev/null | less
 }
 
 LDTO_reset()
@@ -244,6 +254,7 @@ LDTO_showHelp(){
 	echo "$0 active [DTBO]"
 	echo "$0 enable [DTBO]"
 	echo "$0 disable [DTBO]"
+	echo "$0 current"
 	echo "$0 merge [DTBO]"
 	echo "$0 show"
 	echo "$0 diff"
