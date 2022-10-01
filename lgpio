@@ -34,10 +34,6 @@ fi
 MAP_FILE="$VENDOR/$BOARD/gpio.map"
 TAB_CHAR='	'
 
-LGPIO_help(){
-	echo "$0 {info,bcm}" >&2
-	exit 1
-}
 LGPIO_getColumn(){
 	local cols=$(grep -i "#header" "$MAP_FILE" | grep -io "^.*$1$TAB_CHAR")
 	if [ -z "$cols" ]; then
@@ -47,6 +43,18 @@ LGPIO_getColumn(){
 	local col=$(echo "${cols//[^	]}" | wc -c)
 	echo $((col - 1))
 }
+
+LGPIO_headers(){
+	grep -v '^#' "$MAP_FILE" | cut -f 1 -d "$TAB_CHAR" | uniq
+}
+
+LGPIO_header(){
+	if [ ! -z "$1" ]; then
+		echo "#Pin	Chip	Line" >&2
+		grep "${1^^}" "$MAP_FILE" | cut -f 2,3,4 -d "$TAB_CHAR"
+	fi
+}
+
 LGPIO_info(){
 	if [ $# -lt 1 ]; then
 		echo "$0 info [header] pin [type=all,chip,line,sysfs,name,pad,ref,desc]" >&2
@@ -140,26 +148,17 @@ LGPIO_bcm(){
 	LGPIO_info ${BCM_GPIO2PIN[$bcm_gpio]} $@
 }
 
-LGPIO_root(){
-	if [ "$USER" != "root" ]; then
-		echo "Please run this as root." >&2
-		exit 1
-	fi
+LGPIO_help(){
+	echo "$0 headers" >&2
+	echo "$0 header [HEADER]" >&2
+	echo "$0 info [HEADER] PIN [TYPE]" >&2
+	echo "$0 bcm [PIN] [TYPE]" >&2
+	exit 1
 }
 
-cmd=LGPIO_help
-case "${1,,}" in
-	info)
-		cmd=LGPIO_info
-		;;
-	bcm)
-		cmd=LGPIO_bcm
-		;;
-	*)
-		$cmd
-		exit 1
-		;;
-esac
-shift
-$cmd $@
-
+cmd=help
+if [ ! -z "$1" ]; then
+	cmd=$1
+	shift
+fi
+LGPIO_$cmd $@
