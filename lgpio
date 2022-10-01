@@ -202,13 +202,11 @@ LGPIO_set(){
 			echo "$FUNCNAME: pin must be numeric." >&2
 			return 1
 		fi
-		set -x
 		local value="${1//*=}"
 		if [ ! -z "${value/[01]}" ]; then
 			echo "$FUNCNAME: invalid GPIO value $value." >&2
 			return 1
 		fi
-		set +x
 		if [ -z "$pin" ]; then
 			echo "$FUNCNAME: unable to determine pin value parameter." >&2
 			return 1
