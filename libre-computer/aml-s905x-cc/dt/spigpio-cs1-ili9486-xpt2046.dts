@@ -16,7 +16,7 @@
 	};
 	
 	fragment@1 {
-		target = <&spicc>;
+		target = <&spigpio0>;
 		
 		__overlay__ {
 
