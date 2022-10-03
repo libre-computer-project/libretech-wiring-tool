@@ -106,15 +106,20 @@ LDTO_disable()
 	done
 }
 
+LDTO_status()
+{
+	echo "#Overlays active:" >&2
+	for i in `ls $PATH_OF_CONFIG`;
+	do
+		basename $i
+	done
+}
+
 LDTO_active()
 {
 	LDTO_checkOFConfig
 	if [ -z "$1" ]; then
-		echo "#Overlays active:" >&2
-		for i in `ls $PATH_OF_CONFIG`;
-		do
-			basename $i
-		done
+		LDTO_status
 	else
 		if [ -z "$1" ]; then
 			return 1
@@ -230,8 +235,8 @@ LDTO_checkOverrideDT()
 
 LDTO_diff()
 {
-	LDTO_checkFirmwareDT
 	LDTO_checkOverrideDT
+	LDTO_checkFirmwareDT
 	diff -u --color --suppress-common-lines --label=CURRENT <(dtc -I dtb -O dts "$PATH_OF_DT" 2> /dev/null) --label=NEXT <(dtc -I dtb -O dts "$PATH_OF_DTB_OVERRIDE" 2> /dev/null)
 }
 
@@ -256,6 +261,7 @@ LDTO_reset()
 
 LDTO_help(){
 	echo "$0 list"
+	echo "$0 status"
 	echo "$0 active [DTBO]"
 	echo "$0 enable [DTBO]"
 	echo "$0 disable [DTBO]"
