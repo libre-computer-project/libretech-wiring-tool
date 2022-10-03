@@ -9,6 +9,8 @@
 
 #include <dt-bindings/gpio/gpio.h>
 #include <dt-bindings/gpio/meson-gxl-gpio.h>
+#include <dt-bindings/interrupt-controller/irq.h>
+#include <dt-bindings/interrupt-controller/meson-gic.h>
 
 / {
 	compatible = "libretech,cc", "amlogic,s905x", "amlogic,meson-gxl";
@@ -23,10 +25,11 @@
 				reg = <0>;
 				spi-max-frequency = <2000000>;
 				interrupt-parent = <&gpio_intc>;
-				interrupts = <GPIOX_0 2>;
+				interrupts = <MESON_GIC_GXL_GPIOX_0 IRQ_TYPE_EDGE_FALLING>;
 				pendown-gpio = <&gpio GPIOX_0 GPIO_ACTIVE_LOW>;
 				ti,x-plate-ohms = /bits/ 16 <60>;
 				ti,pressure-max = /bits/ 16 <255>;
+				wakeup-source;
 				status = "okay";
 			};
 		};
