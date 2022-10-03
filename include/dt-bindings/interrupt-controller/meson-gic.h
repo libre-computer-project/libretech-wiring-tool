@@ -1,3 +1,8 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright (c) 2022 Da Xue <da@libre.computer>
+ * Author: Da Xue <da@libre.computer>
+ */
 
 #ifndef _DT_BINDINGS_INTERRUPT_CONTROLLER_MESON_GIC_GXL_H_
 #define _DT_BINDINGS_INTERRUPT_CONTROLLER_MESON_GIC_GXL_H_
