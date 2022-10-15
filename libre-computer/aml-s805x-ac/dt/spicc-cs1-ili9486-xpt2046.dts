@@ -1,0 +1,56 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright (c) 2022 Da Xue <da@libre.computer>
+ * Author: Da Xue <da@libre.computer>
+ */
+
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/gpio/meson-gxl-gpio.h>
+#include <dt-bindings/interrupt-controller/irq.h>
+#include <dt-bindings/interrupt-controller/meson-gic.h>
+
+/ {
+	compatible = "libretech,cc", "amlogic,s905x", "amlogic,meson-gxl";
+
+	fragment@0 {
+		target = <&cec_AO>;
+		
+		__overlay__ {
+			status = "disabled";
+		};
+	};
+	
+	fragment@1 {
+		target = <&spicc>;
+		
+		__overlay__ {
+
+			display@0 {
+				compatible = "waveshare,rpi-lcd-35", "ilitek,ili9486";
+				reg = <0>;
+				spi-max-frequency = <41666667>;
+				reset-gpios = <&gpio GPIOX_0 GPIO_ACTIVE_HIGH>;
+				dc-gpios = <&gpio GPIOH_9 GPIO_ACTIVE_HIGH>;
+				status = "okay";
+			};
+
+			touchscreen@1 {
+				compatible = "ti,ads7846";
+				pinctrl-names = "default";
+				pinctrl-0 = <&ao_cec_pins>;
+				reg = <1>;
+				spi-max-frequency = <2000000>;
+				interrupt-parent = <&gpio_intc>;
+				interrupts = <MESON_GIC_GXL_GPIOAO_8 IRQ_TYPE_EDGE_FALLING>;
+				pendown-gpio = <&gpio_ao GPIOAO_8 GPIO_ACTIVE_LOW>;
+				ti,x-plate-ohms = /bits/ 16 <60>;
+				ti,pressure-max = /bits/ 16 <255>;
+				wakeup-source;
+				status = "okay";
+			};
+		};
+	};
+};
