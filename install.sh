@@ -13,6 +13,10 @@ if ! which dtc > /dev/null; then
 	packages+=(device-tree-compiler)
 fi
 
+if ! which gpioget > /dev/null; then
+	packages+=(gpiod)
+fi
+
 if ! which make > /dev/null; then
 	packages+=(make)
 fi
