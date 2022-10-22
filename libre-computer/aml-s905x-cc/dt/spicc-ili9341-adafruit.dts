@@ -1,0 +1,40 @@
+/*
+ * Copyright (c) 2022 Thomas McKahan <tonymckahan@gmail.com>
+ * Author: Thomas McKahan <tonymckahan@gmail.com>
+ *
+ * SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+ */
+
+/*
+ * Overlay to enable the Ilitek ILI9341 Hat-shaped panels:
+ * - Adafruit 2.4" TFT LCD with Touchscreen Hat
+ * - Adafruit 2.8" TFT LCD with Touchscreen Hat
+ * Pins 19 (MOSI), 21 (MISO), 23 (CLK), 24 (CS), 22 (DC)
+ */
+
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/gpio/meson-gxl-gpio.h>
+
+/ {
+	compatible = "libretech,aml-s905x-cc", "amlogic,s905x", "amlogic,meson-gxl";
+
+	fragment@0 {
+		target = <&spicc>;
+		
+		__overlay__ {
+			display@0 {
+				compatible = "adafruit,yx240qv29", "ilitek,ili9341";
+				reg = <0>;
+				buswidth = <8>;
+				spi-max-frequency = <30000000>;
+				dc-gpios = <&gpio GPIOX_0 GPIO_ACTIVE_HIGH>;
+				reset-gpios = <&gpio GPIOX_18 GPIO_ACTIVE_HIGH>;
+				rotation = <90>;
+				status = "okay";
+			};
+		};
+	};
+};
