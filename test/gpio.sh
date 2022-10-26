@@ -52,7 +52,9 @@ fi
 
 cd $(readlink -f $(dirname ${BASH_SOURCE[0]}))
 
-if [ ! -f "$VENDOR/$BOARD/gpio.map" ]; then
+GPIO_MAP_PATH="../$VENDOR/$BOARD/gpio.map"
+
+if [ ! -f "$GPIO_MAP_PATH" ]; then
 	echo "GPIO map not available for this board." >&2
 	exit 1
 fi
@@ -66,7 +68,7 @@ if [ "$mode" = "gpiod" ]; then
 				#echo "Testing Header	${arr[0]}	Pin ${arr[1]}	Chip ${arr[2]}	Line ${arr[3]}"
 				gpioset "${arr[2]}" "${arr[3]}"=$((i % 2))
 			fi
-		done < <(grep -v "^#" $VENDOR/$BOARD/gpio.map | cut -f 1,2,3,4 -d "	")
+		done < <(grep -v "^#" "$GPIO_MAP_PATH" | cut -f 1,2,3,4 -d "	")
 		i=$((i+1))
 	done
 else
@@ -84,7 +86,7 @@ else
 				echo -n $((i % 2)) > $SYSFS_PATH/gpio$sysfs/value
 				echo -n "$sysfs" > $SYSFS_PATH/unexport
 			fi
-		done < <(grep -v "^#" $VENDOR/$BOARD/gpio.map | cut -f 1,2,5 -d "	")
+		done < <(grep -v "^#" "$GPIO_MAP_PATH" | cut -f 1,2,5 -d "	")
 		i=$((i+1))
 	done
 fi
