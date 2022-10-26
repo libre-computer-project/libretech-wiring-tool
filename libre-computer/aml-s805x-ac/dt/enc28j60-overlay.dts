@@ -1,0 +1,41 @@
+/*
+ * Copyright (c) 2017 BayLibre, SAS.
+ * Author: Neil Armstrong <narmstrong@baylibre.com>
+ *
+ * SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+ */
+
+/*
+ * Overlay aimed to enable a spidev interface on SPICC bus with CS0
+ */
+
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/gpio/meson-gxl-gpio.h>
+#include <dt-bindings/interrupt-controller/irq.h>
+#include <dt-bindings/interrupt-controller/meson-gic.h>
+
+/ {
+	compatible = "libretech,aml-s805x-ac", "amlogic,s805x", "amlogic,meson-gxl";
+
+	fragment@0 {
+		target = <&spicc>;
+		
+		__overlay__ {
+
+			#address-cells = <1>;
+			#size-cells = <0>;
+			
+			eth1: enc28j60@0 {
+				compatible = "microchip,enc28j60";
+				reg = <0>;
+				interrupt-parent = <&gpio_intc>;
+                		interrupts = <MESON_GIC_GXL_GPIOX_0 IRQ_TYPE_EDGE_FALLING>;
+				spi-max-frequency = <20000000>;
+				status = "okay";
+			};
+		};
+	};
+};

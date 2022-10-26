@@ -1,0 +1,31 @@
+/*
+ * Copyright (c) 2022 Thomas McKahan <tonymckahan@gmail.com>
+ * Author: Thomas McKahan <tonymckahan@gmail.com>
+ *
+ * SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+ */
+
+/*
+ * Overlay to enable 1-wire on gpio "4" (BCM)
+ */
+
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/gpio/meson-gxl-gpio.h>
+
+/ {
+	compatible = "libretech,aml-s805x-ac", "amlogic,s805x", "amlogic,meson-gxl";
+
+	fragment@0 {
+		target-path = "/";
+		__overlay__ {
+			onewire@0 {
+				compatible = "w1-gpio";
+				gpios = <&gpio GPIOCLK_0 GPIO_ACTIVE_HIGH>;
+				status = "okay";
+			};
+		};
+	};
+};
