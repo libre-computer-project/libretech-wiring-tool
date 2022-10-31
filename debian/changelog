@@ -1,4 +1,4 @@
-libretech-wiring-tool (0.1.0) stretch; urgency=medium
+libretech-wiring-tool (0.1.0) linux; urgency=medium
 
   * Initial package
 
