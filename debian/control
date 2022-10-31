@@ -1,0 +1,15 @@
+Source: libretech-wiring-tool
+Section: devel
+Priority: optional
+Maintainer: Da Xue <da@libre.computer>
+Build-Depends: build-essential, device-tree-compiler, debhelper (>= 9)
+
+Package: libretech-gpio
+Architecture: all
+Depends: gpiod
+Description: Libre Computer GPIO tool
+
+Package: libretech-dtoverlay
+Architecture: all
+Depends: device-tree-compiler
+Description: Libre Computer Device Tree Overlay tool
