@@ -1,0 +1,31 @@
+/*
+ * Copyright (c) 2022 Da Xue
+ * Author: Da Xue <da@libre.computer>
+ *
+ * SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+ */
+
+/*
+ * Overlay aimed to enable PWM AO B 9 on Header 7J1 Pin 13
+ */
+
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/clock/gxbb-clkc.h>
+
+/ {
+	compatible = "libretech,cc", "amlogic,s905x", "amlogic,meson-gxl";
+
+	fragment@0 {
+		target = <&pwm_AO_ab>;
+		
+		__overlay__ {
+			status = "okay";
+			pinctrl-0 = <&pwm_ao_b_pins>;
+			pinctrl-names = "default";
+			clocks = <&xtal>, <&clkc CLKID_CLK81>;
+			clock-names = "xtal", "clk81";
+		};
+	};
+};
