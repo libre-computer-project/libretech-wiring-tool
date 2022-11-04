@@ -32,7 +32,7 @@
 				compatible = "microchip,enc28j60";
 				reg = <0>;
 				interrupt-parent = <&gpio_intc>;
-                		interrupts = <MESON_GIC_GXL_GPIOX_0 IRQ_TYPE_EDGE_FALLING>;
+				interrupts = <MESON_GIC_GXL_GPIOX_0 IRQ_TYPE_EDGE_FALLING>;
 				spi-max-frequency = <20000000>;
 				status = "okay";
 			};
