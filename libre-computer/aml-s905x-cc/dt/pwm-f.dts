@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2017 BayLibre, SAS.
- * Author: Neil Armstrong <narmstrong@baylibre.com>
+ * Copyright (c) 2022 Da Xue
+ * Author: Da Xue <da@libre.computer>
  *
  * SPDX-License-Identifier: (GPL-2.0+ OR MIT)
  */
 
 /*
- * Overlay aimed to enable PWM E on Header 7J1 Pin 32
+ * Overlay aimed to enable PWM F on Header 7J1 Pin 35
  */
 
 /dts-v1/;
@@ -19,10 +19,10 @@
 
 	fragment@0 {
 		target = <&pwm_ef>;
-
+		
 		__overlay__ {
 			status = "okay";
-			pinctrl-0 = <&pwm_e_pins>;
+			pinctrl-0 = <&pwm_f_x_pins>;
 			pinctrl-names = "default";
 			clocks = <&clkc CLKID_FCLK_DIV4>;
 			clock-names = "clkin0";

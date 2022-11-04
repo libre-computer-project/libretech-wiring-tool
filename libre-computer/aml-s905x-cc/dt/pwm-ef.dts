@@ -6,7 +6,7 @@
  */
 
 /*
- * Overlay aimed to enable PWM E on Header 7J1 Pin 32
+ * Overlay aimed to enable PWM E and F on Header 7J1 Pin 32 and 35
  */
 
 /dts-v1/;
@@ -22,8 +22,8 @@
 
 		__overlay__ {
 			status = "okay";
-			pinctrl-0 = <&pwm_e_pins>;
-			pinctrl-names = "default";
+			pinctrl-0 = <&pwm_e_pins>, <&pwm_f_x_pins>;
+			pinctrl-names = "default", "default";
 			clocks = <&clkc CLKID_FCLK_DIV4>;
 			clock-names = "clkin0";
 		};
