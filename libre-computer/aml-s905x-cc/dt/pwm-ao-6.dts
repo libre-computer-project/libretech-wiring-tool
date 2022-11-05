@@ -6,7 +6,7 @@
  */
 
 /*
- * Overlay aimed to enable PWM AO A on Header 7J1 Pin 11
+ * Overlay aimed to enable PWM AO A and B on Header 7J1 Pin 11 and Pin 12
  */
 
 /dts-v1/;
