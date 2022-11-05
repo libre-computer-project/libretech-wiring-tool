@@ -1,3 +1,9 @@
+libretech-wiring-tool (0.1.1) linux; urgency=medium
+
+  * aml-s905x-cc: add pwms
+
+ -- Da Xue <da@libre.computer>  Fri, 04 Nov 2022 20:01:16 -0400
+
 libretech-wiring-tool (0.1.0) linux; urgency=medium
 
   * Initial package
