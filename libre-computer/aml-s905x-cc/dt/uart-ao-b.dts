@@ -1,0 +1,38 @@
+/*
+ * Copyright (c) 2022 Da Xue
+ * Author: Da Xue <da@libre.computer>
+ *
+ * SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+ */
+
+/*
+ * UART_AO_B on Header 7J1 up to 921600 baud with no flow control
+ * Pin 3 Outgoing (RX)
+ * Pin 5 Incoming (TX)
+ */
+
+/dts-v1/;
+/plugin/;
+
+/ {
+	compatible = "libretech,cc", "amlogic,s905x", "amlogic,meson-gxl";
+
+	fragment@0 {
+		target-path = "/aliases";
+
+		__overlay__ {
+			serial2 = "/soc/bus@c8100000/serial@4e0";
+		};
+	};
+
+	fragment@1 {
+		target = <&uart_AO_B>;
+
+		__overlay__ {
+			status = "okay";
+			pinctrl-0 = <&uart_ao_b_pins>;
+			pinctrl-names = "default";
+		};
+	};
+};
+
