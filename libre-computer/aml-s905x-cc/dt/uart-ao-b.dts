@@ -7,8 +7,8 @@
 
 /*
  * UART_AO_B on Header 7J1 up to 921600 baud with no flow control
- * Pin 3 Outgoing (RX)
- * Pin 5 Incoming (TX)
+ * Pin 3 Incoming (RX)
+ * Pin 5 Outgoing (TX)
  */
 
 /dts-v1/;
