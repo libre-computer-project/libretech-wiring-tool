@@ -6,6 +6,7 @@ These utilities were designed to work with Libre Computer OS images to control G
 ## Prerequisites
 - Libre Computer board
 - Libre Computer [OS image](http://distro.libre.computer/ci/) or Raspbian adapted using [Raspbian Portability tool](https://github.com/libre-computer-project/libretech-raspbian-portability.git)
+- Android, Armbian, CoreELEC, LibreELEC, Lakka are not supported!
 
 ## Supported GPIO Features
 - Translation from pin# or BCM (RPI) GPIO# to multiple output formats includeing sysfs, gpiod (chip+line), SoC ref, SoC ball, schematic ref, mux functions
