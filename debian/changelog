@@ -2,6 +2,8 @@ libretech-wiring-tool (0.1.2) linux; urgency=medium
 
   * aml-s905x-cc: add pwm fans
 
+ -- Da Xue <da@libre.computer>  Sun, 11 Dec 2022 01:01:00 -0400
+
 libretech-wiring-tool (0.1.1) linux; urgency=medium
 
   * aml-s905x-cc: add pwms
