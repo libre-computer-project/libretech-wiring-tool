@@ -1,0 +1,44 @@
+/*
+ * Copyright (c) 2022 Da Xue
+ * Author: Da Xue <da@libre.computer>
+ *
+ * SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+ */
+ 
+/*
+ * Overlay aimed to enable fan on PWM E on Header 7J1 Pin 32 with tach on Header 9J1 Pin 2
+ */
+
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/clock/gxbb-clkc.h>
+#include <dt-bindings/gpio/meson-gxl-gpio.h>
+#include <dt-bindings/interrupt-controller/irq.h>
+#include <dt-bindings/interrupt-controller/meson-gic.h>
+
+/ {
+	compatible = "libretech,cc", "amlogic,s905x", "amlogic,meson-gxl";
+	
+	fragment@0 {
+		target = <&spdif_out_h_pins>;
+		__overlay__ {
+			mux {
+				bias-pull-up;
+			};
+		};
+	};
+	
+	fragment@1 {
+		target-path = "/";
+		__overlay__ {
+			fan0: pwm-fan {
+				compatible = "pwm-fan";
+				pwms = <&pwm_ef 0 25000 0>;
+				interrupt-parent = <&gpio_intc>;
+				interrupts = <MESON_GIC_GXL_GPIOH_4 IRQ_TYPE_EDGE_FALLING>;
+				pulses-per-revolution = <2>;
+			};
+		};
+	};
+};
