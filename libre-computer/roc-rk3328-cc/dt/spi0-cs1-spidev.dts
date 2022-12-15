@@ -20,12 +20,12 @@
 		
 		__overlay__ {
 			spidev@0 {
-				compatible = "spidev", "rohm,dh2228fv";
+				compatible = "rohm,dh2228fv";
 				reg = <0>;
 				spi-max-frequency = <30000000>;
 			};
 			spidev@1 {
-				compatible = "spidev", "rohm,dh2228fv";
+				compatible = "rohm,dh2228fv";
 				reg = <1>;
 				spi-max-frequency = <30000000>;
 			};

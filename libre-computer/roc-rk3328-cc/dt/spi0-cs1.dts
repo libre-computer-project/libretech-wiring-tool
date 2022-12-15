@@ -22,6 +22,7 @@
 			num-cs = <2>;
 			pinctrl-names = "default", "default";
 			pinctrl-1 = <&spi0m0_cs1>;
+			cs-gpios = <&gpio3 RK_PB0 GPIO_ACTIVE_LOW>, <&gpio2 RK_PB4 GPIO_ACTIVE_LOW>;
 		};
 	};
 };
