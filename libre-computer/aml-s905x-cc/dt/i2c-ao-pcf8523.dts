@@ -1,0 +1,32 @@
+/*
+ * Copyright (c) 2017 BayLibre, SAS.
+ * Copyright (c) 2023 Joshua Dye.
+ *
+ * Original Author: Neil Armstrong <narmstrong@baylibre.com>
+ *
+ * Modified for PCF8523 by: Joshua Dye
+ * SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+ */
+
+/*
+ * Overlay aimed to add an PCF823 RTC module on I2C_AO bus, address 0x68.
+ * Modified from DS3231 overlay.
+ */
+
+/dts-v1/;
+/plugin/;
+
+/ {
+	compatible = "libretech,cc", "amlogic,s905x", "amlogic,meson-gxl";
+
+	fragment@1 {
+		target = <&i2c_AO>;
+		
+		__overlay__ {
+			rtc@68 {
+				compatible = "nxp,pcf8523";
+				reg = <0x68>;
+			};
+		};
+	};
+};
