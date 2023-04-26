@@ -16,8 +16,8 @@
 		target = <&spicc>;
 		
 		__overlay__ {
-			status = "okay";
 			mcp3008@0 {
+				status = "okay";
 				compatible = "microchip,mcp3008";
 				reg = <0>;
 				spi-max-frequency = <30000000>;
