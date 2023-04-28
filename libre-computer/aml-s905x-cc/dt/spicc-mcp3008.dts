@@ -19,7 +19,7 @@
 			mcp3008@0 {
 				compatible = "microchip,mcp3008";
 				reg = <0>;
-				spi-max-frequency = <30000000>;
+				spi-max-frequency = <1600000>;
 				status = "okay";
 			};
 		};
