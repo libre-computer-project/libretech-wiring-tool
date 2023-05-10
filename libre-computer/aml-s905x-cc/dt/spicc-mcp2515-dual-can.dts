@@ -5,7 +5,7 @@
  * SPDX-License-Identifier: (GPL-2.0+ OR MIT)
  *
  * Requires "spicc-cs1" DTS to be loaded first
- * Tested with the "Seengreat Dual-CH CAN HAT" Rev 3.1
+ * Tested with the "Seengreat Dual-CH CAN HAT" Rev 3.1 [https://seengreat.com/dualchcanhat]
  * Interrupts may not be correct for other CAN hats. Adjust accordingly.
  *
  */
