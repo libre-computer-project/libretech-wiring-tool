@@ -1,0 +1,59 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright (c) 2022 Da Xue <da@libre.computer>
+ * Author: Da Xue <da@libre.computer>
+ */
+
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/pinctrl/rockchip.h>
+#include <dt-bindings/interrupt-controller/irq.h>
+
+/*
+ * 11 TPIRQ GPIO2_C4
+ * 18 I/D R GPIO3_A5 
+ * 22 Reset GPIO0_A2
+ */
+
+/ {
+	compatible = "rockchip,rk3328";
+
+	fragment@0 {
+		target = <&spi0>;
+		
+		__overlay__ {
+
+			display@0 {
+				compatible = "waveshare,rpi-lcd-35", "ilitek,ili9486";
+				reg = <0>;
+				spi-max-frequency = <30000000>;
+				reset-gpios = <&gpio0 RK_PA2 GPIO_ACTIVE_HIGH>;
+				dc-gpios = <&gpio3 RK_PA5 GPIO_ACTIVE_HIGH>;
+				status = "okay";
+			};
+
+			touchscreen@1 {
+				compatible = "ti,ads7846";
+				pinctrl-names = "default";
+				pinctrl-0 = <&i2s1_sdio1>;
+				reg = <1>;
+				spi-max-frequency = <2000000>;
+				interrupt-parent = <&gpio2>;
+				interrupts = <20 IRQ_TYPE_EDGE_FALLING>;
+				pendown-gpio = <&gpio2 RK_PC4 GPIO_ACTIVE_LOW>;
+				ti,x-plate-ohms = /bits/ 16 <60>;
+				ti,pressure-max = /bits/ 16 <255>;
+                                touchscreen-swapped-x-y;
+                                touchscreen-inverted-x;
+                                touchscreen-min-x = <300>;
+                                touchscreen-size-x = <3850>;
+                                touchscreen-min-y = <240>;
+                                touchscreen-size-y = <3900>;
+				wakeup-source;
+				status = "okay";
+			};
+		};
+	};
+};
