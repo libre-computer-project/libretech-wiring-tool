@@ -1,0 +1,61 @@
+/*
+ * Copyright (c) 2022 Da Xue
+ * Author: Da Xue <da@libre.computer>
+ *
+ * SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+ */
+ 
+/*
+ * Overlay aimed to enable automatic temperature-based fan control on PWM A on Header 7J1 Pin 33 with tach on Header 9J1 Pin 2
+ */
+
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/clock/gxbb-clkc.h>
+#include <dt-bindings/gpio/meson-gxl-gpio.h>
+#include <dt-bindings/thermal/thermal.h>
+#include <dt-bindings/interrupt-controller/irq.h>
+#include <dt-bindings/interrupt-controller/meson-gic.h>
+
+/ {
+	compatible = "libretech,cc", "amlogic,s905x", "amlogic,meson-gxl";
+
+	fragment@0 {
+		target = <&fan0>;
+		__overlay__ {
+			cooling-levels = <0 100 150 200 255>;
+			#cooling-cells = <2>;
+		};
+	};
+
+	fragment@1 {
+		target-path = "/thermal-zones/cpu-thermal/trips";
+		__overlay__ {
+			cpu_active: cpu-active {
+				temperature = <50000>;
+				hysteresis = <2000>;
+				type = "active";
+			};
+			cpu_warm: cpu-warm {
+				temperature = <60000>;
+				hysteresis = <2000>;
+				type = "active";
+			};
+		};
+	};
+
+	fragment@2 {
+		target = <&cpu_cooling_maps>;
+		__overlay__ {
+			map2 {
+				trip = <&cpu_active>;
+				cooling-device = <&fan0 THERMAL_NO_LIMIT 1>;
+			};
+			map3 {
+				trip = <&cpu_warm>;
+				cooling-device = <&fan0 2 THERMAL_NO_LIMIT>;
+			};
+		};
+	};
+};
