@@ -1,0 +1,43 @@
+/*
+ * Copyright (c) 2022 Da Xue
+ * Author: Da Xue <da@libre.computer>
+ *
+ * SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+ */
+ 
+/*
+ * Overlay aimed to create a gpio button on 7J1 pin 31 (GPIOX_18) linked to the power key
+ */
+
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/gpio/meson-gxl-gpio.h>
+#include <dt-bindings/interrupt-controller/irq.h>
+#include <dt-bindings/interrupt-controller/meson-gic.h>
+
+/ {
+	compatible = "libretech,cc", "amlogic,s905x", "amlogic,meson-gxl";
+
+	fragment@0 {
+		target-path = "/";
+		__overlay__ {
+			gpio_keys: gpio-keys {
+				compatible = "gpio-keys";
+				#address-cells = <1>;
+				#size-cells = <0>;
+				autorepeat;
+				
+				power-button {
+					label = "Power Button";
+					linux,code = <116>;
+					interrupts-extended = <&gpio_intc MESON_GIC_GXL_GPIOX_18 IRQ_TYPE_LEVEL_LOW>;
+					linux,can-disable;
+					wakeup-source;
+				};
+			};
+		};
+	};
+};
+
