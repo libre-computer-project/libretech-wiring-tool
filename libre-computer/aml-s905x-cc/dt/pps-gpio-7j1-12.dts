@@ -29,8 +29,8 @@
 				pinctrl-names = "default";
 				pinctrl-o = <&spdif_out_ao_6_pins>;
 				gpios = <&gpio_ao GPIOAO_6 GPIO_ACTIVE_HIGH>;
-				interrupts = <&gpio_intc MESON_GIC_GXL_GPIOAO_6 IRQ_TYPE_EDGE_FALLING>;
-				assert-falling-edge;
+				interrupts = <&gpio_intc MESON_GIC_GXL_GPIOAO_6 IRQ_TYPE_EDGE_RISING>;
+				assert-rising-edge;
 				status = "okay";
 			};
 		};
