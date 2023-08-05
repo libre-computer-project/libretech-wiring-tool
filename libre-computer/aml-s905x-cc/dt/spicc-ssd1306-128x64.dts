@@ -1,0 +1,34 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright (c) 2022 Da Xue <da@libre.computer>
+ * Author: Da Xue <da@libre.computer>
+ */
+
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/gpio/meson-gxl-gpio.h>
+
+/ {
+	compatible = "libretech,cc", "amlogic,s905x", "amlogic,meson-gxl";
+
+	fragment@0 {
+		target = <&spicc>;
+		
+		__overlay__ {
+			ssd1306@0 {
+				compatible = "solomon,ssd1306";
+				reg = <0>;
+				dc-gpios = <&gpio GPIOX_17 GPIO_ACTIVE_HIGH>;
+				reset-gpios = <&gpio GPIOX_18 GPIO_ACTIVE_LOW>;
+				solomon,width = <128>;
+				solomon,height = <64>;
+				solomon,com-invdir;
+				solomon,page-offset = <8>;
+				spi-max-frequency = <41666666>;
+				status = "okay";
+			};
+		};
+	};
+};
