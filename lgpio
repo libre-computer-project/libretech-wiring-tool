@@ -165,7 +165,7 @@ LGPIO_get(){
 	if [ -z "${gpiod//[0-9$TAB_CHAR]}" ]; then
 		gpioget $gpiod
 	else
-		echo "$FUNCNAME: header $header pin $pin not an GPIO." >&2
+		echo "$FUNCNAME: header $header pin $pin not a GPIO." >&2
 		return 1
 	fi
 }
