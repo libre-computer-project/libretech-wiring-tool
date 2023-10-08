@@ -165,7 +165,7 @@ LDTO_findEFIDTBPath()
 		return 1
 	fi
 	for mnt_dir in $mnt_boot; do
-		if [ -d "$mnt_dir"/EFI/BOOT ]; then
+		if [ -d "$mnt_dir"/EFI/BOOT -o -e "$mnt_dir"/uboot.env ]; then
 			PATH_OF_EFI_DTB="$mnt_dir"/dtb
 			if [ $# -ne 0 ]; then
 				if [ -d "$PATH_OF_EFI_DTB" ]; then
