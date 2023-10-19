@@ -1,0 +1,21 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright (c) 2023 Da Xue <da@libre.computer>
+ * Author: Da Xue <da@libre.computer>
+ */
+
+/dts-v1/;
+/plugin/;
+
+/ {
+	compatible = "libretech,aml-a311d-cc";
+
+	fragment@0 {
+		target = <&npu>;
+
+		__overlay__ {
+			status = "okay";
+		};
+	};
+};
+
