@@ -184,6 +184,11 @@ LDTO_findEFIDTBPath()
 			return
 		fi
 	done
+	if grep "root=/dev/nfs" /proc/cmdline > /dev/null; then
+		PATH_OF_EFI_DTB=/boot/efi/dtb
+		mkdir "$PATH_OF_EFI_DTB"
+		return
+	fi
 	echo "$FUNCNAME: no EFI boot path found." >&2
 	return 1
 }
