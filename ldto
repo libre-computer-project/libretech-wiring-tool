@@ -178,7 +178,9 @@ LDTO_findEFIDTBPath()
 						echo "$FUNCNAME: EFI path not writable! sudo?" >&2
 						return 1
 					fi
-					mkdir "$PATH_OF_EFI_DTB"
+					if [ ! -d "$PATH_OF_EFI_DTB" ]; then
+						mkdir -p "$PATH_OF_EFI_DTB"
+					fi
 				fi
 			fi
 			return
@@ -186,7 +188,9 @@ LDTO_findEFIDTBPath()
 	done
 	if grep "root=/dev/nfs" /proc/cmdline > /dev/null; then
 		PATH_OF_EFI_DTB=/boot/efi/dtb
-		mkdir "$PATH_OF_EFI_DTB"
+		if [ ! -d "$PATH_OF_EFI_DTB" ]; then
+			mkdir "$PATH_OF_EFI_DTB"
+		fi
 		return
 	fi
 	echo "$FUNCNAME: no EFI boot path found." >&2
