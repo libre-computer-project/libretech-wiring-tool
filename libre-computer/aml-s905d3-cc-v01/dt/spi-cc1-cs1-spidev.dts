@@ -1,0 +1,33 @@
+/*
+ * Copyright (c) 2023 Da Xue
+ * Author: Da Xue <da@libre.computer>
+ *
+ * SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+ */
+
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/gpio/meson-g12a-gpio.h>
+
+/ {
+	compatible = "libretech,aml-s905d3-cc";
+
+	fragment@0 {
+		target = <&spicc1>;
+		
+		__overlay__ {
+			spidev@0 {
+				compatible = "rohm,dh2228fv";
+				reg = <0>;
+				spi-max-frequency = <166666666>;
+			};
+			spidev@1 {
+				compatible = "rohm,dh2228fv";
+				reg = <1>;
+				spi-max-frequency = <166666666>;
+			};
+		};
+	};
+};

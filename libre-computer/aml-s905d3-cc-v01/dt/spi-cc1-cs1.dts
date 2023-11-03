@@ -1,0 +1,63 @@
+/*
+ * Copyright (c) 2023 Da Xue
+ * Author: Da Xue <da@libre.computer>
+ *
+ * SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+ */
+
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/gpio/meson-g12a-gpio.h>
+
+/ {
+	compatible = "libretech,aml-s905d3-cc";
+
+	fragment@0 {
+		target = <&periphs_pinctrl>;
+		__overlay__ {
+			spicc1_idle_high_pins: spicc1-idle-high-pins {
+				mux {
+					groups = "spi1_clk";
+					bias-pull-up;
+				};
+			};
+
+			spicc1_idle_low_pins: spicc1-idle-low-pins {
+				mux {
+					groups = "spi1_clk";
+					bias-pull-down;
+				};
+			};
+		};
+
+	};
+
+//	fragment@1 {
+
+//	};
+	fragment@1 {
+		target-path = "/aliases";
+
+		__overlay__ {
+			spi0 = "/soc/bus@ffd00000/spi@15000";
+//			spicc1_idle_high_pins = "/soc/bus@ff600000/bus@34400/pinctrl@40/spicc1-idle-high-pins";
+//			spicc1_idle_low_pins = "/soc/bus@ff600000/bus@34400/pinctrl@40/spicc1-idle-low-pins";
+		};
+	};
+
+	fragment@2 {
+		target = <&spicc1>;
+		
+		__overlay__ {
+			status = "okay";
+			pinctrl-0 = <&spicc1_pins>;
+			pinctrl-1 = <&spicc1_pins>, <&spicc1_idle_high_pins>;
+			pinctrl-2 = <&spicc1_pins>, <&spicc1_idle_low_pins>;
+			pinctrl-names = "default", "idle-high", "idle-low";
+
+			cs-gpios = <&gpio GPIOH_6 GPIO_ACTIVE_LOW>, <&gpio GPIOA_9 GPIO_ACTIVE_LOW>;
+		};
+	};
+};
