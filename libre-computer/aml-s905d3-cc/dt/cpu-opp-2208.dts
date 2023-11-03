@@ -1,0 +1,24 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright (c) 2023 Da Xue <da@libre.computer>
+ * Author: Da Xue <da@libre.computer>
+ */
+
+/dts-v1/;
+/plugin/;
+
+/ {
+	compatible = "libretech,aml-s905d3-cc";
+
+	fragment@0 {
+		target = <&cpu_opp_table>;
+
+		__overlay__ {
+			opp-2208000000 {
+				opp-hz = /bits/ 64 <2208000000>;
+				opp-microvolt = <1011000>;
+			};
+		};
+	};
+};
+
