@@ -4,6 +4,8 @@
  * Author: Da Xue <da@libre.computer>
  */
 
+/* SD UHS increase max clock */
+
 /dts-v1/;
 /plugin/;
 
@@ -14,9 +16,7 @@
 		target = <&sd_emmc_b>;
 		
 		__overlay__ {
-			sd-uhs-ddr50;
-			sd-uhs-sdr50;
-			max-frequency = <100000000>;
+			max-frequency = <200000000>;
 		};
 	};
 };

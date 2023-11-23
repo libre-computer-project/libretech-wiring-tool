@@ -14,7 +14,7 @@
 		target-path = "/cvbs-connector";
 		
 		__overlay__ {
-			status = "disable";
+			status = "disabled";
 		};
 	};
 };
