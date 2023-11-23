@@ -7,6 +7,7 @@ H40P_SPI_0_1CS	spi-0-1cs
 H40P_SPI_0_1CS_DEV	spi-0-1cs-spidev
 H40P_SPI_0_2CS	spi-0-2cs
 H40P_SPI_0_2CS_DEV	spi-0-2cs-spidev
+H40P_SPI_0_2CS_LCD_35	spi-0-2cs-ili9486-xpt2046
 H40P_SPI_1_1CS	spi-1-1cs
 H40P_SPI_1_1CS_DEV	spi-1-1cs-spidev
 H40P_UART_1	uart-1

@@ -6,4 +6,5 @@ H40P_SPI_0_1CS	spi-cc-1cs
 H40P_SPI_0_1CS_DEV	spi-cc-1cs-spidev
 H40P_SPI_0_2CS	spi-cc-2cs
 H40P_SPI_0_2CS_DEV	spi-cc-2cs-spidev
+H40P_SPI_0_LCD_35	spi-cc-2cs-mpi3501.dts
 H40P_UART_1	uart-a-clk81
