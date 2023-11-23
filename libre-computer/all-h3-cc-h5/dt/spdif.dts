@@ -1,8 +1,18 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright (c) 2023 Da Xue <da@libre.computer>
+ * Author: Da Xue <da@libre.computer>
+ */
+
+/* 40P GPIO
+ * Pin 26
+ */
+
 /dts-v1/;
 /plugin/;
 
 / {
-	compatible = "allwinner,sun50i-h5";
+	compatible = "libretech,all-h3-cc-h5", "libretech,all-h3-cc-h3", "allwinner,sun50i-h5", "allwinner,sun8i-h3";
 
 	fragment@0 {
 		target = <&spdif>;

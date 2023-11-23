@@ -1,13 +1,1 @@
-/dts-v1/;
-/plugin/;
-
-/ {
-	compatible = "allwinner,sun50i-h5";
-
-	fragment@0 {
-		target = <&spi0>;
-		__overlay__ {
-			status = "okay";
-		};
-	};
-};
+spi-0-1cs.dts

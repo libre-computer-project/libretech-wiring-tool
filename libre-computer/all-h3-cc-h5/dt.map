@@ -1,0 +1,12 @@
+# Copyright (C) 2021 Da Xue <da@libre.computer>
+# SPDX-License-Identifier: CC-BY-ND-4.0
+H40P_I2C_0	i2c-0
+H40P_I2C_1	i2c-1
+CSI_I2C	i2c-2
+H40P_SPI_0_1CS	spi-0-1cs
+H40P_SPI_0_1CS_DEV	spi-0-1cs-spidev
+H40P_SPI_0_2CS	spi-0-2cs
+H40P_SPI_0_2CS_DEV	spi-0-2cs-spidev
+H40P_SPI_1_1CS	spi-1-1cs
+H40P_SPI_1_1CS_DEV	spi-1-1cs-spidev
+H40P_UART_1	uart-1

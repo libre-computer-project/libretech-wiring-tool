@@ -1,0 +1,35 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright (c) 2023 Da Xue <da@libre.computer>
+ * Author: Da Xue <da@libre.computer>
+ */
+
+/* 40P GPIO
+ * Pin 22 CLK
+ * Pin 32 CE0
+ * Pin 37 MISO
+ * Pin 36 MOSI
+ */
+
+/dts-v1/;
+/plugin/;
+
+/ {
+	compatible = "libretech,all-h3-cc-h5", "libretech,all-h3-cc-h3", "allwinner,sun50i-h5", "allwinner,sun8i-h3";
+
+	fragment@0 {
+		target-path = "/aliases";
+		__overlay__ {
+			spi1 = "/soc/spi@01c69000";
+		};
+	};
+
+	fragment@1 {
+		target = <&spi1>;
+		__overlay__ {
+			pinctrl-names = "default";
+			status = "okay";
+			cs-gpios = <0>;
+		};
+	};
+};
