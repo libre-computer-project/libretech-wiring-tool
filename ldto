@@ -36,6 +36,52 @@ cd $(dirname $(readlink -f "${BASH_SOURCE[0]}"))
 
 PATH_DTBO=$VENDOR/$BOARD/dt
 PATH_DTCFG=$VENDOR/$BOARD/dt.config
+MAP_FILE="$VENDOR/$BOARD/dt.map"
+TAB_CHAR='	'
+declare -A MAP_DT_ALIAS
+declare -A MAP_ALIAS_DT
+
+LDTO_loadMap()
+{
+	if [ -e "$MAP_FILE" ]; then
+		while IFS= read -r mapping; do
+			local dt_alias=${mapping%%$TAB_CHAR*}
+			local dt_file=${mapping##*$TAB_CHAR}
+			MAP_DT_ALIAS[$dt_file]="$dt_alias"
+			MAP_ALIAS_DT[$dt_alias]="$dt_file"
+		done < <(grep -v '^#' "$MAP_FILE")
+	fi
+}
+
+LDTO_getDTAlias()
+{
+	if [[ -v "MAP_DT_ALIAS[$1]" ]]; then
+		echo "${MAP_DT_ALIAS[$1]}"
+	fi
+}
+
+LDTO_getAliasDT()
+{
+	if [[ -v "MAP_ALIAS_DT[$1]" ]]; then
+		echo "${MAP_ALIAS_DT[$1]}"
+	fi
+}
+
+LDTO_getDTBO()
+{
+	local dtbo="$PATH_DTBO/$1.dtbo"
+	if [ -f "$dtbo" ]; then
+		echo "$dtbo"
+	else
+		local dt=$(LDTO_getAliasDT "$1")
+		if [ ! -z "$dt" ]; then
+			local dtbo="$PATH_DTBO/$dt.dtbo"
+			if [ -f "$dtbo" ]; then
+				echo "$dtbo"
+			fi
+		fi
+	fi
+}
 
 LDTO_list()
 {
@@ -44,10 +90,12 @@ LDTO_list()
 		echo "No overlays detected. Did you run make?" >&2
 		return 1
 	fi
+	LDTO_loadMap
 	echo "#Overlays available" >&2
 	for i in $dtbos
 	do
-		basename $i .dtbo
+		local dt=$(basename $i .dtbo)
+		echo "$dt $(LDTO_getDTAlias $dt)"
 	done
 }
 
@@ -72,9 +120,10 @@ LDTO_enable()
 		LDTO_list
 		return 1
 	fi
+	LDTO_loadMap
 	for dtbo in "$@"; do
-		DTBO="$PATH_DTBO/$dtbo.dtbo"
-		if [ ! -f $DTBO ]; then
+		local dtbo_file=$(LDTO_getDTBO "$dtbo")
+		if [ -z "$dtbo_file" ]; then
 			echo "$FUNCNAME: $dtbo does not exist and cannot be added" >&2
 			return 1
 		fi
@@ -84,7 +133,7 @@ LDTO_enable()
 			return 1
 		fi
 		mkdir "$PATH_OF_CONFIG/$dtbo"
-		cat "$PATH_DTBO/$dtbo.dtbo" > "$PATH_OF_CONFIG/$dtbo/dtbo"
+		cat "$dtbo_file" > "$PATH_OF_CONFIG/$dtbo/dtbo"
 		echo "Overlay $dtbo: `cat $PATH_OF_CONFIG/$dtbo/status`" >&2
 	done
 }
@@ -220,13 +269,14 @@ LDTO_merge()
 		LDTO_list
 		return 1
 	fi
+	LDTO_loadMap
 	for dtbo in "$@"; do
-		DTBO="$PATH_DTBO/$dtbo.dtbo"
-		if [ ! -f "$DTBO" ]; then
+		local dtbo_file=$(LDTO_getDTBO "$dtbo")
+		if [ -z "$dtbo_file" ]; then
 			echo "$FUNCNAME: $dtbo does not exist and cannot be added." >&2
 			return 1
 		fi
-		LDTO_apply "$DTBO"
+		LDTO_apply "$dtbo_file"
 		echo "Overlay $dtbo: merged for next boot" >&2
 	done
 }
