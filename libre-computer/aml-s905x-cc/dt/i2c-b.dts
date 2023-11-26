@@ -20,7 +20,7 @@
 		target-path = "/aliases";
 
 		__overlay__ {
-			i2c2 = "/soc/cbus@c1100000/i2c@87c0";
+			i2c0 = "/soc/cbus@c1100000/i2c@87c0";
 		};
 	};
 
