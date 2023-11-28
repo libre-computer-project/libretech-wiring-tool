@@ -16,7 +16,7 @@
 #include <dt-bindings/gpio/gpio.h>
 #include <dt-bindings/gpio/meson-gxl-gpio.h>
 #include <dt-bindings/interrupt-controller/irq.h>
-#include <dt-bindings/interrupt-controller/meson-gic.h>
+#include <dt-bindings/interrupt-controller/amlogic,meson-gxl-gpio-intc.h>
 
 / {
 	compatible = "libretech,cc", "amlogic,s905x", "amlogic,meson-gxl";
@@ -44,7 +44,7 @@
 				reg = <0>;
 				clocks = <&osc_can0>;
 				interrupt-parent = <&gpio_intc>;
-				interrupts = <MESON_GIC_GXL_GPIOX_0 IRQ_TYPE_EDGE_FALLING>;
+				interrupts = <IRQID_GPIOX_0 IRQ_TYPE_EDGE_FALLING>;
 				spi-max-frequency = <10000000>;
 			};
 
@@ -53,7 +53,7 @@
 				reg = <1>;
 				clocks = <&osc_can0>;
 				interrupt-parent = <&gpio_intc>;
-				interrupts = <MESON_GIC_GXL_GPIOX_14 IRQ_TYPE_EDGE_FALLING>;
+				interrupts = <IRQID_GPIOX_14 IRQ_TYPE_EDGE_FALLING>;
 				spi-max-frequency = <10000000>;
 			};
 

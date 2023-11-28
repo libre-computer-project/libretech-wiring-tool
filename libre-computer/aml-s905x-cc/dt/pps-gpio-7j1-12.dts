@@ -16,7 +16,7 @@
 #include <dt-bindings/gpio/gpio.h>
 #include <dt-bindings/gpio/meson-gxl-gpio.h>
 #include <dt-bindings/interrupt-controller/irq.h>
-#include <dt-bindings/interrupt-controller/meson-gic.h>
+#include <dt-bindings/interrupt-controller/amlogic,meson-gxl-gpio-intc.h>
 
 / {
 	compatible = "libretech,cc", "amlogic,s905x", "amlogic,meson-gxl";
@@ -29,7 +29,7 @@
 				pinctrl-names = "default";
 				pinctrl-o = <&spdif_out_ao_6_pins>;
 				gpios = <&gpio_ao GPIOAO_6 GPIO_ACTIVE_HIGH>;
-				interrupts = <&gpio_intc MESON_GIC_GXL_GPIOAO_6 IRQ_TYPE_EDGE_RISING>;
+				interrupts = <&gpio_intc IRQID_GPIOAO_6 IRQ_TYPE_EDGE_RISING>;
 				assert-rising-edge;
 				status = "okay";
 			};

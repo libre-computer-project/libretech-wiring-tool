@@ -15,7 +15,7 @@
 #include <dt-bindings/clock/gxbb-clkc.h>
 #include <dt-bindings/gpio/meson-gxl-gpio.h>
 #include <dt-bindings/interrupt-controller/irq.h>
-#include <dt-bindings/interrupt-controller/meson-gic.h>
+#include <dt-bindings/interrupt-controller/amlogic,meson-gxl-gpio-intc.h>
 
 / {
 	compatible = "libretech,cc", "amlogic,s905x", "amlogic,meson-gxl";
@@ -36,7 +36,7 @@
 				compatible = "pwm-fan";
 				pwms = <&pwm_ef 0 25000 0>;
 				interrupt-parent = <&gpio_intc>;
-				interrupts = <MESON_GIC_GXL_GPIOH_4 IRQ_TYPE_EDGE_FALLING>;
+				interrupts = <IRQID_GPIOH_4 IRQ_TYPE_EDGE_FALLING>;
 				pulses-per-revolution = <2>;
 			};
 		};

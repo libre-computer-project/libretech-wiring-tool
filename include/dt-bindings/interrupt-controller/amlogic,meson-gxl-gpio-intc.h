@@ -1,0 +1,97 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright (c) 2022 Da Xue <da@libre.computer>
+ * Author: Da Xue <da@libre.computer>
+ */
+
+#ifndef _DT_BINDINGS_IRQ_MESON_GXL_GPIO_H
+#define _DT_BINDINGS_IRQ_MESON_GXL_GPIO_H
+
+#define IRQID_GPIOAO_0	0
+#define IRQID_GPIOAO_1	1
+#define IRQID_GPIOAO_2	2
+#define IRQID_GPIOAO_3	3
+#define IRQID_GPIOAO_4	4
+#define IRQID_GPIOAO_5	5
+#define IRQID_GPIOAO_6	6
+#define IRQID_GPIOAO_7	7
+#define IRQID_GPIOAO_8	8
+#define IRQID_GPIOAO_9	9
+#define IRQID_GPIOZ_0	10
+#define IRQID_GPIOZ_1	11
+#define IRQID_GPIOZ_2	12
+#define IRQID_GPIOZ_3	13
+#define IRQID_GPIOZ_4	14
+#define IRQID_GPIOZ_5	15
+#define IRQID_GPIOZ_6	16
+#define IRQID_GPIOZ_7	17
+#define IRQID_GPIOZ_8	18
+#define IRQID_GPIOZ_9	19
+#define IRQID_GPIOZ_10	20
+#define IRQID_GPIOZ_11	21
+#define IRQID_GPIOZ_12	22
+#define IRQID_GPIOZ_13	23
+#define IRQID_GPIOZ_14	24
+#define IRQID_GPIOZ_15	25
+#define IRQID_GPIOH_0	26
+#define IRQID_GPIOH_1	27
+#define IRQID_GPIOH_2	28
+#define IRQID_GPIOH_3	29
+#define IRQID_GPIOH_4	30
+#define IRQID_GPIOH_5	31
+#define IRQID_GPIOH_6	32
+#define IRQID_GPIOH_7	33
+#define IRQID_GPIOH_8	34
+#define IRQID_GPIOH_9	35
+#define IRQID_BOOT_0	36
+#define IRQID_BOOT_1	37
+#define IRQID_BOOT_2	38
+#define IRQID_BOOT_3	39
+#define IRQID_BOOT_4	40
+#define IRQID_BOOT_5	41
+#define IRQID_BOOT_6	42
+#define IRQID_BOOT_7	43
+#define IRQID_BOOT_8	44
+#define IRQID_BOOT_9	45
+#define IRQID_BOOT_10	46
+#define IRQID_BOOT_11	47
+#define IRQID_BOOT_12	48
+#define IRQID_BOOT_13	49
+#define IRQID_BOOT_14	50
+#define IRQID_BOOT_15	51
+#define IRQID_CARD_0	52
+#define IRQID_CARD_1	53
+#define IRQID_CARD_2	54
+#define IRQID_CARD_3	55
+#define IRQID_CARD_4	56
+#define IRQID_CARD_5	57
+#define IRQID_CARD_6	58
+#define IRQID_GPIODV_24	83
+#define IRQID_GPIODV_25	84
+#define IRQID_GPIODV_26	85
+#define IRQID_GPIODV_27	86
+#define IRQID_GPIODV_28	87
+#define IRQID_GPIODV_29	88
+#define IRQID_GPIOX_0	89
+#define IRQID_GPIOX_1	90
+#define IRQID_GPIOX_2	91
+#define IRQID_GPIOX_3	92
+#define IRQID_GPIOX_4	93
+#define IRQID_GPIOX_5	94
+#define IRQID_GPIOX_6	95
+#define IRQID_GPIOX_7	96
+#define IRQID_GPIOX_8	97
+#define IRQID_GPIOX_9	98
+#define IRQID_GPIOX_10	99
+#define IRQID_GPIOX_11	100
+#define IRQID_GPIOX_12	101
+#define IRQID_GPIOX_13	102
+#define IRQID_GPIOX_14	103
+#define IRQID_GPIOX_15	104
+#define IRQID_GPIOX_16	105
+#define IRQID_GPIOX_17	106
+#define IRQID_GPIOX_18	107
+#define IRQID_GPIOCLK_0	108
+#define IRQID_GPIOCLK_1	109
+
+#endif
