@@ -1,13 +1,24 @@
+/*
+ * Copyright (c) 2024 Da Xue
+ * Author: Da Xue <da@libre.computer>
+ *
+ * SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+ */
+
+/*
+ * Enables UART1 on 40P header J1 pins 8 (TX) and 10 (RX)
+ */
+
 /dts-v1/;
 /plugin/;
 
 / {
-        compatible = "rockchip,rk3328";
+	compatible = "libretech,roc-rk3328-cc", "rockchip,rk3328";
 
-        fragment@0 {
-                target = <&uart1>;
-                __overlay__ {
-                        status = "okay";
-                };
-        };
+	fragment@0 {
+		target = <&uart1>;
+		__overlay__ {
+			status = "okay";
+		};
+	};
 };

@@ -1,12 +1,13 @@
 /*
- * Copyright (c) 2017 BayLibre, SAS.
- * Author: Neil Armstrong <narmstrong@baylibre.com>
+ * Copyright (c) 2022 Da Xue <da@libre.computer>
+ * Author: Da Xue <da@libre.computer>
  *
  * SPDX-License-Identifier: (GPL-2.0+ OR MIT)
  */
 
 /*
- * Overlay aimed to enable a spidev interface on SPICC bus with CS0
+ * Enables spidev interfaces for spi0-cs1
+ * Requires spi0-cs1 overlay
  */
 
 /dts-v1/;

@@ -1,3 +1,14 @@
+/*
+ * Copyright (c) 2022 Da Xue <da@libre.computer>
+ * Author: Da Xue <da@libre.computer>
+ *
+ * SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+ */
+
+/*
+ * Enables SPI on 40P header J1 pins 19 (TX) 21 (RX) 23 (CLK) with two chip selects on pins 24 (CS0) 26 (CS1)
+ */
+
 /dts-v1/;
 /plugin/;
 
@@ -5,7 +16,7 @@
 #include <dt-bindings/pinctrl/rockchip.h>
 
 / {
-	compatible = "rockchip,rk3328";
+	compatible = "libretech,roc-rk3328-cc", "rockchip,rk3328";
 
 	fragment@0 {
 		target-path = "/aliases";
@@ -14,6 +25,7 @@
 			spi0 = "/soc/spi@ff190000";
 		};
 	};
+
 	fragment@1 {
 		target = <&spi0>;
 		
