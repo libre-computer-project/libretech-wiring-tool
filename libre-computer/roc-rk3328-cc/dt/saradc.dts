@@ -1,0 +1,25 @@
+/*
+ * Copyright (c) 2024 Da Xue
+ * Author: Da Xue <da@libre.computer>
+ *
+ * SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+ */
+
+/*
+ * Enables SARADC on 3P header J21 pins 1 (IN1) and 3 (IN0)
+ * This overlay will not be necessary in the future as it will be integrated with the base tree.
+ */
+
+/dts-v1/;
+/plugin/;
+
+/ {
+	compatible = "libretech,roc-rk3328-cc", "rockchip,rk3328";
+
+	fragment@0 {
+		target = <&saradc>;
+		__overlay__ {
+			vref-supply = <&vcc_18>;
+		};
+	};
+};
