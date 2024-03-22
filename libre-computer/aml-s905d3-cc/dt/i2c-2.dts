@@ -1,0 +1,24 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright (C) 2024 Libre Computer, Inc.
+ * Author: Luke Lu <luke.lu@libre.computer>
+ */
+
+/* enable 40 Header J72 - Pin 27 (SDA), 28 (SCL) */
+
+/dts-v1/;
+/plugin/;
+
+/ {
+	compatible = "libretech,aml-s905d3-cc", "amlogic,s905d3", "amlogic,sm1";
+
+	fragment@0 {
+		target = <&i2c2>;
+
+		__overlay__ {
+			status = "okay";
+			pinctrl-0 = <&i2c2_sda_x_pins>, <&i2c2_sck_x_pins>;
+			pinctrl-names = "default";
+		};
+	};
+};
