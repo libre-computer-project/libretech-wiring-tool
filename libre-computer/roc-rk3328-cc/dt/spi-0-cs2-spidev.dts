@@ -1,0 +1,34 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright (c) 2024 Da Xue
+ * Author: Da Xue <da@libre.computer>
+ */
+
+/*
+ * Enables spidev interfaces for spi-0-cs2
+ * Requires spi-0-cs2 overlay
+ */
+
+/dts-v1/;
+/plugin/;
+
+/ {
+	compatible = "libretech,roc-rk3328-cc", "rockchip,rk3328";
+
+	fragment@0 {
+		target = <&spi0>;
+		
+		__overlay__ {
+			spidev@0 {
+				compatible = "rohm,dh2228fv";
+				reg = <0>;
+				spi-max-frequency = <30000000>;
+			};
+			spidev@1 {
+				compatible = "rohm,dh2228fv";
+				reg = <1>;
+				spi-max-frequency = <30000000>;
+			};
+		};
+	};
+};

@@ -1,7 +1,11 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
 /*
  * Copyright (c) 2023 Jaime Jackson-Block
  * Author: Jaime Jackson-Block
- * SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+ */
+
+/*
+ * Enables soft PPS on 40P header J1 pin 28
  */
 
 /dts-v1/;
@@ -15,19 +19,19 @@
  */
 
 / {
-    compatible = "rockchip,rk3328";
+	compatible = "rockchip,rk3328";
 
-    fragment@0 {
-        target-path = "/";
+	fragment@0 {
+		target-path = "/";
 
-        __overlay__ {
-            pps_gpio: pps-gpio {
-                compatible = "pps-gpio";
-                pinctrl-names = "default";
-                gpios = <&gpio1 RK_PD4 GPIO_ACTIVE_HIGH>;
-                assert-rising-edge;
-                status = "okay";
-            };
-        };
-    };
+		__overlay__ {
+			pps_gpio: pps-gpio {
+				compatible = "pps-gpio";
+				pinctrl-names = "default";
+				gpios = <&gpio1 RK_PD4 GPIO_ACTIVE_HIGH>;
+				assert-rising-edge;
+				status = "okay";
+			};
+		};
+	};
 };

@@ -5,8 +5,7 @@
  */
 
 /*
- * Enables SARADC on 3P header J21 pins 1 (IN1) and 3 (IN0)
- * This overlay will not be necessary in the future as it will be integrated with the base tree.
+ * Enables PWM on 40P header J1 pin 12
  */
 
 /dts-v1/;
@@ -16,9 +15,9 @@
 	compatible = "libretech,roc-rk3328-cc", "rockchip,rk3328";
 
 	fragment@0 {
-		target = <&saradc>;
+		target = <&pwm2>;
 		__overlay__ {
-			vref-supply = <&vcc_18>;
+			status = "okay";
 		};
 	};
 };

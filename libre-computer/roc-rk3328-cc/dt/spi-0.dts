@@ -5,8 +5,7 @@
  */
 
 /*
- * Enables SARADC on 3P header J21 pins 1 (IN1) and 3 (IN0)
- * This overlay will not be necessary in the future as it will be integrated with the base tree.
+ * Enables SPI on 40P header J1 pins 19 (TX) 21 (RX) 23 (CLK)
  */
 
 /dts-v1/;
@@ -16,9 +15,18 @@
 	compatible = "libretech,roc-rk3328-cc", "rockchip,rk3328";
 
 	fragment@0 {
-		target = <&saradc>;
+		target-path = "/aliases";
+
 		__overlay__ {
-			vref-supply = <&vcc_18>;
+			spi0 = "/soc/spi@ff190000";
+		};
+	};
+
+	fragment@1 {
+		target = <&spi0>;
+
+		__overlay__ {
+			status = "okay";
 		};
 	};
 };
