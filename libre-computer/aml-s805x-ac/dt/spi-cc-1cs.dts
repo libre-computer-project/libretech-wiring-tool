@@ -1,13 +1,12 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
 /*
- * Copyright (c) 2017 BayLibre, SAS.
- * Author: Neil Armstrong <narmstrong@baylibre.com>
- *
- * SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+ * Copyright (c) 2024 Da Xue
+ * Author: Da Xue <da@libre.computer>
  */
 
 /*
- * Overlay aimed to enable SPICC on Header 7J1 :
- * Pins 19 (MOSI), 21 (MISO), 23 (CLK), 24 (SS0)
+ * Enables SPICC on header 7J1 pins:
+ * 19 (MOSI), 21 (MISO), 23 (CLK), 24 (CE0)
  */
 
 /dts-v1/;
@@ -33,7 +32,9 @@
 		__overlay__ {
 			status = "okay";
 			pinctrl-0 = <&spi_pins>;
-			pinctrl-names = "default";
+			pinctrl-1 = <&spi_pins>, <&spi_idle_high_pins>;
+			pinctrl-2 = <&spi_pins>, <&spi_idle_low_pins>;
+			pinctrl-names = "default", "idle-high", "idle-low";
 
 			cs-gpios = <&gpio GPIOX_10 GPIO_ACTIVE_LOW>;
 		};

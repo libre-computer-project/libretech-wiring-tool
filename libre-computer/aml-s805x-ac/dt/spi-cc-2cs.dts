@@ -4,6 +4,11 @@
  * Author: Da Xue <da@libre.computer>
  */
 
+/*
+ * Enables SPICC on header 7J1 pins:
+ * 19 (MOSI), 21 (MISO), 23 (CLK), 24 (CE0), 26 (CE1)
+ */
+
 /dts-v1/;
 /plugin/;
 

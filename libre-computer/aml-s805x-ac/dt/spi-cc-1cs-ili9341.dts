@@ -1,12 +1,11 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
 /*
- * Copyright (c) 2018 BayLibre, SAS.
- * Author: Neil Armstrong <narmstrong@baylibre.com>
- *
- * SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+ * Copyright (c) 2024 Da Xue
+ * Author: Da Xue <da@libre.computer>
  */
 
 /*
- * Overlay aimed to enable the Ilitek ILI9341 based panels such as the :
+ * Enables Ilitek ILI9341 panels:
  * - Adafruit 2.2" SPI display
  * - Adafruit 2.8" Touch Shield V2 (SPI)
  * - Adafruit 2.4" TFT LCD with Touchscreen Breakout w/MicroSD Socket
@@ -27,7 +26,7 @@
 
 	fragment@0 {
 		target = <&spicc>;
-		
+
 		__overlay__ {
 			/*
 			 * The display signals are connected to :

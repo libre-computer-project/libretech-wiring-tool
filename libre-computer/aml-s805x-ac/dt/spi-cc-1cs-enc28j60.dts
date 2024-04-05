@@ -1,12 +1,11 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
 /*
- * Copyright (c) 2017 BayLibre, SAS.
- * Author: Neil Armstrong <narmstrong@baylibre.com>
- *
- * SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+ * Copyright (c) 2024 Da Xue
+ * Author: Da Xue <da@libre.computer>
  */
 
 /*
- * Overlay aimed to enable a spidev interface on SPICC bus with CS0
+ * Enables userspace spidev on SPICC bus with CS0
  */
 
 /dts-v1/;
@@ -22,7 +21,7 @@
 
 	fragment@0 {
 		target = <&spicc>;
-		
+
 		__overlay__ {
 
 			#address-cells = <1>;
