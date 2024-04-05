@@ -6,7 +6,7 @@
  */
 
 /*
- * Overlay aimed to add an DS3231 RTC module on I2C_B bus, address 0x68.
+ * Overlay aimed to enable a spidev interface on SPICC bus with CS0
  */
 
 /dts-v1/;
@@ -15,13 +15,14 @@
 / {
 	compatible = "libretech,aml-s805x-ac", "amlogic,s805x", "amlogic,meson-gxl";
 
-	fragment@1 {
-		target = <&i2c_B>;
+	fragment@0 {
+		target = <&spicc>;
 		
 		__overlay__ {
-			rtc@68 {
-				compatible = "maxim,ds3231";
-				reg = <0x68>;
+			spidev@0 {
+				compatible = "rohm,dh2228fv";
+				reg = <0>;
+				spi-max-frequency = <30000000>;
 			};
 		};
 	};

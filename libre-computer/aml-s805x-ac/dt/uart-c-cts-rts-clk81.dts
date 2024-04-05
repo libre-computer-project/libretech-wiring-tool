@@ -1,0 +1,40 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright (c) 2024 Da Xue
+ * Author: Da Xue <da@libre.computer>
+ */
+
+/*
+ * Enables UART_C on 40P header 7J1 pins 19 (TX), 21 (RX), 23 (RTS), 24 (CTS)
+ * with CLK81 for additional baud rates
+ */
+
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/clock/gxbb-clkc.h>
+
+/ {
+	compatible = "libretech,aml-s805x-ac", "amlogic,s805x", "amlogic,meson-gxl";
+
+	fragment@0 {
+		target-path = "/aliases";
+
+		__overlay__ {
+			serial3 = "/soc/cbus@c1100000/serial@8700";
+		};
+	};
+
+	fragment@1 {
+		target = <&uart_C>;
+
+		__overlay__ {
+			status = "okay";
+			pinctrl-0 = <&uart_c_pins>,<&uart_c_cts_rts_pins>;
+			pinctrl-names = "default";
+			uart-has-rtscts;
+			clocks = <&xtal>, <&clkc CLKID_UART2>, <&clkc CLKID_CLK81>;
+			clock-names = "xtal", "pclk", "baud";
+		};
+	};
+};

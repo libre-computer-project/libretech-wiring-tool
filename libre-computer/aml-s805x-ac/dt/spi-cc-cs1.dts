@@ -6,12 +6,15 @@
  */
 
 /*
- * Overlay aimed to enable I2C_B on Header 7J1 :
- * Pins 27 (SDA), 28 (SCL)
+ * Overlay aimed to enable SPICC on Header 7J1 :
+ * Pins 19 (MOSI), 21 (MISO), 23 (CLK), 24 (SS0)
  */
 
 /dts-v1/;
 /plugin/;
+
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/gpio/meson-gxl-gpio.h>
 
 / {
 	compatible = "libretech,aml-s805x-ac", "amlogic,s805x", "amlogic,meson-gxl";
@@ -20,28 +23,19 @@
 		target-path = "/aliases";
 
 		__overlay__ {
-			i2c2 = "/soc/cbus@c1100000/i2c@87c0";
+			spi0 = "/soc/cbus@c1100000/spi@8d80";
 		};
 	};
 
 	fragment@1 {
-		target = <&i2c_b_pins>;
-
-		__overlay__ {
-			cfg {
-				pins = "GPIODV_26", "GPIODV_27";
-				bias-pull-up;
-			};
-		};
-	};
-
-	fragment@2 {
-		target = <&i2c_B>;
+		target = <&spicc>;
 		
 		__overlay__ {
 			status = "okay";
-			pinctrl-0 = <&i2c_b_pins>;
+			pinctrl-0 = <&spi_pins>;
 			pinctrl-names = "default";
+
+			cs-gpios = <&gpio GPIOX_10 GPIO_ACTIVE_LOW>;
 		};
 	};
 };

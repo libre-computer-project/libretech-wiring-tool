@@ -5,26 +5,26 @@
  */
 
 /*
- * Enables soft 1-wire on 40P header 7J1 pin 7
+ * Enables PWM A on Header 7J1 Pin 33
  */
 
 /dts-v1/;
 /plugin/;
 
-#include <dt-bindings/gpio/gpio.h>
-#include <dt-bindings/gpio/meson-gxl-gpio.h>
+#include <dt-bindings/clock/gxbb-clkc.h>
 
 / {
 	compatible = "libretech,aml-s805x-ac", "amlogic,s805x", "amlogic,meson-gxl";
 
 	fragment@0 {
-		target-path = "/";
+		target = <&pwm_ab>;
+
 		__overlay__ {
-			onewire@0 {
-				compatible = "w1-gpio";
-				gpios = <&gpio GPIOH_6 GPIO_ACTIVE_HIGH>;
-				status = "okay";
-			};
+			status = "okay";
+			pinctrl-0 = <&pwm_a_pins>;
+			pinctrl-names = "default";
+			clocks = <&clkc CLKID_FCLK_DIV4>;
+			clock-names = "clkin0";
 		};
 	};
 };

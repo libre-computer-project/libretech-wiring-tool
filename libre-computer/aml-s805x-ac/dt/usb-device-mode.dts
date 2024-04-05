@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: (GPL-2.0+ OR MIT)
 /*
- * Copyright (c) 2023 Da Xue <da@libre.computer>
+ * Copyright (c) 2024 Da Xue
  * Author: Da Xue <da@libre.computer>
  */
 
@@ -8,7 +8,7 @@
 /plugin/;
 
 / {
-	compatible = "libretech,ac", "amlogic,s805x", "amlogic,meson-gxl";
+	compatible = "libretech,aml-s805x-ac", "amlogic,s805x", "amlogic,meson-gxl";
 
 	fragment@0 {
 		target = <&usb>;
@@ -18,4 +18,3 @@
 		};
 	};
 };
-

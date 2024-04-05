@@ -5,26 +5,30 @@
  */
 
 /*
- * Enables PWM E on Header 7J1 Pin 32
+ * Enables UART_A on 40P header 7J1 pins 8 (TX) and 10 (RX)
  */
 
 /dts-v1/;
 /plugin/;
 
-#include <dt-bindings/clock/gxbb-clkc.h>
-
 / {
 	compatible = "libretech,aml-s805x-ac", "amlogic,s805x", "amlogic,meson-gxl";
 
 	fragment@0 {
-		target = <&pwm_ef>;
-		
+		target-path = "/aliases";
+
+		__overlay__ {
+			serial1 = "/soc/cbus@c1100000/serial@84c0";
+		};
+	};
+
+	fragment@1 {
+		target = <&uart_A>;
+
 		__overlay__ {
 			status = "okay";
-			pinctrl-0 = <&pwm_e_pins>;
+			pinctrl-0 = <&uart_a_pins>;
 			pinctrl-names = "default";
-			clocks = <&clkc CLKID_FCLK_DIV4>;
-			clock-names = "clkin0";
 		};
 	};
 };
