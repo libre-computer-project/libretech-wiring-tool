@@ -1,0 +1,33 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright (c) 2024 Da Xue
+ * Author: Da Xue <da@libre.computer>
+ */
+
+/*
+ * Enables SSD3306 on I2C A
+ * Please update the AML-S805X-AC firmware to the latest version.
+ */
+
+/dts-v1/;
+/plugin/;
+
+/ {
+	compatible = "libretech,aml-s805x-ac", "amlogic,s805x", "amlogic,meson-gxl";
+
+        fragment@0 {
+                target = <&i2c_A>;
+
+                __overlay__ {
+                        ssd1306@3c {
+                                compatible = "solomon,ssd1306";
+                                reg = <0x3c>;
+                                solomon,width = <128>;
+                                solomon,height = <64>;
+                                solomon,com-invdir;
+                                solomon,page-offset = <8>;
+                        };
+                };
+        };
+};
+
