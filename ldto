@@ -120,6 +120,7 @@ LDTO_enable()
 		LDTO_list
 		return 1
 	fi
+	LDTO_checkOFConfig RW
 	LDTO_loadMap
 	for dtbo in "$@"; do
 		local dtbo_file=$(LDTO_getDTBO "$dtbo")
@@ -127,7 +128,6 @@ LDTO_enable()
 			echo "$FUNCNAME: $dtbo does not exist and cannot be added" >&2
 			return 1
 		fi
-		LDTO_checkOFConfig RW
 		if [ -e "$PATH_OF_CONFIG/$dtbo" ]; then
 			echo "Overlay $dtbo: already exists" >&2
 			return 1
@@ -144,9 +144,15 @@ LDTO_disable()
 		LDTO_active
 		return 1
 	fi
+	LDTO_checkOFConfig RW
+	LDTO_loadMap
 	for dtbo in "$@"; do
-		LDTO_checkOFConfig RW
 		if [ ! -e "$PATH_OF_CONFIG/$dtbo" ]; then
+			local dt=$(LDTO_getAliasDT "$dtbo")
+			if [ ! -z "$dt" ]; then
+				rmdir $PATH_OF_CONFIG/$dt
+				echo "Overlay $dt: removed" >&2
+			fi
 			echo "Overlay $dtbo: does not exist and cannot be removed" >&2
 			return 1
 		fi
