@@ -1,4 +1,4 @@
-# Copyright (C) 2021 Da Xue <da@libre.computer>
+# Copyright (C) 2024 Da Xue <da@libre.computer>
 # SPDX-License-Identifier: MIT
 # I2C
 H40P_I2C_0	i2c-0
@@ -9,14 +9,12 @@ H40P_I2C_1_SSD1306_128x32	i2c-1-ssd1306-128x32
 H40P_I2C_1_SSD1306_128x64	i2c-1-ssd1306-128x64
 # SPI
 H40P_SPI_0_1CS	spi-0-1cs
-H40P_SPI_0_1CS_DEV	spi-0-1cs-spidev
+H40P_SPI_0_1CS_DEV	spi-0-1cs-dev
 H40P_SPI_0_2CS	spi-0-2cs
 H40P_SPI_0_2CS_DEV	spi-0-2cs-spidev
-H40P_SPI_0_2CS_LCD_35	spi-0-2cs-ili9486-xpt2046
-H40P_SPI_1_1CS	spi-1-1cs
-H40P_SPI_1_1CS_DEV	spi-1-1cs-spidev
+H40P_SPI_0_2CS_LCD_35	spi-cc-2cs-mpi3501
 # UART
 H40P_UART_0	uart-1
-# PWM
-# CSI
-CSI_0_I2C	i2c-2
+H40P_UART_DEBUG	uart-2
+#PWM
+H40P_PWM_P12	pwm-2
