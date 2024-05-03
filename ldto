@@ -28,7 +28,7 @@ PATH_OF_DTB_OVERRIDE=
 PATH_OF_EFI_DTB=
 
 if [ ! -d "$PATH_OF_CONFIG" ]; then
-	echo "The running kernel does not supported by this tool." >&2
+	echo "The running kernel does not support this tool." >&2
 	exit 1
 fi
 
