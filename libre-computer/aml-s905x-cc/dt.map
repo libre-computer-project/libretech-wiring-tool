@@ -1,5 +1,5 @@
 # Copyright (C) 2023 Da Xue <da@libre.computer>
-# SPDX-License-Identifier: CC-BY-ND-4.0
+# SPDX-License-Identifier: MIT
 H40P_I2C_0	i2c-ao
 H40P_I2C_1	i2c-b
 H40P_SPI_0_1CS	spi-cc-1cs
