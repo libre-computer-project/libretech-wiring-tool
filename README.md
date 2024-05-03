@@ -128,7 +128,19 @@ sudo ./ldto reset # remove all overlays, effective after reboot
 ```
 
 ## DTO Alias Stability
-Please note that we will be changing the ldto names and features in the future. This is not yet stable. Once names are stable, we will remove this.
+Board-agnostic alias maps allow for programs to enable hardware without detecting the board and/or specifying overlay names.
+The 40-pin header found on many of our boards have similar hardware functions on specific pins and a few are described below.
+```
+H40P_I2C_0 - I2C bus on pin 3 and pin 5
+H40P_I2C_1 - I2C bus on pin 27 and pin 28
+H40P_SPI_0_1CS - SPI bus on pins 19, 21, 23 with chip enable on pin 24
+H40P_SPI_0_1CS_DEV - SPI bus on pins 19, 21, 23 with chip enable on pin 24 userspace spidev node
+H40P_SPI_0_2CS - SPI bus on pins 19, 21, 23 with chip enables on pins 24, 26
+H40P_SPI_0_2CS_DEV - SPI bus on pins 19, 21, 23 with chip enables on pins 24, 26 userspace spidev node
+H40P_UART0 - UART on pins 8, 10
+H40P_PWM_Px - PWM on pin X*
+```
+Please be aware that certain PWM controllers offer two outputs that use a different overlays. Only use one PWM alias if you did not check the overlays for a specific board.
 
 ## Help and Support
 - [Libre Computer Hub](https://hub.libre.computer/t/libre-computer-wiring-tool/40)
