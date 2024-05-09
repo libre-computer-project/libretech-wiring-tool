@@ -1,0 +1,172 @@
+#!/bin/bash
+
+GPIO_BANK_ADDR_MULTIPLIER=4
+
+GPIO_BANK_BASE_ADDR_0=0xc8100000
+GPIO_BANK_BASE_ADDR_1=0xc8834400
+
+declare -A GPIO_BANK_BASE_ADDR=(
+	["GPIOAO"]=$GPIO_BANK_BASE_ADDR_0
+	["GPIOX"]=$GPIO_BANK_BASE_ADDR_1
+	["GPIODV"]=$GPIO_BANK_BASE_ADDR_1
+	["GPIOH"]=$GPIO_BANK_BASE_ADDR_1
+	["BOOT"]=$GPIO_BANK_BASE_ADDR_1
+	["CARD"]=$GPIO_BANK_BASE_ADDR_1
+	["CLK"]=$GPIO_BANK_BASE_ADDR_1
+	["GPIOZ"]=$GPIO_BANK_BASE_ADDR_1
+)
+
+GPIO_BANK_get(){
+	if [ -z "$1" ]; then
+		echo -n ${!GPIO_BANK_BASE_ADDR[@]}
+	else
+		[[ -v "GPIO_BANK_BASE_ADDR[$1]" ]]
+	fi
+}
+
+declare -A GPIO_BANK_IO_CNT=(
+	["GPIOAO"]=10
+	["GPIOX"]=19
+	["GPIODV"]=6
+	["GPIOH"]=10
+	["BOOT"]=16
+	["CARD"]=7
+	["CLK"]=2
+	["GPIOZ"]=2
+)
+
+GPIO_BANK_IO_CNT_get(){
+	echo -n "${GPIO_BANK_IO_CNT[$1]}"
+}
+
+declare -A GPIO_BANK_IO_OFF=(
+	["GPIOAO"]=0
+	["GPIOX"]=0
+	["GPIODV"]=24
+	["GPIOH"]=0
+	["BOOT"]=0
+	["CARD"]=0
+	["CLK"]=0
+	["GPIOZ"]=14
+)
+
+GPIO_BANK_IO_OFF_get(){
+	echo -n "${GPIO_BANK_IO_OFF[$1]}"
+}
+
+GPIO_BANK_IO_OFF_getName(){
+	echo -n "${1}_$((${GPIO_BANK_IO_OFF[$1]} + $2))"
+}
+
+declare -A GPIO_BANK_OEN_REG_OFF=(
+	["GPIOAO"]=0x09
+	["GPIOX"]=0x18
+	["GPIODV"]=0x0c
+	["GPIOH"]=0x0f
+	["BOOT"]=0x12
+	["CARD"]=0x12
+	["CLK"]=0x15
+	["GPIOZ"]=0x15
+)
+
+GPIO_BANK_OEN_get(){
+	printf "%x %x" \
+		$((${GPIO_BANK_BASE_ADDR[$1]} + GPIO_BANK_ADDR_MULTIPLIER * ${GPIO_BANK_OEN_REG_OFF[$1]} + ((${GPIO_BANK_IO_BIT_OFF[$1]} + $2) / 8))) \
+		$(((${GPIO_BANK_IO_BIT_OFF[$1]} + $2) % 8))
+}
+
+declare -A GPIO_BANK_OUT_REG_OFF=(
+	["GPIOAO"]=0x09
+	["GPIOX"]=0x19
+	["GPIODV"]=0x0d
+	["GPIOH"]=0x10
+	["BOOT"]=0x13
+	["CARD"]=0x13
+	["CLK"]=0x16
+	["GPIOZ"]=0x16
+)
+
+GPIO_BANK_OUT_get(){
+	printf "%x %d" \
+		$((${GPIO_BANK_BASE_ADDR[$1]} + GPIO_BANK_ADDR_MULTIPLIER * ${GPIO_BANK_OUT_REG_OFF[$1]} + ((${GPIO_BANK_IO_BIT_OFF[$1]} + $2) / 8))) \
+		$(((${GPIO_BANK_IO_BIT_OFF[$1]} + $2) % 8))
+}
+
+declare -A GPIO_BANK_IN_REG_OFF=(
+	["GPIOAO"]=0x0a
+	["GPIOX"]=0x1a
+	["GPIODV"]=0x0e
+	["GPIOH"]=0x11
+	["BOOT"]=0x14
+	["CARD"]=0x14
+	["CLK"]=0x17
+	["GPIOZ"]=0x17
+)
+
+#TODO PER REG IO BIT OFF
+declare -A GPIO_BANK_IO_BIT_OFF=(
+	["GPIOAO"]=0
+	["GPIOX"]=0
+	["GPIODV"]=24
+	["GPIOH"]=20
+	["BOOT"]=0
+	["CARD"]=20
+	["CLK"]=28
+	["GPIOZ"]=14
+)
+
+declare -A GPIO_BANK_PULL_EN_BIT_OFF=(
+	["GPIOAO"]=16
+	["GPIOX"]=0
+	["GPIODV"]=0
+	["GPIOH"]=20
+	["BOOT"]=0
+	["CARD"]=20
+	["CLK"]=28
+	["GPIOZ"]=0
+)
+
+declare -A GPIO_BANK_PULL_EN_REG_OFF=(
+	["GPIOAO"]=0x48
+	["GPIOX"]=0x4c
+	["GPIODV"]=0x48
+	["GPIOH"]=0x49
+	["BOOT"]=0x4a
+	["CARD"]=0x4a
+	["CLK"]=0x4b
+	["GPIOZ"]=0x4b
+)
+
+GPIO_BANK_PULL_EN_get(){
+	printf "%x %d" \
+		$((${GPIO_BANK_BASE_ADDR[$1]} + GPIO_BANK_ADDR_MULTIPLIER * ${GPIO_BANK_PULL_EN_REG_OFF[$1]} + ((${GPIO_BANK_PULL_EN_BIT_OFF[$1]} + $2) / 8))) \
+		$(((${GPIO_BANK_PULL_EN_BIT_OFF[$1]} + $2) % 8))
+}
+
+declare -A GPIO_BANK_PULL_DIR_BIT_OFF=(
+	["GPIOAO"]=0
+	["GPIOX"]=0
+	["GPIODV"]=0
+	["GPIOH"]=20
+	["BOOT"]=0
+	["CARD"]=20
+	["CLK"]=28
+	["GPIOZ"]=0
+)
+
+declare -A GPIO_BANK_PULL_DIR_REG_OFF=(
+	["GPIOAO"]=0x3a
+	["GPIOX"]=0x3e
+	["GPIODV"]=0x3a
+	["GPIOH"]=0x3b
+	["BOOT"]=0x3c
+	["CARD"]=0x3c
+	["CLK"]=0x3d
+	["GPIOZ"]=0x3d
+)
+
+GPIO_BANK_PULL_DIR_get(){
+	printf "%x %d" \
+		$((${GPIO_BANK_BASE_ADDR[$1]} + GPIO_BANK_ADDR_MULTIPLIER * ${GPIO_BANK_PULL_DIR_REG_OFF[$1]} + ((${GPIO_BANK_PULL_DIR_BIT_OFF[$1]} + $2) / 8))) \
+		$(((${GPIO_BANK_PULL_DIR_BIT_OFF[$1]} + $2) % 8))
+}

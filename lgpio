@@ -271,6 +271,86 @@ LGPIO_bcm(){
 	LGPIO_info ${BCM_GPIO2PIN[$bcm_gpio]} $@
 }
 
+LGPIO_MD_getBit(){
+	local data_byte=$(memtool md -b 0x$1+1 | cut -f 2 -d ":" | cut -f 2 -d " ")
+	[ $((0x${data_byte} & (1 << $2))) -gt 0 ] && echo -n 1 || echo -n 0
+}
+
+LGPIO_debugHelp(){
+	echo "$0 debug [BANK][_NUM]" >&2
+}
+
+LGPIO_debug(){
+	if [ ! -f "$VENDOR/$BOARD/gpio.config" ]; then
+		echo "GPIO config not available for this board." >&2
+		exit 1
+	fi
+
+	. "$VENDOR/$BOARD/gpio.config"
+
+	if [ -z "$GPIO_DEBUG_PATH" ]; then
+		echo "GPIO debug not available for this board." >&2
+		exit 1
+	fi
+
+	if [ ! -f "$GPIO_DEBUG_PATH" ]; then
+		echo "$GPIO debug helper not found." >&2
+		exit 1
+	fi
+
+	if ! test -r /dev/mem; then
+		echo "$FUNCNAME: memory not readable! sudo?" >&2
+		return 1
+	fi
+
+	. "$GPIO_DEBUG_PATH"
+
+	if [ -z "$1" ]; then
+		local banks=$(GPIO_BANK_get)
+	else
+		local banks=${1%%_*}
+		if ! GPIO_BANK_get $banks; then
+			echo "$banks does not exist." >&2
+			exit 1
+		fi
+		if [ "$1" != "$banks" ]; then
+			local bank_io_num=${1##*_}
+			local bank_io_cnt=$(GPIO_BANK_IO_CNT_get $banks)
+			local bank_io_off=$(GPIO_BANK_IO_OFF_get $banks)
+			if [ "$bank_io_num" -lt $bank_io_off ]; then
+				echo "$1 does not exist." >&2
+				exit 1
+			elif [ "$bank_io_num" -ge $((bank_io_off + bank_io_cnt)) ]; then
+				echo "$1 does not exist." >&2
+				exit 1
+			fi
+		fi
+	fi
+
+	echo "IO_NAME	OEN/DIR	PULL_EN	PULL_UP" >&2
+	for bank in $banks; do
+		local bank_io_off=$(GPIO_BANK_IO_OFF_get $bank)
+		if [ -z "$bank_io_num" ]; then
+			local bank_io=0
+			local bank_io_cnt=${GPIO_BANK_IO_CNT[$bank]}
+		else
+			local bank_io=$((bank_io_num - $bank_io_off))
+			local bank_io_cnt=$((bank_io + 1))
+		fi
+		while [ $bank_io -lt $bank_io_cnt ]; do
+			GPIO_BANK_IO_OFF_getName $bank $bank_io
+			echo -n "	"
+			LGPIO_MD_getBit $(GPIO_BANK_OEN_get $bank $bank_io)
+			echo -n "	"
+			LGPIO_MD_getBit $(GPIO_BANK_PULL_EN_get $bank $bank_io)
+			echo -n "	"
+			LGPIO_MD_getBit $(GPIO_BANK_PULL_DIR_get $bank $bank_io)
+			echo
+			bank_io=$((bank_io + 1))
+		done
+	done
+}
+
 LGPIO_help(){
 	LGPIO_headersHelp
 	LGPIO_headerHelp
@@ -278,6 +358,7 @@ LGPIO_help(){
 	LGPIO_getHelp
 	LGPIO_setHelp
 	LGPIO_bcmHelp
+	LGPIO_debugHelp
 	exit 1
 }
 
