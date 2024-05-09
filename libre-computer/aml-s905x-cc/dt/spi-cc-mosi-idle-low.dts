@@ -1,0 +1,30 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright (c) 2024 Da Xue
+ * Author: Da Xue <da@libre.computer>
+ */
+
+/*
+ * Internal SPI MOSI pull-down is insufficient for the default drive but this tries anyway.
+ */
+
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/gpio/meson-gxl-gpio.h>
+
+/ {
+	compatible = "libretech,cc", "amlogic,s905x", "amlogic,meson-gxl";
+
+	fragment@0 {
+		target = <&spi_pins>;
+
+		__overlay__ {
+			mux-1 {
+				groups = "spi_mosi";
+				bias-pull-down;
+			};
+		};
+	};
+};
