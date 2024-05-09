@@ -41,7 +41,7 @@ block=512
 stop=0
 
 function TEST_SPI_help(){
-	echo "Press q to quit, m to change mode, c to change chip select, w and s to double/half freq." >&2
+	echo "Press q to quit, m to change mode, c to change chip select, w and s to double/half freq, d to change ascii byte." >&2
 }
 
 TEST_SPI_help
@@ -69,6 +69,11 @@ while [ $stop -eq 0 ]; do
 			;;
 		w)
 			freq=$((freq << 1))
+			;;
+		d)
+			echo >&2
+			read -n 1 -p "Change ASCII byte '$data' to: " data >&2
+			echo >&2
 			;;
 		s)
 			if [ $freq -lt 31250 ]; then
