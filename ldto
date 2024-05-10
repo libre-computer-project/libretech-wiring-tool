@@ -311,6 +311,15 @@ LDTO_show()
 	dtc -I dtb -O dts "$PATH_OF_DTB_OVERRIDE" 2> /dev/null | less
 }
 
+LDTO_edit(){
+	LDTO_checkOverrideDT
+	dts=$(mktemp)
+	dtc -I dtb -O dts "$PATH_OF_DTB_OVERRIDE" -o $dts 2> /dev/null
+	vim $dts
+	dtc -I dts -O dtb $dts -o "$PATH_OF_DTB_OVERRIDE"
+	rm $dts
+}
+
 LDTO_current()
 {
 	LDTO_checkFirmwareDT
