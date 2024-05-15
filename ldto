@@ -95,7 +95,7 @@ LDTO_list()
 	for i in $dtbos
 	do
 		local dt=$(basename $i .dtbo)
-		echo "$dt $(LDTO_getDTAlias $dt)"
+		echo "$dt	$(LDTO_getDTAlias $dt)"
 	done
 }
 
