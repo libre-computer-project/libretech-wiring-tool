@@ -5,8 +5,8 @@
  */
 
 /*
- * Enables spidev interfaces for spi-0-2cs
- * Requires spi-0-2cs overlay
+ * Enables spidev interfaces for spi-0-1cs
+ * Requires spi-0-1cs overlay
  */
 
 /dts-v1/;
@@ -22,11 +22,6 @@
 			spidev@0 {
 				compatible = "rohm,dh2228fv";
 				reg = <0>;
-				spi-max-frequency = <30000000>;
-			};
-			spidev@1 {
-				compatible = "rohm,dh2228fv";
-				reg = <1>;
 				spi-max-frequency = <30000000>;
 			};
 		};
