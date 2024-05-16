@@ -1,0 +1,26 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright (C) 2024 Libre Computer, Inc.
+ * Author: Da Xue <da@libre.computer>
+ */
+
+/*
+ * Enables UART_AO_B 40 Header 7J2 pins 5 (TX) and 3 (RX)
+ */
+
+/dts-v1/;
+/plugin/;
+
+/ {
+	compatible = "libretech,aml-a311d-cc", "amlogic,a311d", "amlogic,g12b", "libretech,aml-s905d3-cc", "amlogic,s905d3", "amlogic,sm1";
+
+	fragment@0 {
+		target = <&uart_AO_B>;
+
+		__overlay__ {
+			status = "okay";
+			pinctrl-0 = <&uart_ao_b_2_3_pins>;
+			pinctrl-names = "default";
+		};
+	};
+};

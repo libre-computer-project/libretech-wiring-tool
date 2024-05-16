@@ -1,0 +1,27 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright (C) 2024 Libre Computer, Inc.
+ * Author: Da Xue <da@libre.computer>
+ */
+
+/*
+ * Enables UART_C 40 Header 7J2 pins 23 (TX), 24 (RX), 19 (RTS), and 21 (CTS)
+ */
+
+/dts-v1/;
+/plugin/;
+
+/ {
+	compatible = "libretech,aml-a311d-cc", "amlogic,a311d", "amlogic,g12b", "libretech,aml-s905d3-cc", "amlogic,s905d3", "amlogic,sm1";
+
+	fragment@0 {
+		target = <&uart_C>;
+
+		__overlay__ {
+			status = "okay";
+			pinctrl-0 = <&uart_c_pins>, <&uart_c_cts_rts_pins>;
+			pinctrl-names = "default";
+			uart-has-rtscts;
+		};
+	};
+};
