@@ -4,6 +4,11 @@
  * Author: Da Xue <da@libre.computer>
  */
 
+/*
+ * Enables ILI9486 based 3.5" touchscreen on 40P header 7J1 without tuning parameters
+ * Requires spi0-cs1 overlay
+ */
+
 /dts-v1/;
 /plugin/;
 
@@ -39,12 +44,12 @@
 			display@0 {
 				compatible = "waveshare,rpi-lcd-35", "ilitek,ili9486";
 				reg = <0>;
-				spi-max-frequency = <40000000>;
+				spi-max-frequency = <20000000>;
 				reset-gpios = <&pio 0 14 GPIO_ACTIVE_HIGH>;
 				dc-gpios = <&pio 6 8 GPIO_ACTIVE_HIGH>;
 				status = "okay";
 			};
-			
+
 			touchscreen@1 {
 				compatible = "ti,ads7846";
 				reg = <1>;
