@@ -1,0 +1,40 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)                                                            
+/*                                                                                                       
+ * Copyright (c) 2024 Da Xue                                                                             
+ * Author: Da Xue <da@libre.computer>                                                                    
+ */
+
+/*
+ * Enables SPICC0 on Header 7J2 on pins 38 (MOSI), 40 (MISO), 12 (SCLK), and 35 (SS0)
+ */
+
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/gpio/meson-g12a-gpio.h>
+
+/ {
+        compatible = "libretech,aml-a311d-cc", "amlogic,a311d", "amlogic,g12b", "libretech,aml-s905d3-cc", "amlogic,s905d3", "amlogic,sm1";
+
+        fragment@0 {
+                target-path = "/aliases";
+
+                __overlay__ {
+                        spi2 = "/soc/bus@ffd00000/spi@13000";
+                };
+        };
+
+        fragment@1 {
+                target = <&spicc0>;
+
+                __overlay__ {
+                        status = "okay";
+                        pinctrl-0 = <&spicc0_x_pins>, <&spicc0_ss0_x_pins>;
+                        pinctrl-names = "default", "default";
+
+                        cs-gpios = <&gpio GPIOX_10 GPIO_ACTIVE_LOW>;
+                };
+        };
+};
+

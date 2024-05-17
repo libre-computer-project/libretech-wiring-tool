@@ -1,0 +1,32 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)                                                            
+/*                                                                                                       
+ * Copyright (c) 2024 Da Xue                                                                             
+ * Author: Da Xue <da@libre.computer>                                                                    
+ */
+
+/*
+ * Enables SPICC1 userspace spidev for spi-cc1-1cs
+ */
+
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/gpio/meson-g12a-gpio.h>
+
+/ {
+        compatible = "libretech,aml-a311d-cc", "amlogic,a311d", "amlogic,g12b", "libretech,aml-s905d3-cc", "amlogic,s905d3", "amlogic,sm1";
+
+        fragment@0 {
+		target = <&spicc1>;
+
+		__overlay__ {
+			spidev@0 {
+				compatible = "rohm,dh2228fv";
+				reg = <0>;
+				spi-max-frequency = <124000000>;
+			};
+		};
+        };
+};
+
