@@ -1,0 +1,46 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright (c) 2024 Da Xue
+ * Author: Da Xue <da@libre.computer>
+ */
+
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/gpio/meson-g12a-gpio.h>
+#include <dt-bindings/interrupt-controller/irq.h>
+#include <dt-bindings/interrupt-controller/amlogic,meson-g12a-gpio-intc.h>
+
+/ {
+        compatible = "libretech,aml-a311d-cc", "amlogic,a311d", "amlogic,g12b", "libretech,aml-s905d3-cc", "amlogic,s905d3", "amlogic,sm1";
+	
+	fragment@0 {
+		target = <&spicc1>;
+		
+		__overlay__ {
+
+			display@0 {
+				compatible = "waveshare,rpi-lcd-35", "ilitek,ili9486";
+				reg = <0>;
+				spi-max-frequency = <40000000>;
+				reset-gpios = <&gpio GPIOA_6 GPIO_ACTIVE_HIGH>;
+				dc-gpios = <&gpio GPIOA_5 GPIO_ACTIVE_HIGH>;
+				status = "okay";
+			};
+
+			touchscreen@1 {
+				compatible = "ti,ads7846";
+				reg = <1>;
+				spi-max-frequency = <2000000>;
+				interrupt-parent = <&gpio_intc>;
+				interrupts = <IRQID_GPIOAO_7 IRQ_TYPE_EDGE_FALLING>;
+				pendown-gpio = <&gpio_ao GPIOAO_7 GPIO_ACTIVE_LOW>;
+				ti,x-plate-ohms = /bits/ 16 <60>;
+				ti,pressure-max = /bits/ 16 <255>;
+				wakeup-source;
+				status = "okay";
+			};
+		};
+	};
+};
