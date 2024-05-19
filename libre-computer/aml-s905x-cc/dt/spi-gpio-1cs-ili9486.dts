@@ -25,7 +25,7 @@ init = <0x10000f1 0x36 0x04 0x00 0x3c 0x0f 0x8f 0x10000f2 0x18 0xa3 0x12 0x02 0x
 */
 
 / {
-	compatible = "libretech,cc", "amlogic,s905x", "amlogic,meson-gxl";
+	compatible = "libretech,aml-s905x-cc", "amlogic,s905x", "amlogic,meson-gxl";
 
 	fragment@0 {
 		target = <&spigpio0>;

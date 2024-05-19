@@ -13,7 +13,7 @@
 #include <dt-bindings/interrupt-controller/amlogic,meson-gxl-gpio-intc.h>
 
 / {
-	compatible = "libretech,cc", "libretech,aml-s905x-cc-v2", "amlogic,s905x", "amlogic,meson-gxl";
+	compatible = "libretech,aml-s905x-cc", "libretech,aml-s905x-cc-v2", "amlogic,s905x", "amlogic,meson-gxl";
 	
 	fragment@0 {
 		target = <&spicc>;

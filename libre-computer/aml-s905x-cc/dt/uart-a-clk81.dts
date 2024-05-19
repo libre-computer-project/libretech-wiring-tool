@@ -16,7 +16,7 @@
 #include <dt-bindings/clock/gxbb-clkc.h>
 
 / {
-	compatible = "libretech,cc", "amlogic,s905x", "amlogic,meson-gxl";
+	compatible = "libretech,aml-s905x-cc", "amlogic,s905x", "amlogic,meson-gxl";
 
 	fragment@0 {
 		target-path = "/aliases";
