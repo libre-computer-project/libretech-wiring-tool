@@ -1,0 +1,43 @@
+/*
+ * Copyright (c) 2024 Da Xue
+ * Author: Da Xue <da@libre.computer>
+ *
+ * SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+ */
+ 
+/*
+ * Create a GPIO button on 2J3 pin 6 (GPIOH_6) linked to the power key
+ */
+
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/gpio/meson-gxl-gpio.h>
+#include <dt-bindings/interrupt-controller/irq.h>
+#include <dt-bindings/interrupt-controller/amlogic,meson-gxl-gpio-intc.h>
+
+/ {
+	compatible = "libretech,aml-s905x-cc", "amlogic,s905x", "amlogic,meson-gxl";
+
+	fragment@0 {
+		target-path = "/";
+		__overlay__ {
+			gpio_keys: gpio-keys {
+				compatible = "gpio-keys";
+				#address-cells = <1>;
+				#size-cells = <0>;
+				autorepeat;
+				
+				power-button {
+					label = "GPIOH_6 Power Button";
+					linux,code = <116>;
+					interrupts-extended = <&gpio_intc IRQID_GPIOH_6 IRQ_TYPE_LEVEL_LOW>;
+					linux,can-disable;
+					wakeup-source;
+				};
+			};
+		};
+	};
+};
+
