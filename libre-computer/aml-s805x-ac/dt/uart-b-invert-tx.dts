@@ -1,0 +1,25 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright (c) 2024 Da Xue
+ * Author: Da Xue <da@libre.computer>
+ */
+
+/*
+ * Invert UART_B TX on 40P header 7J1 pin 27
+ * This overlay must be merged and will only take effect after reboot.
+ */
+
+/dts-v1/;
+/plugin/;
+
+/ {
+	compatible = "libretech,aml-s805x-ac", "amlogic,s805x", "amlogic,meson-gxl";
+
+	fragment@0 {
+		target = <&uart_B>;
+
+		__overlay__ {
+			uart-invert-tx;
+		};
+	};
+};
