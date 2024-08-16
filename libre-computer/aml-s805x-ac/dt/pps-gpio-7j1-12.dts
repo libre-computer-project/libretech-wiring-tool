@@ -1,0 +1,39 @@
+/*
+ * Copyright (c) 2022 Da Xue
+ * Author: Da Xue <da@libre.computer>
+ *
+ * SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+ */
+ 
+/*
+ * Overlay aimed to create pps-gpio on 7J1 pin 12 (GPIOH_7)
+ * This requires an GPIO to IRQ enabled kernel and will not work without one.
+ * 
+ */
+
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/gpio/meson-gxl-gpio.h>
+#include <dt-bindings/interrupt-controller/irq.h>
+#include <dt-bindings/interrupt-controller/amlogic,meson-gxl-gpio-intc.h>
+
+/ {
+	compatible = "libretech,aml-s805x-ac", "amlogic,s805x", "amlogic,meson-gxl";
+
+	fragment@0 {
+		target-path = "/";
+		__overlay__ {
+			pps_gpio: pps-gpio {
+				compatible = "pps-gpio";
+				pinctrl-names = "default";
+				pinctrl-o = <&i2s_out_ao_clk_pins>;
+				gpios = <&gpio GPIOH_7 GPIO_ACTIVE_HIGH>;
+				interrupts = <&gpio_intc IRQID_GPIOH_7 IRQ_TYPE_EDGE_RISING>;
+				assert-rising-edge;
+				status = "okay";
+			};
+		};
+	};
+};
