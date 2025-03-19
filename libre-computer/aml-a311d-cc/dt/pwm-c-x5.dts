@@ -1,0 +1,33 @@
+/*
+ * Copyright (c) 2022 Da Xue
+ * Author: Da Xue <da@libre.computer>
+ *
+ * SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+ */
+ 
+/*
+ * Overlay aimed to enable PWM C X5 on Header 7J1 Pin 33
+ */
+
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/clock/gxbb-clkc.h>
+
+/ {
+	compatible = "libretech,aml-a311d-cc", "amlogic,a311d", "amlogic,meson-gxl";
+
+	fragment@0 {
+		/*target = <&pwm_c_x5>;*/
+		target = <&pwm_cd>;
+		
+		__overlay__ {
+			status = "okay";
+			pinctrl-0 = <&pwm_c_x5_pins>;
+			pinctrl-names = "default";
+			/* clocks = <&clkc CLKID_FCLK_DIV4>; */
+			clocks = <&xtal>;
+			clock-names = "clkin0";
+		};
+	};
+};
