@@ -22,10 +22,9 @@
 		
 		__overlay__ {
 			status = "okay";
-			pinctrl-0 = <&pwm_f_x_pins>;
+			pinctrl-0 = <&pwm_f_h_pins>;
 			pinctrl-names = "default";
-			/* clocks = <&clkc CLKID_FCLK_DIV4>; */
-			clocks = <&xtal>;
+			clocks = <&clkc CLKID_FCLK_DIV5>;
 			clock-names = "clkin0";
 		};
 	};

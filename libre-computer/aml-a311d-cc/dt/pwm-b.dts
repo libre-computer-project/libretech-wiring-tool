@@ -24,8 +24,7 @@
 			status = "okay";
 			pinctrl-0 = <&pwm_b_x7_pins>;
 			pinctrl-names = "default";
-			/* clocks = <&clkc CLKID_FCLK_DIV4>; */
-			clocks = <&xtal>;
+			clocks = <&clkc CLKID_FCLK_DIV5>;
 			clock-names = "clkin0";
 		};
 	};
