@@ -1,0 +1,46 @@
+/*
+ * Copyright (c) 2025 Matthew Chandler
+ * Author: Matthew Chandler
+ *
+ * SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+ */
+ 
+/*
+ * Overlay aimed to enable fan on PWM 2 on 40P header Pin 12 with tach on 40P header Pin 11
+ */
+
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/clock/gxbb-clkc.h>
+#include <dt-bindings/interrupt-controller/irq.h>
+
+/*
+ * 11 TPIRQ GPIO2_C4
+ */
+
+/ {
+	compatible = "libretech,roc-rk3328-cc", "rockchip,rk3328";
+	
+	fragment@0 {
+		target = <&i2s1_sdio1>;
+		__overlay__ {
+			mux {
+				bias-pull-up;
+			};
+		};
+	};
+	
+	fragment@1 {
+		target-path = "/";
+		__overlay__ {
+			fan0: pwm-fan {
+				compatible = "pwm-fan";
+				pwms = <&pwm2 0 25000 0>;
+				interrupt-parent = <&gpio2>;
+				interrupts = <20 IRQ_TYPE_EDGE_FALLING>;
+				pulses-per-revolution = <2>;
+			};
+		};
+	};
+};
