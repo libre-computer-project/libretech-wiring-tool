@@ -53,11 +53,33 @@ while [ $stop -eq 0 ]; do
 	dev=/dev/spidev$SPIDEVNUM.$chip
 	spi-config -d $dev -m $mode -s $freq -b $bpw -w &
 	spi_config_pid=$!
-	tr '\0' "$data" < /dev/zero | dd bs=$block of=$dev &
-	dd_pid=$!
-	read -n 1 ctrl_char
-	kill $dd_pid
-	kill $spi_config_pid
+	sleep 0.1
+	if kill -0 $spi_config_pid 2> /dev/null; then
+		tr '\0' "$data" < /dev/zero | dd bs=$block of=$dev &
+		dd_pid=$!
+		read -n 1 ctrl_char
+		kill $dd_pid
+		kill $spi_config_pid
+	else
+		echo 'Configuration failed!' >&2
+		case "$ctrl_char" in
+			w)
+				ctrl_char="s"
+				;;
+			s)
+				ctrl_char="w"
+				;;
+			a)
+				ctrl_char="d"
+				;;
+			d)
+				ctrl_char="a"
+				;;
+			*)
+				read -n 1 ctrl_char
+				;;
+		esac
+	fi
 	case "$ctrl_char" in
 		q)
 			stop=1
@@ -89,7 +111,7 @@ while [ $stop -eq 0 ]; do
 			fi
 			;;
 		a)
-			if [ $bpw -eq 1 ]; then
+			if [ $bpw -eq 7 ]; then
 				echo "Bits-per-word is already at minimum." >&2
 			elif [ $bpw -le 8 ]; then
 				bpw=$((bpw - 1))
