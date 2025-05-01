@@ -9,6 +9,7 @@
  * Overlay aimed to create pps-gpio on 7J1 pin 12 (GPIOH_7)
  * This requires an GPIO to IRQ enabled kernel and will not work without one.
  * 
+ * Note: Level interrupt is more stable on the s805x than rising edge.
  */
 
 /dts-v1/;
@@ -30,8 +31,7 @@
 				pinctrl-names = "default";
 				pinctrl-o = <&i2s_out_ao_clk_pins>;
 				gpios = <&gpio GPIOH_7 GPIO_ACTIVE_HIGH>;
-				interrupts = <&gpio_intc IRQID_GPIOH_7 IRQ_TYPE_EDGE_RISING>;
-				assert-rising-edge;
+				interrupts = <&gpio_intc IRQID_GPIOH_7 IRQ_TYPE_LEVEL_HIGH>;
 				status = "okay";
 			};
 		};
