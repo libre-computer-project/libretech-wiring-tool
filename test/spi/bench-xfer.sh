@@ -26,9 +26,11 @@ fi
 
 spi_mode=0
 
+
 ret=0
 
 for spi_bpw in $SPI_BPWS; do
+	spi_bpw_fail=0
 	spi_Bpw=$((spi_bpw >> 3))
 	for total_size in $(seq 8 8 $MAX_CHUNK_SIZE); do
 		echo -en "\r${total_size}B @ ${spi_bpw}b/w"
@@ -37,9 +39,15 @@ for spi_bpw in $SPI_BPWS; do
 		if [ $? -ne 0 ]; then
 			echo
 			echo "$output"
-			ret=1
+			spi_bpw_fail=1
 		fi
 	done
+	if [ $spi_bpw_fail -eq 0 ]; then
+		echo -e "\r$spi_bpw b/w PASS"
+	else
+		echo -e "$spi_bpw b/w FAIL"
+		ret=1
+	fi
 done
 
 exit $ret
