@@ -120,7 +120,7 @@ while [ $stop -eq 0 ]; do
 			fi
 			;;
 		d)
-			if [ $bpw -ge 1024 ]; then
+			if [ $bpw -ge 128 ]; then
 				echo "Bits-per-word is already at maximum." >&2
 			elif [ $bpw -lt 8 ]; then
 				bpw=$((bpw + 1))
