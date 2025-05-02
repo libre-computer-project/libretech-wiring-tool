@@ -9,6 +9,8 @@ cd $(dirname $(readlink -f "${BASH_SOURCE[0]}"))
 
 ./$BENCH_BIN "$spi_device" & # 10000000 8 0 $((1024 * 1024)) 4096
 pid=$!
-sleep 0.1
-eval "sudo grep .\\* /sys/kernel/debug/clk/{$board_clocks}/clk_rate"
+if [ ! -z "$board_clocks" ]; then
+	sleep 0.1
+	eval "sudo grep .\\* /sys/kernel/debug/clk/{$board_clocks}/clk_rate"
+fi
 wait $pid
