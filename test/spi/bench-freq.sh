@@ -24,7 +24,7 @@ spi_mode=0
 
 echo "bpw	MHz	Mb/s"
 for spi_bpw in $spi_bpws; do
-	for spi_speed in "${SPI_SPEEDS[@]}"; do
+	for spi_speed in "${spi_speeds[@]}"; do
 		spi_speed_mhz=$(echo "scale=0; $spi_speed / 1000000" | bc)
 
 		total_size=$((spi_speed * TARGET_TIME / 8))
