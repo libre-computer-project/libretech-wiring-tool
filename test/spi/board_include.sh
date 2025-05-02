@@ -9,6 +9,10 @@ SPI_DEV_PATH=$DEV_PATH/$SPI_DEV_NAME
 if [ -e "$DMI_BOARDNAME_PATH" ]; then
 	board=$(cat "$DMI_BOARDNAME_PATH")
 	case $board in
+		aml-s805x-ac | aml-s905x-cc | aml-s905x-cc-v2 | aml-s905d-pc)
+			spi_devnum=1
+			board_clocks="c1108d80.spi#pow2_div,c1108d80.spi#pow2_fixed_div,gxbb_spi,gxbb_spicc"
+			;;
 		aml-a311d-cc | aml-s905d3-cc)
 			spi_devnum=1
 			board_clocks=spicc1_sclk,spicc1_sclk_div,spicc1_sclk_sel,g12a_spicc_1
