@@ -25,21 +25,23 @@ fi
 . board_include.sh
 
 spi_mode=0
-
-
 ret=0
 
-for spi_bpw in $SPI_BPWS; do
+spi_clock_monitor
+
+for spi_bpw in $spi_bpws; do
 	spi_bpw_fail=0
 	spi_Bpw=$((spi_bpw >> 3))
 	for total_size in $(seq 8 8 $MAX_CHUNK_SIZE); do
-		echo -en "\r${total_size}B @ ${spi_bpw}b/w"
 		chunk_size=$((total_size < MAX_CHUNK_SIZE ? total_size : MAX_CHUNK_SIZE))
 		output=$($BENCH_BIN $spi_device $spi_speed $spi_bpw $spi_mode $total_size $chunk_size 2>&1)
 		if [ $? -ne 0 ]; then
-			echo
+			echo -e "\r${total_size}B @ ${spi_bpw}b/w"
 			echo "$output"
 			spi_bpw_fail=1
+		else
+			spi_clock_monitor_wait
+			echo -en "\r${total_size}B @ ${spi_bpw}b/w"
 		fi
 	done
 	if [ $spi_bpw_fail -eq 0 ]; then
