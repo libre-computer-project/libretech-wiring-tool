@@ -7,7 +7,7 @@ if [ ! -f $BENCH_BIN ]; then
 	gcc $BENCH_BIN.c -o $BENCH_BIN
 fi
 
-SPI_BPWS="8 16 32 64"
+SPI_BPWS="8 16 24 32 64"
 SPI_MODES="0 1 2 3"
 SPI_SPEEDS=()
 for i in $(seq 1 1 10); do
