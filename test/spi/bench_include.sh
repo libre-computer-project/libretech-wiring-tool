@@ -30,13 +30,13 @@ spi_clock_monitor_child(){
 			if [ "$output_old" != "$output" ]; then
 				echo "Original Clock" >&2
 				echo "$output_old" >&2
-				echo "New Clock" >&2
+				echo "Current Clock" >&2
 				echo "$output" >&2
 				kill -s INT $$
 				break
 			fi
 			if [ $i -eq 5 ]; then
-				echo "Same Clock" >&2
+				echo "Current Clock" >&2
 				echo "$output" >&2
 				kill -s INT $$
 				break

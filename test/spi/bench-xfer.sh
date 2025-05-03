@@ -8,7 +8,7 @@ cd $(dirname $(readlink -f "${BASH_SOURCE[0]}"))
 
 if [ ! -z "$1" ]; then
 	if [ "$1" = "--help" ]; then
-		echo "$0 \"spi_bpws\" spi_speed"
+		echo "$0 \"spi_bpws\" spi_speed" >&2
 		exit 1
 	fi
 	spi_bpws=$1
@@ -27,6 +27,7 @@ fi
 spi_mode=0
 ret=0
 
+echo "Target Speed: $spi_speed" >&2
 spi_clock_monitor
 
 for spi_bpw in $spi_bpws; do
@@ -36,8 +37,8 @@ for spi_bpw in $spi_bpws; do
 		chunk_size=$((total_size < MAX_CHUNK_SIZE ? total_size : MAX_CHUNK_SIZE))
 		output=$($BENCH_BIN $spi_device $spi_speed $spi_bpw $spi_mode $total_size $chunk_size 2>&1)
 		if [ $? -ne 0 ]; then
-			echo -e "\r${total_size}B @ ${spi_bpw}b/w"
-			echo "$output"
+			echo -e "\r${total_size}B @ ${spi_bpw}b/w failed"
+			echo "$output" >&2
 			spi_bpw_fail=1
 		else
 			spi_clock_monitor_wait

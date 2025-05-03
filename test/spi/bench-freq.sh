@@ -8,7 +8,7 @@ cd $(dirname $(readlink -f "${BASH_SOURCE[0]}"))
 
 if [ ! -z "$1" ]; then
 	if [ "$1" = "--help" ]; then
-		echo "$0 \"spi_bpws\""
+		echo "$0 \"spi_bpws\"" >&2
 		exit 1
 	fi
 	spi_bpws=$1
@@ -22,7 +22,7 @@ TARGET_TIME=2
 
 spi_mode=0
 
-echo "bpw	MHz	Mb/s"
+echo "bpw	MHz	Mb/s" >&2
 for spi_bpw in $spi_bpws; do
 	for spi_speed in "${spi_speeds[@]}"; do
 		spi_speed_mhz=$(echo "scale=0; $spi_speed / 1000000" | bc)
