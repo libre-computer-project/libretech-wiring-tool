@@ -13,14 +13,18 @@ if [ -e "$DMI_BOARDNAME_PATH" ]; then
 			spi_devnum=0
 			board_clocks="c1108d80.spi#pow2_div,c1108d80.spi#pow2_fixed_div,gxbb_spi,gxbb_spicc"
 			spi_speed_max=41666666
+			spi_speed_min=325521
+			spi_chunk_size_max=1024
 			;;
 		aml-a311d-cc | aml-s905d3-cc)
 			spi_devnum=1
 			board_clocks=spicc1_sclk,spicc1_sclk_div,spicc1_sclk_sel,g12a_spicc_1
 			spi_speed_max=166666664
+			spi_speed_min=0
 			;;
 		*)
 			spi_devnum=$(find $DEV_PATH -maxdepth 1 -iname $SPI_DEV_NAME\*.0 | head -n 1)
+			board_clocks=
 			if [ -z $spi_devnum ]; then
 				echo "Unable to find $SPI_DEV_NAME in $DEV_PATH!" >&2
 				exit 1
@@ -29,8 +33,13 @@ if [ -e "$DMI_BOARDNAME_PATH" ]; then
 				spi_devnum=${spi_devnum%\.*}
 			fi
 			spi_speed_max=0
+			spi_speed_min=0
 			;;
 	esac
+fi
+
+if [ ! -z "$spi_devnum_user" ]; then
+	spi_devnum=$spi_devnum_user
 fi
 
 spi_device="$SPI_DEV_PATH${spi_devnum}.0"

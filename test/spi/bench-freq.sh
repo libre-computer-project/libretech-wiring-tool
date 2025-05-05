@@ -27,9 +27,12 @@ for spi_bpw in $spi_bpws; do
 	for spi_speed in "${spi_speeds[@]}"; do
 		spi_speed_mhz=$(echo "scale=0; $spi_speed / 1000000" | bc)
 
-		total_size=$((spi_speed * TARGET_TIME / 8))
-		chunk_size=$((total_size < MAX_CHUNK_SIZE ? total_size: MAX_CHUNK_SIZE))
-		output=$("$BENCH_BIN" "$spi_device" "$spi_speed" "$spi_bpw" "$spi_mode" "$total_size" "$chunk_size" 2>&1)
+		transfer_size=$((spi_speed * TARGET_TIME / 8))
+		spi_chunk_size=$((transfer_size < MAX_CHUNK_SIZE ? transfer_size: MAX_CHUNK_SIZE))
+		if [ ! -z "$spi_chunk_size_max" -a "$spi_chunk_size_max" -lt "$spi_chunk_size" ]; then
+			spi_chunk_size=$spi_chunk_size_max
+		fi
+		output=$("$BENCH_BIN" "$spi_device" "$spi_speed" "$spi_bpw" "$spi_mode" "$transfer_size" "$spi_chunk_size" 2>&1)
 		if [ $? -ne 0 ]; then
 			echo "$spi_bpw	$spi_speed_mhz	DATA_FAIL"
 			echo "$output" >&2

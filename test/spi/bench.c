@@ -13,7 +13,7 @@
 #define DEFAULT_BITS_PER_WORD 8			// Default 8 bits
 #define DEFAULT_MODE 0				// Default SPI Mode 0
 #define DEFAULT_TOTAL_SIZE (1024 * 1024)	// Default 1 MB
-#define DEFAULT_CHUNK_SIZE 4096			// Default 4 KB
+#define DEFAULT_CHUNK_SIZE 1024			// Default 1 KB
 #define MAX_MISMATCHES_TO_PRINT 16		// Limit number of mismatches printed
 
 int main(int argc, char *argv[]) {
