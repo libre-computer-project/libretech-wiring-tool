@@ -16,6 +16,24 @@
 #define DEFAULT_CHUNK_SIZE 1024			// Default 1 KB
 #define MAX_MISMATCHES_TO_PRINT 16		// Limit number of mismatches printed
 
+// Function to print help message and exit
+void print_help(const char *prog_name) {
+	printf("Usage: %s [device] [speed] [bits] [mode] [total_size] [chunk_size] [-h|--help]\n\n", prog_name);
+	printf("Benchmark program for SPI device data transfer.\n\n");
+	printf("Parameters:\n");
+	printf("  device	SPI device path (default: %s)\n", DEFAULT_SPI_DEVICE);
+	printf("  speed		SPI clock speed in Hz (default: %u)\n", DEFAULT_SPI_SPEED);
+	printf("  bits		Bits per word (default: %u)\n", DEFAULT_BITS_PER_WORD);
+	printf("  mode		SPI mode (0-3) (default: %u)\n", DEFAULT_MODE);
+	printf("  total_size	Total data size in bytes (default: %u)\n", DEFAULT_TOTAL_SIZE);
+	printf("  chunk_size	Data chunk size in bytes (default: %u)\n", DEFAULT_CHUNK_SIZE);
+	printf("  -h, --help	Display this help message and exit\n");
+	printf("\nExample:\n");
+	printf("  %s /dev/spidev0.0 10000000 8 0 1048576 1024\n", prog_name);
+	printf("	Transfers 1 MB of data to /dev/spidev0.0 at 10 MHz, 8 bits per word, mode 0, in 1 KB chunks.\n");
+	exit(0);
+}
+
 int main(int argc, char *argv[]) {
 	int fd, ret;
 	const char *device = DEFAULT_SPI_DEVICE;
@@ -24,6 +42,13 @@ int main(int argc, char *argv[]) {
 	uint8_t mode = DEFAULT_MODE;
 	uint32_t total_size = DEFAULT_TOTAL_SIZE;
 	uint32_t chunk_size = DEFAULT_CHUNK_SIZE;
+
+	// Check for -h or --help
+	for (int i = 1; i < argc; i++) {
+		if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0) {
+			print_help(argv[0]);
+		}
+	}
 
 	// Parse command-line arguments
 	if (argc > 1) {
