@@ -29,7 +29,7 @@ for spi_bpw in $spi_bpws; do
 
 		transfer_size=$((spi_speed * TARGET_TIME / 8))
 		spi_chunk_size=$((transfer_size < MAX_CHUNK_SIZE ? transfer_size: MAX_CHUNK_SIZE))
-		if [ ! -z "$spi_chunk_size_max" -a "$spi_chunk_size_max" -lt "$spi_chunk_size" ]; then
+		if [ ! -z "$spi_chunk_size_max" ] && [ "$spi_chunk_size_max" -lt "$spi_chunk_size" ]; then
 			spi_chunk_size=$spi_chunk_size_max
 		fi
 		output=$("$BENCH_BIN" "$spi_device" "$spi_speed" "$spi_bpw" "$spi_mode" "$transfer_size" "$spi_chunk_size" 2>&1)
