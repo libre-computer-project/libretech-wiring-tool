@@ -24,12 +24,12 @@
 			spidev@0 {
 				compatible = "rohm,dh2228fv";
 				reg = <0>;
-				spi-max-frequency = <124000000>;
+				spi-max-frequency = <166666664>;
 			};
 			spidev@1 {
 				compatible = "rohm,dh2228fv";
 				reg = <1>;
-				spi-max-frequency = <124000000>;
+				spi-max-frequency = <166666664>;
 			};
 		};
         };

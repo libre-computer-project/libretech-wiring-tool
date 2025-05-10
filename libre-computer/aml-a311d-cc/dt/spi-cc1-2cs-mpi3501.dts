@@ -23,7 +23,7 @@
 			display@0 {
 				compatible = "waveshare,rpi-lcd-35", "ilitek,ili9486";
 				reg = <0>;
-				spi-max-frequency = <41666667>;
+				spi-max-frequency = <32000000>;
 				reset-gpios = <&gpio GPIOA_6 GPIO_ACTIVE_HIGH>;
 				dc-gpios = <&gpio GPIOA_5 GPIO_ACTIVE_HIGH>;
 				status = "okay";

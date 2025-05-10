@@ -44,7 +44,7 @@
 			display@0 {
 				compatible = "waveshare,rpi-lcd-35", "ilitek,ili9486";
 				reg = <0>;
-				spi-max-frequency = <20000000>;
+				spi-max-frequency = <41666666>;
 				reset-gpios = <&pio 0 14 GPIO_ACTIVE_HIGH>;
 				dc-gpios = <&pio 6 8 GPIO_ACTIVE_HIGH>;
 				status = "okay";
@@ -55,7 +55,7 @@
 				reg = <1>;
 				pinctrl-names = "default";
 				pinctrl-0 = <&ads7846_pins>;
-				spi-max-frequency = <2000000>;
+				spi-max-frequency = <1302084>;
 				interrupt-parent = <&pio>;
 				interrupts = <0 1 IRQ_TYPE_EDGE_FALLING>;
 				pendown-gpio = <&pio 0 1 GPIO_ACTIVE_LOW>;
