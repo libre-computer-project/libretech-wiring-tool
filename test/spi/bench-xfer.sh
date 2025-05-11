@@ -27,22 +27,29 @@ fi
 spi_mode=0
 ret=0
 
-echo "Target Speed: $spi_speed" >&2
+ts_start=64
+ts_incre=16
+
+echo "Target Speed:	$spi_speed" >&2
 spi_clock_monitor
 
 for spi_bpw in $spi_bpws; do
 	spi_bpw_fail=0
 	spi_Bpw=$((spi_bpw >> 3))
-	for transfer_size in $(seq 8 8 $MAX_CHUNK_SIZE); do
+	for transfer_size in $(seq $ts_start $ts_incre $MAX_CHUNK_SIZE); do
 		spi_chunk_size=$((transfer_size < MAX_CHUNK_SIZE ? transfer_size : MAX_CHUNK_SIZE))
 		output=$($BENCH_BIN $spi_device $spi_speed $spi_bpw $spi_mode $transfer_size $spi_chunk_size 2>&1)
 		if [ $? -ne 0 ]; then
 			echo -e "\r${transfer_size}B @ ${spi_bpw}b/w failed"
 			echo "$output" >&2
 			spi_bpw_fail=1
+			if [ ! -z "$EXIT_ON_FAIL" ] && [ "$EXIT_ON_FAIL" -eq 1 ]; then
+				exit 1
+			fi
 		else
 			spi_clock_monitor_wait
-			echo -en "\r${transfer_size}B @ ${spi_bpw}b/w"
+			throughput=$(echo "$output" | grep "Throughput:" | awk '{print $2}')
+			echo -en "\r${transfer_size}B @ ${throughput}MHz ${spi_bpw}b/w"
 		fi
 	done
 	if [ $spi_bpw_fail -eq 0 ]; then

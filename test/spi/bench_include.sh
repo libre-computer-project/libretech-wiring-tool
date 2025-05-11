@@ -7,18 +7,26 @@ if [ ! -f $BENCH_BIN ]; then
 	gcc $BENCH_BIN.c -o $BENCH_BIN
 fi
 
-SPI_BPWS="$(seq 1 1 64)"
+SPI_BPWS="$(seq 8 8 64)"
 SPI_MODES="0 1 2 3"
 SPI_SPEEDS=()
 for i in $(seq 1 1 10); do
 	SPI_SPEEDS+=($((i * 1000000)))
 done
-for i in $(seq 15 5 120); do
+for i in $(seq 12 2 20); do
+	SPI_SPEEDS+=($((i * 1000000)))
+done
+for i in $(seq 25 5 200); do
+	SPI_SPEEDS+=($((i * 1000000)))
+done
+for i in $(seq 220 20 400); do
 	SPI_SPEEDS+=($((i * 1000000)))
 done
 SPI_SPEED=10000000 # 10MHz default
 
 MAX_CHUNK_SIZE=$((1024*1024)) # require kernel cmdline spidev.bufsiz=1048576
+
+CLK_PREFIX=/sys/kernel/debug/clk
 
 spi_bpw_get(){
 	local bpw_tar=$1
@@ -41,19 +49,39 @@ spi_bpw_get(){
 	done
 }
 
+spi_clock_monitor_clk(){
+	cat "$CLK_PREFIX/$1/clk_rate"
+}
+
+spi_clock_monitor_clk_tree(){
+	for clk in $@; do
+		echo "========"
+		while true; do
+			clk_rate_path="$CLK_PREFIX/$clk/clk_rate"
+			echo "$clk	$(cat ${clk_rate_path})"
+			clk_parent_path="$CLK_PREFIX/$clk/clk_parent"
+			if [ ! -e "$clk_parent_path" ]; then
+				break
+			fi
+			clk=$(cat "$clk_parent_path")
+		done
+	done
+	echo "========"
+}
+
 spi_clock_monitor_child(){
-	if [ ! -z "$board_clocks" ]; then
-		clock_cmd="grep .\\* /sys/kernel/debug/clk/{$board_clocks}/clk_rate | tr -s : \"\\t\""
-		output_old=$(eval $clock_cmd)
+	if [ ! -z "$board_clock" ]; then
+		output=$(spi_clock_monitor_clk_tree $board_clock)
+		echo "$output"
 		i=0
 		while true; do
-			output=$(eval $clock_cmd)
-			if [ "$output_old" != "$output" ]; then
+			output_new=$(spi_clock_monitor_clk_tree $board_clock)
+			if [ "$output" != "$output_new" ]; then
 				echo "Clocks after ${i}ms" >&2
-				echo "$output" >&2
-				output_old=$output
+				echo "$output_new" >&2
+				output=$output_new
 			fi
-			if [ $i -eq 15 ]; then
+			if [ $i -eq 30 ]; then
 				kill -s INT $$
 				break
 			fi
