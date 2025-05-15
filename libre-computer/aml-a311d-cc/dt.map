@@ -9,6 +9,8 @@ H40P_SPI_0_1CS_DEV	spi-cc1-1cs-spidev
 H40P_SPI_0_2CS	spi-cc1-2cs
 H40P_SPI_0_2CS_DEV	spi-cc1-2cs-spidev
 H40P_SPI_0_2CS_LCD_35	spi-cc1-2cs-mpi3501
+H40P_SPI_0_2CS_LCD_35_MPI3501	spi-cc1-2cs-mpi3501
+H40P_SPI_0_2CS_LCD_35_MHS3528	spi-cc1-2cs-mhs3528
 H40P_SPI_1_1CS	spi-cc0-1cs
 H40P_SPI_1_1CS_DEV	spi-cc0-1cs-spidev
 # UART

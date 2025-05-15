@@ -14,7 +14,9 @@ H40P_SPI_0_1CS_DEV	spi-cc-1cs-spidev
 H40P_SPI_0_1CS_ST7789V_240x320	spi-cc-1cs-st7789v-240x320-bgr-fbdev
 H40P_SPI_0_2CS	spi-cc-2cs
 H40P_SPI_0_2CS_DEV	spi-cc-2cs-spidev
-H40P_SPI_0_2CS_LCD_35	spi-cc-2cs-mpi3501
+H40P_SPI_0_2CS_LCD_35	spi-cc-2cs-ili9486-xpt2046
+H40P_SPI_0_2CS_LCD_35_MPI3501	spi-cc-2cs-mpi3501
+H40P_SPI_0_2CS_LCD_35_MHS3528	spi-cc-2cs-mhs3528
 # UART
 H40P_UART_0	uart-a-clk81
 H40P_UART_P5_P3	uart-ao-b
