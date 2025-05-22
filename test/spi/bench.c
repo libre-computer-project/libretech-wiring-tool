@@ -137,7 +137,7 @@ int main(int argc, char *argv[]) {
 	if (argc > 4) {
 		char *endptr;
 		mode = strtoul(argv[4], &endptr, 10);
-		if (*endptr != '\0' || mode > 3) {
+		if (*endptr != '\0' || (mode & ~(1<<5)) > 3) {
 			fprintf(stderr, "Invalid SPI mode: %s.\n", argv[4]);
 			return 1;
 		}
