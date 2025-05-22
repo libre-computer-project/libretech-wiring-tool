@@ -20,7 +20,7 @@ if [ -e "$DMI_BOARDNAME_PATH" ]; then
 			spi_devnum=1
 			board_clock="ffd15000.spi#sel"
 			spi_speed_max=166666664
-			spi_speed_min=0
+			spi_speed_min=50000
 			spi_chunk_size_max=524280
 			;;
 		*)
