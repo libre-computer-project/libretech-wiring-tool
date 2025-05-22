@@ -47,7 +47,7 @@ for spi_bpw in $spi_bpws; do
 		parse_ok=OK
 		throughput=$(echo "$output" | grep "^Throughput:" | awk '{print $2}')
 		if [ -z "$throughput" ]; then
-			if [ ! -z "$data_ok" ]; then
+			if [ ! -z "$data_ok" ] -a [ "$DEBUG_OUTPUT" -eq 1 ]; then
 				echo "$output" >&2
 			fi
 			parse_ok=
