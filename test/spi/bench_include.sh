@@ -1,10 +1,11 @@
 # Copyright (c) 2025 Da Xue <da@libre.computer>
 # SPDX-License-Identifier: MIT
 
-BENCH_BIN=./bench
+BENCH_C=./bench.c
+BENCH_BIN=./bench-`uname -m`
 
 if [ ! -f $BENCH_BIN ]; then
-	gcc $BENCH_BIN.c -o $BENCH_BIN
+	gcc $BENCH_C -o $BENCH_BIN
 fi
 
 SPI_BPWS="$(seq 8 8 64)"
