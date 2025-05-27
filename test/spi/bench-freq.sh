@@ -19,7 +19,7 @@ fi
 . board_include.sh
 
 if [ ! -z "$2" ]; then
-	spi_speeds=($(($2 * 1000000)))
+	spi_speeds=($(($2)))
 fi
 
 TARGET_TIME=1
@@ -32,8 +32,8 @@ else
 fi
 for spi_bpw in $spi_bpws; do
 	for spi_speed in "${spi_speeds[@]}"; do
-		spi_speed_mhz=$(echo "scale=0; $spi_speed / 1000000" | bc)
-		transfer_size=$((spi_speed_mhz * TARGET_TIME * 1024 * 8 / (spi_bpw * 8) * (spi_bpw * 8)))
+		spi_speed_mhz=$(echo "scale=2; $spi_speed / 1000000" | bc | sed "s/^\\./0./")
+		transfer_size=$((spi_speed * TARGET_TIME / 16 / (spi_bpw * 8) * (spi_bpw * 8)))
 		spi_chunk_size=$((transfer_size < MAX_CHUNK_SIZE ? transfer_size: MAX_CHUNK_SIZE / (spi_bpw * 8) * (spi_bpw * 8)))
 		if [ ! -z "$spi_chunk_size_max" ] && [ "$spi_chunk_size_max" -lt "$spi_chunk_size" ]; then
 			spi_chunk_size=$spi_chunk_size_max
@@ -56,6 +56,7 @@ for spi_bpw in $spi_bpws; do
 				echo "$cmd" >&2
 				echo "$output" >&2
 			fi
+			throughput=0
 		fi
 		error_msg=$(echo "$output" | grep "^Word" | head -n 1)
 		if [ ! -z "$board_clock" ]; then
