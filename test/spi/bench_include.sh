@@ -11,21 +11,16 @@ fi
 SPI_BPWS="$(seq 8 8 64)"
 SPI_MODES="0 1 2 3"
 SPI_SPEEDS=()
-for i in $(seq 1 1 10); do
+for i in $(seq 1 1 20); do
+	SPI_SPEEDS+=($((i * 50000)))
+done
+for i in $(seq 1 1 200); do
 	SPI_SPEEDS+=($((i * 1000000)))
 done
-for i in $(seq 12 2 20); do
-	SPI_SPEEDS+=($((i * 1000000)))
-done
-for i in $(seq 25 5 200); do
-	SPI_SPEEDS+=($((i * 1000000)))
-done
-for i in $(seq 220 20 400); do
-	SPI_SPEEDS+=($((i * 1000000)))
-done
-SPI_SPEED=10000000 # 10MHz default
 
-MAX_CHUNK_SIZE=$((1024*1024)) # require kernel cmdline spidev.bufsiz=1048576
+SPI_SPEED_DEFAULT=10000000 # 10MHz default
+
+MAX_CHUNK_SIZE=$((4*1024*1024)) # require kernel cmdline spidev.bufsiz=4194304
 
 CLK_PREFIX=/sys/kernel/debug/clk
 

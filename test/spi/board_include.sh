@@ -14,14 +14,14 @@ if [ -e "$DMI_BOARDNAME_PATH" ]; then
 			board_clock="c1108d80.spi#pow2_div"
 			spi_speed_max=41666666
 			spi_speed_min=325521
-			spi_chunk_size_max=1024
+			spi_words_max=1024
 			;;
 		aml-a311d-cc | aml-s905d3-cc)
 			spi_devnum=1
 			board_clock="ffd15000.spi#sel"
 			spi_speed_max=166666664
 			spi_speed_min=50000
-			spi_chunk_size_max=524280
+			spi_words_max=524280
 			;;
 		*)
 			spi_devnum=$(find $DEV_PATH -maxdepth 1 -iname $SPI_DEV_NAME\*.0 | head -n 1)
@@ -49,7 +49,7 @@ if [ "$spi_speed_max" -eq 0 ]; then
 else
 	spi_speeds=()
 	for i in "${SPI_SPEEDS[@]}"; do
-		if [ "$i" -le "$spi_speed_max" ]; then
+		if [ "$i" -ge "$spi_speed_min" ] && [ "$i" -le "$spi_speed_max" ]; then
 			spi_speeds+=($i)
 			spi_speed_last=$i
 		fi
