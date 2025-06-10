@@ -102,7 +102,7 @@ int main(int argc, char *argv[]) {
 	char *parent_usr1 = getenv("PARENT_USR1");
 
 	// Check for -h or --help
-	int i;
+	int i, j;
 	for (i = 1; i < argc; i++) {
 		if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0) {
 			print_help(argv[0]);
@@ -191,10 +191,13 @@ int main(int argc, char *argv[]) {
 	// Generate test data
 	uint64_t max_value = (bits >= 64) ? UINT64_MAX : (1ULL << bits) - 1;
 	uint64_t word;
+	srand(time(NULL));
+	int r = rand() % 4;
 	for (i = 0; i < total_words; i++) {
-		if (i % 4 == 0)
+		j = i + r;
+		if (j % 4 == 0)
 			pack_word(tx_data, i, 0x5555555555555555 & (bits == 64 ? UINT64_MAX : (1 << bits) - 1), bits);
-		else if (i % 4 == 2)
+		else if (j % 4 == 2)
 			pack_word(tx_data, i, 0xAAAAAAAAAAAAAAAA & (bits == 64 ? UINT64_MAX : (1 << bits) - 1), bits);
 		else {
 			word = ((i >> 1) % (max_value + 1)); // Constrain to valid range
