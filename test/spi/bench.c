@@ -20,6 +20,16 @@
 #define MAX_MISMATCHES_TO_PRINT 9		// Limit number of mismatches printed
 #define MAX_WORDS_TO_PREVIEW 16			// Limit words to preview
 
+// Pattern types
+typedef enum {
+	PATTERN_DEFAULT,
+	PATTERN_RANDOM,
+	PATTERN_ONES,
+	PATTERN_ZEROS,
+	PATTERN_ALTERNATING,
+	PATTERN_INCREMENTING
+} PatternType;
+
 // Function to print help message and exit
 void print_help(const char *prog_name) {
 	printf("Usage: %s [device] [speed] [bits] [mode] [total_size] [chunk_size] [-h|--help]\n\n", prog_name);
@@ -32,9 +42,15 @@ void print_help(const char *prog_name) {
 	printf("  total_size	Total data size in bytes (default: %u)\n", DEFAULT_TOTAL_SIZE);
 	printf("  chunk_size	Data chunk size in bytes (default: %u)\n", DEFAULT_CHUNK_SIZE);
 	printf("  -h, --help	Display this help message and exit\n");
+	printf("\nEnvironment Variables:\n");
+	printf("  PATTERN	Data pattern to use (default: default)\n");
+	printf("		Options: default (mixed pattern), random (random words), ones (all 1s),\n");
+	printf("		zeros (all 0s), alternating (0x55... and 0xAA...), incrementing (0, 1, 2, ...)\n");
 	printf("\nExample:\n");
 	printf("  %s /dev/spidev0.0 10000000 8 0 1048576 1024\n", prog_name);
 	printf("	Transfers 1 MB of data to /dev/spidev0.0 at 10 MHz, 8 bits per word, mode 0, in 1 KB chunks.\n");
+	printf("  PATTERN=incrementing %s /dev/spidev0.0 10000000 8 0 1048576 1024\n", prog_name);
+	printf("	Same as above, but uses incrementing data pattern (0, 1, 2, ...).\n");
 	exit(0);
 }
 
@@ -167,7 +183,7 @@ int main(int argc, char *argv[]) {
 		total_words = total_size / bytes_per_word;
 		// Ensure at least one word
 		if (total_words == 0) {
-		total_words = 1;
+			total_words = 1;
 		}
 		// Adjust total_size to exact multiple of bytes_per_word
 		total_size = total_words * bytes_per_word;
@@ -175,8 +191,8 @@ int main(int argc, char *argv[]) {
 		total_words = total_size * words_per_byte;
 		// Ensure at least one byte's worth of words
 		if (total_words < words_per_byte) {
-		total_words = words_per_byte;
-		total_size = 1; // Minimum 1 byte
+			total_words = words_per_byte;
+			total_size = 1; // Minimum 1 byte
 		}
 	}
 
@@ -188,20 +204,60 @@ int main(int argc, char *argv[]) {
 		return 1;
 	}
 
+	// Determine pattern from environment variable
+	PatternType pattern = PATTERN_DEFAULT;
+	char *pattern_env = getenv("PATTERN");
+	if (pattern_env) {
+		if (strcmp(pattern_env, "random") == 0) {
+			pattern = PATTERN_RANDOM;
+		} else if (strcmp(pattern_env, "ones") == 0) {
+			pattern = PATTERN_ONES;
+		} else if (strcmp(pattern_env, "zeros") == 0) {
+			pattern = PATTERN_ZEROS;
+		} else if (strcmp(pattern_env, "alternating") == 0) {
+			pattern = PATTERN_ALTERNATING;
+		} else if (strcmp(pattern_env, "incrementing") == 0) {
+			pattern = PATTERN_INCREMENTING;
+		} else if (strcmp(pattern_env, "default") != 0) {
+			fprintf(stderr, "Warning: Unknown PATTERN '%s'. Using default pattern.\n", pattern_env);
+		}
+	}
+
 	// Generate test data
 	uint64_t max_value = (bits >= 64) ? UINT64_MAX : (1ULL << bits) - 1;
 	uint64_t word;
 	srand(time(NULL));
-	int r = rand() % 4;
+	int r = (pattern == PATTERN_DEFAULT) ? rand() % 4 : 0; // Random offset only for default
 	for (i = 0; i < total_words; i++) {
-		j = i + r;
-		if (j % 4 == 0)
-			pack_word(tx_data, i, 0x5555555555555555 & (bits == 64 ? UINT64_MAX : (1 << bits) - 1), bits);
-		else if (j % 4 == 2)
-			pack_word(tx_data, i, 0xAAAAAAAAAAAAAAAA & (bits == 64 ? UINT64_MAX : (1 << bits) - 1), bits);
-		else {
-			word = ((i >> 1) % (max_value + 1)); // Constrain to valid range
-			pack_word(tx_data, i, word, bits);
+		switch (pattern) {
+			case PATTERN_DEFAULT:
+				j = i + r;
+				if (j % 4 == 0)
+					pack_word(tx_data, i, 0x5555555555555555 & max_value, bits);
+				else if (j % 4 == 2)
+					pack_word(tx_data, i, 0xAAAAAAAAAAAAAAAA & max_value, bits);
+				else {
+					word = ((i >> 1) % (max_value + 1));
+					pack_word(tx_data, i, word, bits);
+				}
+				break;
+			case PATTERN_RANDOM:
+				word = ((uint64_t)rand() * rand()) % (max_value + 1);
+				pack_word(tx_data, i, word, bits);
+				break;
+			case PATTERN_ONES:
+				pack_word(tx_data, i, max_value, bits);
+				break;
+			case PATTERN_ZEROS:
+				pack_word(tx_data, i, 0, bits);
+				break;
+			case PATTERN_ALTERNATING:
+				pack_word(tx_data, i, (i % 2 == 0) ? (0x5555555555555555 & max_value) : (0xAAAAAAAAAAAAAAAA & max_value), bits);
+				break;
+			case PATTERN_INCREMENTING:
+				word = i % (max_value + 1);
+				pack_word(tx_data, i, word, bits);
+				break;
 		}
 	}
 
@@ -295,7 +351,7 @@ int main(int argc, char *argv[]) {
 	for (i = 0; i < total_words; i++) {
 		uint64_t tx_word = unpack_word(tx_data, i, bits);
 		uint64_t rx_word = unpack_word(rx_data, i, bits);
-		if (tx_word != rx_word){
+		if (tx_word != rx_word) {
 			if (mismatch_count < MAX_MISMATCHES_TO_PRINT) {
 				if (bits < 8) {
 					// Sub-byte BPW: print decimal and binary
@@ -320,7 +376,7 @@ int main(int argc, char *argv[]) {
 		printf("Data verification passed: Received data matches sent data\n");
 		ret = 0;
 	} else {
-		printf("Data verification failed: %u mismatches / %u words (%d\%).\n", mismatch_count, total_words, 100 * mismatch_count / total_words);
+		printf("Data verification failed: %u mismatches / %u words (%d%%).\n", mismatch_count, total_words, 100 * mismatch_count / total_words);
 		ret = 1;
 	}
 
