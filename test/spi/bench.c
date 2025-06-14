@@ -22,7 +22,7 @@
 
 // Pattern types
 typedef enum {
-	PATTERN_DEFAULT,
+	PATTERN_DELAY,
 	PATTERN_RANDOM,
 	PATTERN_ONES,
 	PATTERN_ZEROS,
@@ -205,7 +205,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	// Determine pattern from environment variable
-	PatternType pattern = PATTERN_DEFAULT;
+	PatternType pattern = PATTERN_RANDOM;
 	char *pattern_env = getenv("PATTERN");
 	if (pattern_env) {
 		if (strcmp(pattern_env, "random") == 0) {
@@ -227,10 +227,10 @@ int main(int argc, char *argv[]) {
 	uint64_t max_value = (bits >= 64) ? UINT64_MAX : (1ULL << bits) - 1;
 	uint64_t word;
 	srand(time(NULL));
-	int r = (pattern == PATTERN_DEFAULT) ? rand() % 4 : 0; // Random offset only for default
+	int r = (pattern == PATTERN_DELAY) ? rand() % 4 : 0; // Random offset only for default
 	for (i = 0; i < total_words; i++) {
 		switch (pattern) {
-			case PATTERN_DEFAULT:
+			case PATTERN_DELAY:
 				j = i + r;
 				if (j % 4 == 0)
 					pack_word(tx_data, i, 0x5555555555555555 & max_value, bits);
