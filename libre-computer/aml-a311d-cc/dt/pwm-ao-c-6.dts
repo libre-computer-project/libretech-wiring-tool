@@ -1,0 +1,27 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright (c) 2025 Da Xue
+ * Author: Da Xue <da@libre.computer>
+ */
+
+/*
+ * Overlay aimed to enable PWM AO C on Header 7J1 Pin 7
+ * pwm_AO_d is already active in the base tree, so we must re-define pinctrl-0
+ */
+
+/dts-v1/;
+/plugin/;
+
+/ {
+        compatible = "libretech,aml-a311d-cc", "amlogic,a311d", "amlogic,g12b", "libretech,aml-s905d3-cc", "amlogic,s905d3", "amlogic,sm1";
+
+	fragment@0 {
+		target = <&pwm_AO_cd>;
+		
+		__overlay__ {
+			status = "okay";
+			pinctrl-0 = <&pwm_ao_c_6_pins>, <&pwm_ao_d_e_pins>;
+			pinctrl-names = "default";
+		};
+	};
+};
