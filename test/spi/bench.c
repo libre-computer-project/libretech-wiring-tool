@@ -22,12 +22,12 @@
 
 // Pattern types
 typedef enum {
-	PATTERN_DELAY,
 	PATTERN_RANDOM,
 	PATTERN_ONES,
 	PATTERN_ZEROS,
 	PATTERN_ALTERNATING,
-	PATTERN_INCREMENTING
+	PATTERN_INCREMENTING,
+	PATTERN_DELAY
 } PatternType;
 
 // Function to print help message and exit
@@ -37,15 +37,15 @@ void print_help(const char *prog_name) {
 	printf("Parameters:\n");
 	printf("  device	SPI device path (default: %s)\n", DEFAULT_SPI_DEVICE);
 	printf("  speed		SPI clock speed in Hz (default: %u)\n", DEFAULT_SPI_SPEED);
-	printf("  bits		Bits per word (1, 2, 4, 8, 16, 24, 32, 40, 48, 56, 64) (default: %u)\n", DEFAULT_BITS_PER_WORD);
-	printf("  mode		SPI mode (0-3) (default: %u)\n", DEFAULT_MODE);
+	printf("  bits		Bits per word (1 to 64) (default: %u)\n", DEFAULT_BITS_PER_WORD);
+	printf("  mode		SPI mode (0-3, or with flags) (default: %u)\n", DEFAULT_MODE);
 	printf("  total_size	Total data size in bytes (default: %u)\n", DEFAULT_TOTAL_SIZE);
 	printf("  chunk_size	Data chunk size in bytes (default: %u)\n", DEFAULT_CHUNK_SIZE);
 	printf("  -h, --help	Display this help message and exit\n");
 	printf("\nEnvironment Variables:\n");
-	printf("  PATTERN	Data pattern to use (default: default)\n");
-	printf("		Options: default (mixed pattern), random (random words), ones (all 1s),\n");
-	printf("		zeros (all 0s), alternating (0x55... and 0xAA...), incrementing (0, 1, 2, ...)\n");
+	printf("  PATTERN	Data pattern to use (default: random)\n");
+	printf("		Options: random (random words), ones (all 1s), zeros (all 0s),\n");
+	printf("		alternating (0x55/0xAA), incrementing (0,1,2,3), delay (alt+inc)\n");
 	printf("\nExample:\n");
 	printf("  %s /dev/spidev0.0 10000000 8 0 1048576 1024\n", prog_name);
 	printf("	Transfers 1 MB of data to /dev/spidev0.0 at 10 MHz, 8 bits per word, mode 0, in 1 KB chunks.\n");
@@ -66,44 +66,64 @@ void print_binary(uint64_t value, uint8_t bits) {
 
 // Pack a single word into a buffer at the specified word index
 void pack_word(uint8_t *buffer, uint32_t word_index, uint64_t word, uint8_t bits_per_word) {
+	// Mask word to ensure it fits within bits_per_word
+	uint64_t mask = (bits_per_word >= 64) ? UINT64_MAX : (1ULL << bits_per_word) - 1;
+	word &= mask;
+
 	if (bits_per_word >= 8) {
-		// Multi-byte words: store directly
-		uint32_t byte_index = (word_index * bits_per_word) / 8;
+		// Byte-aligned packing: use minimum bytes needed
+		uint32_t bytes_per_word = (bits_per_word + 7) / 8;
+		uint32_t byte_index = word_index * bytes_per_word;
 		int i;
-		for (i = 0; i < bits_per_word / 8; i++) {
+		for (i = 0; i < bytes_per_word; i++) {
 			buffer[byte_index + i] = (word >> (i * 8)) & 0xFF;
 		}
 	} else {
-		// Sub-byte words: pack multiple words per byte
-		uint32_t words_per_byte = 8 / bits_per_word;
+		// Sub-byte words: align to 4-bit or 8-bit boundaries
+		uint8_t aligned_bits_per_word = bits_per_word;
+		if (bits_per_word == 3) {
+			aligned_bits_per_word = 4; // Align 3 bpw to 4 bits
+		} else if (bits_per_word >= 5 && bits_per_word <= 7) {
+			aligned_bits_per_word = 8; // Align 5,6,7 bpw to 8 bits
+		}
+		// For bpw=1,2,4, aligned_bits_per_word remains 1,2,4
+		uint32_t words_per_byte = 8 / aligned_bits_per_word;
 		uint32_t byte_index = word_index / words_per_byte;
 		uint32_t word_offset = word_index % words_per_byte;
-		uint64_t mask = (1ULL << bits_per_word) - 1;
-		word &= mask;
-		// Shift word into correct position (e.g., 4-bit word 0 at bits 7-4, word 1 at bits 3-0)
-		buffer[byte_index] |= (word << (bits_per_word * (words_per_byte - 1 - word_offset)));
+		// Shift word into correct position
+		buffer[byte_index] |= (word << (aligned_bits_per_word * (words_per_byte - 1 - word_offset)));
 	}
 }
 
 // Unpack a single word from a buffer at the specified word index
 uint64_t unpack_word(const uint8_t *buffer, uint32_t word_index, uint8_t bits_per_word) {
 	if (bits_per_word >= 8) {
-		// Multi-byte words: read directly
+		// Byte-aligned unpacking: use minimum bytes needed
+		uint32_t bytes_per_word = (bits_per_word + 7) / 8;
+		uint32_t byte_index = word_index * bytes_per_word;
 		uint64_t word = 0;
-		uint32_t byte_index = (word_index * bits_per_word) / 8;
 		int i;
-		for (i = 0; i < bits_per_word / 8; i++) {
+		for (i = 0; i < bytes_per_word; i++) {
 			word |= ((uint64_t)buffer[byte_index + i]) << (i * 8);
 		}
-		return word;
+		// Mask to ensure only bits_per_word bits are returned
+		uint64_t mask = (bits_per_word >= 64) ? UINT64_MAX : (1ULL << bits_per_word) - 1;
+		return word & mask;
 	} else {
-		// Sub-byte words: extract specific word
-		uint32_t words_per_byte = 8 / bits_per_word;
+		// Sub-byte words: align to 4-bit or 8-bit boundaries
+		uint8_t aligned_bits_per_word = bits_per_word;
+		if (bits_per_word == 3) {
+			aligned_bits_per_word = 4; // Align 3 bpw to 4 bits
+		} else if (bits_per_word >= 5 && bits_per_word <= 7) {
+			aligned_bits_per_word = 8; // Align 5,6,7 bpw to 8 bits
+		}
+		// For bpw=1,2,4, aligned_bits_per_word remains 1,2,4
+		uint32_t words_per_byte = 8 / aligned_bits_per_word;
 		uint32_t byte_index = word_index / words_per_byte;
 		uint32_t word_offset = word_index % words_per_byte;
 		uint64_t mask = (1ULL << bits_per_word) - 1;
 		// Extract word from correct position
-		return (buffer[byte_index] >> (bits_per_word * (words_per_byte - 1 - word_offset))) & mask;
+		return (buffer[byte_index] >> (aligned_bits_per_word * (words_per_byte - 1 - word_offset))) & mask;
 	}
 }
 
@@ -144,9 +164,8 @@ int main(int argc, char *argv[]) {
 	if (argc > 3) {
 		char *endptr;
 		bits = strtoul(argv[3], &endptr, 10);
-		if (*endptr != '\0' || bits < 1 || bits > 64 ||
-			(bits != 1 && bits != 2 && bits != 4 && (bits % 8 != 0))) {
-			fprintf(stderr, "Invalid bits per word: %s. Must be 1, 2, 4, or multiple of 8 up to 64.\n", argv[3]);
+		if (*endptr != '\0' || bits < 1 || bits > 64) {
+			fprintf(stderr, "Invalid bits per word: %s. Must be 1 to 64.\n", argv[3]);
 			return 1;
 		}
 	}
@@ -169,31 +188,46 @@ int main(int argc, char *argv[]) {
 	if (argc > 6) {
 		char *endptr;
 		chunk_size = strtoul(argv[6], &endptr, 10);
-		if (*endptr != '\0' || chunk_size == 0 || chunk_size > total_size) {
+		if (*endptr != '\0' || chunk_size == 0) {
 			fprintf(stderr, "Invalid chunk size: %s.\n", argv[6]);
 			return 1;
 		}
 	}
 
-	// Calculate total words
-	uint32_t words_per_byte = bits >= 8 ? 1 : 8 / bits;
-	uint32_t bytes_per_word = (bits + 7) / 8; // Ceiling of bits/8
+	// Ensure chunk_size does not exceed total_size
+	if (chunk_size > total_size) {
+		chunk_size = total_size;
+	}
+
+	// Calculate total words and bytes per word
 	uint32_t total_words;
+	uint32_t bytes_per_word;
 	if (bits >= 8) {
+		// Byte-aligned packing: use minimum bytes needed
+		bytes_per_word = (bits + 7) / 8;
+		// Calculate total_words based on total_size
 		total_words = total_size / bytes_per_word;
-		// Ensure at least one word
-		if (total_words == 0) {
-			total_words = 1;
+		if (total_size % bytes_per_word != 0) {
+			fprintf(stderr, "Total size %u is not a multiple of bytes per word %u\n",
+				total_size, bytes_per_word);
+			return 1;
 		}
-		// Adjust total_size to exact multiple of bytes_per_word
-		total_size = total_words * bytes_per_word;
 	} else {
+		// Sub-byte words: align to 4-bit or 8-bit boundaries
+		uint8_t aligned_bits_per_word = bits;
+		if (bits == 3) {
+			aligned_bits_per_word = 4; // Align 3 bpw to 4 bits
+		} else if (bits >= 5 && bits <= 7) {
+			aligned_bits_per_word = 8; // Align 5,6,7 bpw to 8 bits
+		}
+		// For bpw=1,2,4, aligned_bits_per_word remains 1,2,4
+		uint32_t words_per_byte = 8 / aligned_bits_per_word;
 		total_words = total_size * words_per_byte;
-		// Ensure at least one byte's worth of words
 		if (total_words < words_per_byte) {
 			total_words = words_per_byte;
 			total_size = 1; // Minimum 1 byte
 		}
+		bytes_per_word = 1; // For sub-byte, still 1 byte per byte
 	}
 
 	// Allocate buffers
@@ -218,9 +252,10 @@ int main(int argc, char *argv[]) {
 			pattern = PATTERN_ALTERNATING;
 		} else if (strcmp(pattern_env, "incrementing") == 0) {
 			pattern = PATTERN_INCREMENTING;
-		} else if (strcmp(pattern_env, "default") != 0) {
-			fprintf(stderr, "Warning: Unknown PATTERN '%s'. Using default pattern.\n", pattern_env);
-		}
+		} else if (strcmp(pattern_env, "delay") == 0) {
+			pattern = PATTERN_DELAY;
+		} else 
+			fprintf(stderr, "Warning: Unknown PATTERN '%s'. Using random pattern.\n", pattern_env);
 	}
 
 	// Generate test data
@@ -255,37 +290,11 @@ int main(int argc, char *argv[]) {
 				pack_word(tx_data, i, (i % 2 == 0) ? (0x5555555555555555 & max_value) : (0xAAAAAAAAAAAAAAAA & max_value), bits);
 				break;
 			case PATTERN_INCREMENTING:
-				word = i % (max_value + 1);
+				word = i; // Simple incrementing sequence
 				pack_word(tx_data, i, word, bits);
 				break;
 		}
 	}
-
-	// Print buffer addresses
-	/*
-	printf("Buffer addresses:\n");
-	printf("tx_data: 0x%" PRIXPTR "\n", (uintptr_t)tx_data);
-	printf("rx_data: 0x%" PRIXPTR "\n", (uintptr_t)rx_data);
-	*/
-
-	// Print sample of tx_data
-	/*
-	printf("Sample of tx_data (first %d words):\n", MAX_WORDS_TO_PREVIEW);
-	for (i = 0; i < MAX_WORDS_TO_PREVIEW && i < total_words; i++) {
-		uint64_t word = unpack_word(tx_data, i, bits);
-		if (bits < 8) {
-			// Sub-byte BPW: print decimal and binary
-			printf("Word %2u: %" PRIu64 " (", i, word);
-			print_binary(word, bits);
-			printf(")\n");
-		} else {
-			// Byte/multi-byte BPW: print decimal, hex, and binary
-			printf("Word %2u: %" PRIu64 " (0x%0*" PRIX64 ", ", i, word, (bits + 3) / 4, word);
-			print_binary(word, bits);
-			printf(")\n");
-		}
-	}
-	*/
 
 	// Open SPI device
 	fd = open(device, O_RDWR);
@@ -349,8 +358,21 @@ int main(int argc, char *argv[]) {
 	// Verify data
 	uint32_t mismatch_count = 0;
 	for (i = 0; i < total_words; i++) {
+		// For the last word, check if it's partial
 		uint64_t tx_word = unpack_word(tx_data, i, bits);
 		uint64_t rx_word = unpack_word(rx_data, i, bits);
+		if (i == total_words - 1) {
+			// Calculate total bits used
+			uint64_t total_bits_used = (uint64_t)total_size * 8;
+			uint32_t bits_in_last_word = total_bits_used % bits;
+			if (bits_in_last_word == 0) {
+				bits_in_last_word = bits;
+			}
+			// Mask to only the used bits in the last word
+			uint64_t mask = (1ULL << bits_in_last_word) - 1;
+			tx_word &= mask;
+			rx_word &= mask;
+		}
 		if (tx_word != rx_word) {
 			if (mismatch_count < MAX_MISMATCHES_TO_PRINT) {
 				if (bits < 8) {
