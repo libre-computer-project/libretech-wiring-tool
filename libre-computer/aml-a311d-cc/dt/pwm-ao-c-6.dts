@@ -7,6 +7,7 @@
 /*
  * Overlay aimed to enable PWM AO C on Header 7J1 Pin 7
  * pwm_AO_d is already active in the base tree, so we must re-define pinctrl-0
+ * This overlay can only be merged and not enabled since it is already probed.
  */
 
 /dts-v1/;
