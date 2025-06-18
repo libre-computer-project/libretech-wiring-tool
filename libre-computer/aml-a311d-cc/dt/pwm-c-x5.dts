@@ -1,0 +1,29 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright (c) 2025 Da Xue
+ * Author: Da Xue <da@libre.computer>
+ */
+
+/*
+ * Overlay aimed to enable PWM C on Header 7J1 Pin 33
+ * pwm_c on GPIOX_5, pwm_d is potentially used by GPIOX_3 as LED
+ */
+
+/dts-v1/;
+/plugin/;
+
+/ {
+        compatible = "libretech,aml-a311d-cc", "amlogic,a311d", "amlogic,g12b", "libretech,aml-s905d3-cc", "amlogic,s905d3", "amlogic,sm1";
+
+	fragment@0 {
+		target = <&pwm_cd>;
+		
+		__overlay__ {
+			status = "okay";
+			pinctrl-0 = <&pwm_c_x5_pins>, <&pwm_d_x3_pins>;
+			pinctrl-names = "default";
+			clocks = <&xtal>;
+			clock-names = "clkin1";
+		};
+	};
+};
