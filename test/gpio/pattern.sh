@@ -55,6 +55,11 @@ if [ ! -z "$2" ]; then
 	pattern="$2"
 fi
 
+delay=0
+if [ ! -z "$3" ]; then
+	delay="$3"
+fi
+
 cd $(readlink -f $(dirname ${BASH_SOURCE[0]}))
 
 GPIO_MAP_PATH="../../$VENDOR/$BOARD/gpio.map"
@@ -80,6 +85,7 @@ function PATTERN_displayToggle(){
 			fi
 		done < <(PATTERN_getMainHeader)
 		i=$((i+1))
+		sleep $delay
 	done
 }
 
@@ -102,6 +108,7 @@ function PATTERN_displaySeq(){
 			fi
 		done < <(PATTERN_getMainHeader)
 		i=$((i+1))
+		sleep $delay
 	done
 }
 
@@ -133,6 +140,7 @@ function PATTERN_displayBias(){
 			fi
 		done < <(PATTERN_getMainHeader)
 		i=$((i+1))
+		sleep $delay
 	done
 }
 
