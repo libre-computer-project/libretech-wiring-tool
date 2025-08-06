@@ -5,7 +5,8 @@
  */
 
 /*
- * Overlay to map cpu-thermal zone to EMC2301 fan controller on I2C_AO (Header J72 Pin 3: SDA, Pin 5: SCL)
+ * Overlay to enable temperature-based fan control for EMC2301 on I2C_AO
+ * This controller is present on the LoveRPi PoE+ HAT for Alta/Solitude
  */
 
 /dts-v1/;
@@ -18,47 +19,33 @@
 				 "libretech,aml-s905d3-cc", "amlogic,s905d3", "amlogic,sm1";
 
 	fragment@0 {
-		target = <&emc2301>;
-
-		__overlay__ {
-			compatible = "smsc,emc2301";
-			reg = <0x2f>;
-			status = "okay";
-			#cooling-cells = <2>;
-			cooling-levels = <0 100 150 200 255>;
-		};
-	};
-
-	fragment@1 {
 		target-path = "/thermal-zones/cpu-thermal/trips";
 
 		__overlay__ {
 			cpu_active: cpu-active {
-				temperature = <50000>; /* 50°C */
-				hysteresis = <2000>;   /* 2°C */
+				temperature = <50000>;
+				hysteresis = <2000>;
 				type = "active";
 			};
-
 			cpu_warm: cpu-warm {
-				temperature = <60000>; /* 60°C */
-				hysteresis = <2000>;   /* 2°C */
+				temperature = <60000>;
+				hysteresis = <2000>;
 				type = "active";
 			};
 		};
 	};
 
-	fragment@2 {
+	fragment@1 {
 		target-path = "/thermal-zones/cpu-thermal/cooling-maps";
 
 		__overlay__ {
-			map1 {
-				trip = <&cpu_active>;
-				cooling-device = <&emc2301 THERMAL_NO_LIMIT 1>;
-			};
-
 			map2 {
+				trip = <&cpu_active>;
+				cooling-device = <&fan0 THERMAL_NO_LIMIT 1>;
+			};
+			map3 {
 				trip = <&cpu_warm>;
-				cooling-device = <&emc2301 2 THERMAL_NO_LIMIT>;
+				cooling-device = <&fan0 2 THERMAL_NO_LIMIT>;
 			};
 		};
 	};
