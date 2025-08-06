@@ -1,0 +1,40 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright (C) 2025 Da Xue
+ * Author: Da Xue <da@libre.computer>
+ */
+
+/*
+ * Overlay to enable EMC2301 fan controller on I2C_AO (Header 7J1 Pin 3: SDA, Pin 5: SCL)
+ * This controller is present on the LoveRPi PoE HAT for Sweet Potato
+ */
+
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/thermal/thermal.h>
+
+/ {
+	compatible = "libretech,aml-s905x-cc-v2", "amlogic,s905x", "amlogic,meson-gxl";
+
+	fragment@0 {
+		target = <&i2c_AO>;
+
+		__overlay__ {
+			fan_controller: emc2301@2f {
+				compatible = "microchip,emc2301";
+				reg = <0x2f>;
+				status = "okay";
+				#address-cells = <1>;
+				#size-cells = <0>;
+				#pwm-cells = <3>;
+
+				fan0: fan@0 {
+					reg = <0>;
+					pwms = <&fan_controller 26000 0 0>;
+					#cooling-cells = <2>;
+				};
+			};
+		};
+	};
+};

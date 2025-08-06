@@ -1,0 +1,51 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright (C) 2025 Da Xue
+ * Author: Da Xue <da@libre.computer>
+ */
+
+/*
+ * Overlay to enable temperature-based fan control for EMC2301 on I2C_AO
+ * This controller is present on the LoveRPi PoE HAT for Sweet Potato
+ */
+
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/thermal/thermal.h>
+
+/ {
+	compatible = "libretech,aml-s905x-cc-v2", "amlogic,s905x", "amlogic,meson-gxl";
+
+	fragment@0 {
+		target-path = "/thermal-zones/cpu-thermal/trips";
+
+		__overlay__ {
+			cpu_active: cpu-active {
+				temperature = <50000>;
+				hysteresis = <2000>;
+				type = "active";
+			};
+			cpu_warm: cpu-warm {
+				temperature = <60000>;
+				hysteresis = <2000>;
+				type = "active";
+			};
+		};
+	};
+
+	fragment@1 {
+		target = <&cpu_cooling_maps>;
+
+		__overlay__ {
+			map2 {
+				trip = <&cpu_active>;
+				cooling-device = <&fan0 THERMAL_NO_LIMIT 1>;
+			};
+			map3 {
+				trip = <&cpu_warm>;
+				cooling-device = <&fan0 2 THERMAL_NO_LIMIT>;
+			};
+		};
+	};
+};
