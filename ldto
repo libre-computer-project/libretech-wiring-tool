@@ -307,7 +307,14 @@ LDTO_diff()
 LDTO_show()
 {
 	LDTO_checkOverrideDT
-	dtc -I dtb -O dts "$PATH_OF_DTB_OVERRIDE" 2> /dev/null | less
+	if [ -z "$1" ]; then
+		dtc -I dtb -O dts "$PATH_OF_DTB_OVERRIDE" 2> /dev/null | less
+	else
+		local dtbo_file=$(LDTO_getDTBO "$1")
+		if [ ! -z "$dtbo_file" ]; then
+			dtc -I dtb -O dts "$dtbo_file" 2> /dev/null | less
+		fi
+	fi
 }
 
 LDTO_edit(){
@@ -350,4 +357,4 @@ if [ ! -z "$1" ]; then
 	cmd=$1
 	shift
 fi
-LDTO_${cmd,,} $@
+LDTO_${cmd,,} "$@"
