@@ -64,8 +64,14 @@ $(PREFIX)/libre-computer/%/dt.config: boarddirs
 $(PREFIX)/libre-computer/%.dtbo: boarddirs dtodirs
 	@if [ -L $(@D) ]; then \
 		exit; \
+	fi
+	@src=$(patsubst $(PREFIX)/%,%,$@); \
+	srcdts=$${src%.dtbo}.dts; \
+	if [ -L "$$srcdts" ]; then \
+		target=$$(readlink "$$srcdts"); \
+		ln -fns "$${target%.dts}.dtbo" $@; \
 	else \
-		install -p -m 644 $(patsubst $(PREFIX)/%,%,$@) $@; \
+		install -p -m 644 "$$src" $@; \
 	fi
 
 install-ldto: boarddirs $(DESTDTOCFG) $(DESTDTMAPS) $(DESTDTBOS)
