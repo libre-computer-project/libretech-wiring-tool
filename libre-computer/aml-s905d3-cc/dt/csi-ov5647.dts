@@ -1,0 +1,87 @@
+// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+/*
+ * Copyright (C) 2026 Libre Computer, Inc.
+ * Enable OV5647 camera on camera connector (J1) for AML-S905D3-CC
+ *
+ * I2C3_SDA on GPIOA_14, I2C3_SCL on GPIOA_15
+ * PWDN on GPIOA_12 (active low)
+ * CAM_EN LED on GPIOAO_10 (active high)
+ *
+ * NOTE: Uses fixed-clock for OV5647 XCLK. Pi Camera V1 has onboard
+ * 25MHz crystal oscillator.
+ */
+
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/gpio/meson-g12a-gpio.h>
+#include <dt-bindings/gpio/gpio.h>
+
+/ {
+	compatible = "libretech,aml-s905d3-cc", "amlogic,s905d3", "amlogic,sm1";
+
+	fragment@0 {
+		target-path = "/";
+
+		__overlay__ {
+			cam_xclk: cam-xclk {
+				compatible = "fixed-clock";
+				#clock-cells = <0>;
+				clock-frequency = <25000000>;
+			};
+		};
+	};
+
+	fragment@1 {
+		target-path = "/";
+
+		__overlay__ {
+			cam_led: cam-led {
+				compatible = "gpio-leds";
+
+				led {
+					function = "indicator";
+					gpios = <&gpio_ao GPIOAO_10 GPIO_ACTIVE_HIGH>;
+					default-state = "off";
+				};
+			};
+		};
+	};
+
+	/* OV5647 sensor on I2C3 */
+	fragment@2 {
+		target = <&i2c3>;
+
+		__overlay__ {
+			ov5647: camera@36 {
+				compatible = "ovti,ov5647";
+				reg = <0x36>;
+				clocks = <&cam_xclk>;
+				pwdn-gpios = <&gpio GPIOA_12 GPIO_ACTIVE_LOW>;
+
+				port {
+					ov5647_ep: endpoint {
+						remote-endpoint = <&csi_in>;
+						data-lanes = <1 2>;
+					};
+				};
+			};
+		};
+	};
+
+	/* Wire CSI-2 host input to OV5647 */
+	fragment@3 {
+		target = <&csi>;
+
+		__overlay__ {
+			ports {
+				port@0 {
+					csi_in: endpoint {
+						remote-endpoint = <&ov5647_ep>;
+						data-lanes = <1 2>;
+					};
+				};
+			};
+		};
+	};
+};
