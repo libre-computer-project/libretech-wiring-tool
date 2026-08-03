@@ -4,7 +4,10 @@
  * Author: Neil Armstrong <narmstrong@baylibre.com>
  */
 /*
- * Overlay aimed to enable a spidev interface on SPICC bus with CS0
+ * ENC28J60 SPI ethernet on SPICC CS0.
+ * SPI bus pins (7J1 19/21/23/24) come from the spi-cc-1cs bus overlay.
+ * IRQ: GPIOX_0 = 7J1 pin 22 (edge-falling; ENC28J60 INT is open-drain).
+ * pinctrl forces GPIOX_0 to gpio_periphs (not SDIO_D0) as input + pull-up.
  */
 
 /dts-v1/;
@@ -17,23 +20,39 @@
 
 / {
 	compatible = "libre-computer,aml-s905x-cc",
-		"libretech,aml-s905x-cc",
-		"libre-computer,aml-s905x-cc-v2",
-		"libretech,aml-s905x-cc-v2",
-		"amlogic,s905x",
-		"amlogic,meson-gxl";
+		     "libretech,aml-s905x-cc",
+		     "libre-computer,aml-s905x-cc-v2",
+		     "libretech,aml-s905x-cc-v2",
+		     "amlogic,s905x",
+		     "amlogic,meson-gxl";
 
 	fragment@0 {
-		target = <&spicc>;
-		
-		__overlay__ {
+		target = <&pinctrl_periphs>;
 
+		__overlay__ {
+			enc28j60_irq_pins: enc28j60-irq-pins {
+				mux {
+					groups = "GPIOX_0";
+					function = "gpio_periphs";
+					bias-pull-up;
+					output-disable;
+				};
+			};
+		};
+	};
+
+	fragment@1 {
+		target = <&spicc>;
+
+		__overlay__ {
 			#address-cells = <1>;
 			#size-cells = <0>;
-			
+
 			eth1: enc28j60@0 {
 				compatible = "microchip,enc28j60";
 				reg = <0>;
+				pinctrl-names = "default";
+				pinctrl-0 = <&enc28j60_irq_pins>;
 				interrupt-parent = <&gpio_intc>;
 				interrupts = <IRQID_GPIOX_0 IRQ_TYPE_EDGE_FALLING>;
 				spi-max-frequency = <20000000>;
