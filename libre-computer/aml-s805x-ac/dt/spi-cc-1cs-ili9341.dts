@@ -1,5 +1,10 @@
 // SPDX-License-Identifier: (GPL-2.0-or-later OR MIT)
 /*
+ * Display stack: tinydrm (DRM tiny / panel) preferred; staging fbtft is the
+ * legacy fallback when both are built. Compatible order is tinydrm-first.
+ * Properties tagged "fbtft/legacy" are ignored by tinydrm (CONFIG_FB_TFT_* only).
+ */
+/*
  * Copyright (c) 2024 Da Xue
  * Author: Da Xue <da@libre.computer>
  */
@@ -45,10 +50,10 @@
 			 * - VCC/VIN to Pin17 (3.3V)
 			 */
 			display@0 {
-				compatible = "adafruit,yx240qv29",
-					"ilitek,ili9341";
+				compatible = "adafruit,yx240qv29",	/* tinydrm: drm/tiny/ili9341 */
+					"ilitek,ili9341";	/* fbtft/legacy: staging fbtft fallback */
 				reg = <0>;
-				buswidth = <8>;
+				buswidth = <8>;	/* fbtft/legacy */
 				spi-max-frequency = <30000000>;
 				dc-gpios = <&gpio GPIOX_17 GPIO_ACTIVE_HIGH>;
 				reset-gpios = <&gpio GPIOX_18 GPIO_ACTIVE_HIGH>;

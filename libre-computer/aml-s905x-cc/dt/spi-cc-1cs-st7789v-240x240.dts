@@ -1,5 +1,10 @@
 // SPDX-License-Identifier: (GPL-2.0-or-later OR MIT)
 /*
+ * Display stack: mixed. Shared SPI/GPIO fields serve tinydrm when the
+ * compatible matches a DRM driver; properties tagged "fbtft/legacy" are only
+ * for staging fbtft (CONFIG_FB_TFT_*).
+ */
+/*
  * Copyright (c) 2022 Da Xue
  * Author: Da Xue <da@libre.computer>
  */
@@ -25,12 +30,12 @@
 			st7789v@0 {
 				compatible = "sitronix,st7789v";
 				reg = <0>;
-				led-gpios = <&gpio GPIOX_0 GPIO_ACTIVE_HIGH>;
+				led-gpios = <&gpio GPIOX_0 GPIO_ACTIVE_HIGH>;	/* fbtft/legacy */
 				dc-gpios = <&gpio GPIOX_17 GPIO_ACTIVE_HIGH>;
 				reset-gpios = <&gpio GPIOX_18 GPIO_ACTIVE_LOW>;
-				height = <240>;
-				width = <240>;
-				buswidth = <16>;
+				height = <240>;	/* fbtft/legacy */
+				width = <240>;	/* fbtft/legacy */
+				buswidth = <16>;	/* fbtft/legacy */
 				spi-cpol;
 				spi-cpha;
 				spi-max-frequency = <41666666>;
@@ -39,4 +44,3 @@
 		};
 	};
 };
-

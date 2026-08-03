@@ -1,5 +1,10 @@
 // SPDX-License-Identifier: (GPL-2.0-or-later OR MIT)
 /*
+ * Display stack: tinydrm (DRM tiny / panel) preferred; staging fbtft is the
+ * legacy fallback when both are built. Compatible order is tinydrm-first.
+ * Properties tagged "fbtft/legacy" are ignored by tinydrm (CONFIG_FB_TFT_* only).
+ */
+/*
  * Copyright (c) 2022 Da Xue
  * Author: Da Xue <da@libre.computer>
  */
@@ -34,8 +39,8 @@
 		__overlay__ {
 
 			display@0 {
-				compatible = "waveshare,rpi-lcd-35",
-					"ilitek,ili9486";
+				compatible = "waveshare,rpi-lcd-35",	/* tinydrm: drm/tiny/ili9486 */
+					"ilitek,ili9486";	/* fbtft/legacy: staging/fbtft/fb_ili9486 */
 				reg = <0>;
 				spi-max-frequency = <30000000>;
 				reset-gpios = <&gpio GPIOX_0 GPIO_ACTIVE_HIGH>;

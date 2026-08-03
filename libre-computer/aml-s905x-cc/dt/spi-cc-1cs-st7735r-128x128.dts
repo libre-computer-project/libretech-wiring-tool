@@ -1,5 +1,10 @@
 // SPDX-License-Identifier: (GPL-2.0-or-later OR MIT)
 /*
+ * Display stack: tinydrm (DRM tiny / panel) preferred; staging fbtft is the
+ * legacy fallback when both are built. Compatible order is tinydrm-first.
+ * Properties tagged "fbtft/legacy" are ignored by tinydrm (CONFIG_FB_TFT_* only).
+ */
+/*
  * Copyright (c) 2022
  * Author: Da Xue <da@libre.computer>
  */
@@ -34,9 +39,16 @@
 		target = <&spicc>;
 		
 		__overlay__ {
+			/*
+			 * Dual in-tree drivers (tinydrm preferred):
+			 *   okaya,rh128128t  -> drm/sitronix/st7735r of_match (product)
+			 *   sitronix,st7715r -> DT schema fallback for that product
+			 *   sitronix,st7735r -> staging/fbtft/fb_st7735r (legacy)
+			 */
 			st7735r@0 {
-				compatible = "okaya,rh128128t",
-					"sitronix,st7735r";
+				compatible = "okaya,rh128128t",	/* tinydrm: product id */
+					"sitronix,st7715r",	/* binding fallback for okaya */
+					"sitronix,st7735r";	/* fbtft/legacy: fb_st7735r */
 				backlight = <&st7735r_backlight>;
 				reg = <0>;
 				dc-gpios = <&gpio GPIOX_17 GPIO_ACTIVE_HIGH>;

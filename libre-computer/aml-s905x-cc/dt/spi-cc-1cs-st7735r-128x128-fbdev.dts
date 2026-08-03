@@ -1,5 +1,10 @@
 // SPDX-License-Identifier: (GPL-2.0-or-later OR MIT)
 /*
+ * Display stack: fbtft/legacy only (CONFIG_FB_TFT / staging/fbtft).
+ * Filename uses -fbdev. Not the tinydrm/DRM panel path.
+ * Properties tagged "fbtft/legacy" apply to this stack.
+ */
+/*
  * Copyright (c) 2022
  * Author: Da Xue <da@libre.computer>
  */
@@ -28,10 +33,10 @@
 				dc-gpios = <&gpio GPIOX_17 GPIO_ACTIVE_HIGH>;
 				reset-gpios = <&gpio GPIOX_18 GPIO_ACTIVE_LOW>;
 
-				led-gpios = <&gpio GPIOX_0 GPIO_ACTIVE_HIGH>;
-				height = <128>;
-				width = <128>;
-				buswidth = <16>;
+				led-gpios = <&gpio GPIOX_0 GPIO_ACTIVE_HIGH>;	/* fbtft/legacy */
+				height = <128>;	/* fbtft/legacy */
+				width = <128>;	/* fbtft/legacy */
+				buswidth = <16>;	/* fbtft/legacy */
 				
 				spi-max-frequency = <41666666>;
 				status = "okay";
