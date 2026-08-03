@@ -4,14 +4,17 @@
  * Author: Neil Armstrong <narmstrong@baylibre.com>
  */
 /*
- * Overlay aimed to add support for the Raspberry Pi Sense Hat
+ * Raspberry Pi Sense HAT sensors on I2C_AO.
+ *
+ * Discrete IIO devices match linux-6.18.y-lc of_device_id tables.
+ * The ATMega at 0x46 (joystick / LED matrix MFD parent on RPi vendor
+ * kernels) has no matching I2C driver on mainline 6.18 (only platform
+ * child raspberrypi,sensehat-joystick exists), so that node is omitted
+ * until a mainline MFD is available.
  */
 
 /dts-v1/;
 /plugin/;
-
-#include <dt-bindings/gpio/gpio.h>
-#include <dt-bindings/gpio/meson-gxl-gpio.h>
 
 / {
 	compatible = "libre-computer,aml-s905x-cc",
@@ -21,25 +24,18 @@
 		"amlogic,s905x",
 		"amlogic,meson-gxl";
 
-	fragment@1 {
+	fragment@0 {
 		target = <&i2c_AO>;
-		
-		__overlay__ {
-			rpi-sense@46 {
-				compatible = "rpi,rpi-sense";
-				reg = <0x46>;
-				keys-int-gpios = <&gpio GPIOX_14 GPIO_ACTIVE_LOW>;
-				status = "okay";
-			};
 
+		__overlay__ {
 			lsm9ds1-magn@1c {
 				compatible = "st,lsm9ds1-magn";
 				reg = <0x1c>;
 				status = "okay";
 			};
 
-			lsm9ds1-accel6a {
-				compatible = "st,lsm9ds1-accel";
+			lsm9ds1-imu@6a {
+				compatible = "st,lsm9ds1-imu";
 				reg = <0x6a>;
 				status = "okay";
 			};
@@ -50,8 +46,8 @@
 				status = "okay";
 			};
 
-			hts221-humid@5f {
-				compatible = "st,hts221-humid";
+			hts221@5f {
+				compatible = "st,hts221";
 				reg = <0x5f>;
 				status = "okay";
 			};

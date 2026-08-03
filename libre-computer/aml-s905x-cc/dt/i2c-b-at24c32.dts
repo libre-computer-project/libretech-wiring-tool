@@ -23,7 +23,7 @@
 		
 		__overlay__ {
 			eeprom@57 {
-				compatible = "at,24c32";
+				compatible = "atmel,24c32";
 				reg = <0x57>;
 			};
 		};
