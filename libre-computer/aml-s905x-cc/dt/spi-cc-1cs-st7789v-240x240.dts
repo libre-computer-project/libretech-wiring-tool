@@ -3,6 +3,10 @@
  * Display stack: mixed. Shared SPI/GPIO fields serve tinydrm when the
  * compatible matches a DRM driver; properties tagged "fbtft/legacy" are only
  * for staging fbtft (CONFIG_FB_TFT_*).
+ *
+ * power-supply: HAT VCC is hardwired/variable per module, so a dummy
+ * regulator-fixed (no GPIO) satisfies panel-sitronix-st7789v + schema.
+ * Enable/disable is a software refcount only — does not gate real power.
  */
 /*
  * Copyright (c) 2022 Da Xue
@@ -17,25 +21,39 @@
 
 / {
 	compatible = "libre-computer,aml-s905x-cc",
-		"libretech,aml-s905x-cc",
-		"libre-computer,aml-s905x-cc-v2",
-		"libretech,aml-s905x-cc-v2",
-		"amlogic,s905x",
-		"amlogic,meson-gxl";
+		     "libretech,aml-s905x-cc",
+		     "libre-computer,aml-s905x-cc-v2",
+		     "libretech,aml-s905x-cc-v2",
+		     "amlogic,s905x",
+		     "amlogic,meson-gxl";
 
 	fragment@0 {
+		target-path = "/";
+
+		__overlay__ {
+			st7789v_power: regulator-st7789v-power {
+				compatible = "regulator-fixed";
+				regulator-name = "st7789v-power";
+				regulator-min-microvolt = <3300000>;
+				regulator-max-microvolt = <3300000>;
+			};
+		};
+	};
+
+	fragment@1 {
 		target = <&spicc>;
-		
+
 		__overlay__ {
 			st7789v@0 {
 				compatible = "sitronix,st7789v";
 				reg = <0>;
-				led-gpios = <&gpio GPIOX_0 GPIO_ACTIVE_HIGH>;	/* fbtft/legacy */
+				power-supply = <&st7789v_power>;
+				led-gpios = <&gpio GPIOX_0 GPIO_ACTIVE_HIGH>; /* fbtft/legacy */
 				dc-gpios = <&gpio GPIOX_17 GPIO_ACTIVE_HIGH>;
 				reset-gpios = <&gpio GPIOX_18 GPIO_ACTIVE_LOW>;
-				height = <240>;	/* fbtft/legacy */
-				width = <240>;	/* fbtft/legacy */
-				buswidth = <16>;	/* fbtft/legacy */
+				height = <240>; /* fbtft/legacy */
+				width = <240>; /* fbtft/legacy */
+				buswidth = <16>; /* fbtft/legacy */
 				spi-cpol;
 				spi-cpha;
 				spi-max-frequency = <41666666>;
