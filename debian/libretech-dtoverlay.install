@@ -1,3 +1,5 @@
 opt/librecomputer/libretech-wiring-tool/ldto
 opt/librecomputer/libretech-wiring-tool/libre-computer/*/dt.config
-opt/librecomputer/libretech-wiring-tool/libre-computer/*/dt/*.dtbo
+opt/librecomputer/libretech-wiring-tool/libre-computer/*/dt.map
+# Whole dt/ dirs (preserves v2 / h3 whole-dir symlinks + all .dtbo)
+opt/librecomputer/libretech-wiring-tool/libre-computer/*/dt

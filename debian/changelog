@@ -1,0 +1,7 @@
+libretech-wiring-tool (2026.08.03) unstable; urgency=medium
+
+  * Packaging cleanup: dh compat 13, proper install of dt.map / gpio maps,
+    ignore debhelper debris, native source format.
+  * dt: aml-s805x-ac: fix spicc-mcp2515-can0 symlink (was enc28j60).
+
+ -- Da Xue <da@libre.computer>  Mon, 03 Aug 2026 04:30:00 +0000

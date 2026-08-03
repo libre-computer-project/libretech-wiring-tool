@@ -1,15 +1,33 @@
 Source: libretech-wiring-tool
-Section: devel
+Section: utils
 Priority: optional
 Maintainer: Da Xue <da@libre.computer>
-Build-Depends: build-essential, device-tree-compiler, debhelper (>= 9)
+Build-Depends: debhelper-compat (= 13),
+               device-tree-compiler,
+               gcc,
+               make
+Standards-Version: 4.6.2
+Homepage: https://github.com/libre-computer-project/libretech-wiring-tool
+Rules-Requires-Root: no
 
 Package: libretech-gpio
 Architecture: all
-Depends: gpiod
-Description: Libre Computer GPIO tool
+Depends: gpiod, ${misc:Depends}
+Description: Libre Computer header GPIO lookup and control (lgpio)
+ Translates 40-pin header pin numbers and BCM (RPi) GPIO numbers to
+ chip/line, sysfs, pad, and schematic names for Libre Computer boards.
+ Includes get/set helpers for interactive use (not a high-performance API).
+ .
+ Board data lives under /opt/librecomputer/libretech-wiring-tool/libre-computer/.
 
 Package: libretech-dtoverlay
 Architecture: all
-Depends: device-tree-compiler
-Description: Libre Computer Device Tree Overlay tool
+Depends: device-tree-compiler, ${misc:Depends}
+Description: Libre Computer device-tree overlays and ldto tool
+ Compiles and installs per-board device-tree overlays (.dtbo) for header
+ buses and accessories (I2C, SPI, UART, PWM, displays, etc.), plus the
+ ldto CLI to apply overlays at runtime (configfs) or merge them into the
+ EFI/boot DTB for the next boot.
+ .
+ Board overlays and H40P_* alias maps live under
+ /opt/librecomputer/libretech-wiring-tool/libre-computer/.

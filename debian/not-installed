@@ -1,0 +1,5 @@
+# Install stages the full PREFIX tree; packages take subsets via .install.
+# Anything left here is intentional (board gpio data belongs to libretech-gpio).
+opt/librecomputer/libretech-wiring-tool/lgpio
+opt/librecomputer/libretech-wiring-tool/libre-computer/*/gpio.map
+opt/librecomputer/libretech-wiring-tool/libre-computer/*/gpio.config

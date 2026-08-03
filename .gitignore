@@ -1,1 +1,20 @@
+# Build products
 *.dtbo
+*.pre.dts
+
+# debhelper / dpkg-buildpackage debris (never commit)
+debian/.debhelper/
+debian/debhelper-build-stamp
+debian/files
+debian/*.substvars
+debian/*.debhelper
+debian/*.debhelper.log
+debian/tmp/
+debian/libretech-gpio/
+debian/libretech-dtoverlay/
+# Packages land in the parent of the source tree (dpkg-buildpackage default)
+/libretech-wiring-tool_*.deb
+/libretech-wiring-tool_*.buildinfo
+/libretech-wiring-tool_*.changes
+/libretech-gpio_*.deb
+/libretech-dtoverlay_*.deb
