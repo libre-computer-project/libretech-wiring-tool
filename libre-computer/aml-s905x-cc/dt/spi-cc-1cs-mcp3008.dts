@@ -1,8 +1,12 @@
 // SPDX-License-Identifier: (GPL-2.0-or-later OR MIT)
 /*
- * Device Tree Overlay to enable MCP3008 ADC
+ * Copyright (c) Libre Computer Project
  */
-
+/*
+ * Summary: Device Tree Overlay to enable MCP3008 ADC
+ *
+ * Requires: spi-cc-1cs
+ */
 /dts-v1/;
 /plugin/;
 

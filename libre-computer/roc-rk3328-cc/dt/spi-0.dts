@@ -4,9 +4,21 @@
  * Author: Da Xue <da@libre.computer>
  */
 /*
- * Enables SPI on 40P header J1 pins 19 (TX) 21 (RX) 23 (CLK)
+ * Summary: SPI on 40P header J1 pins 19 (TX) 21 (RX) 23 (CLK)
+ *
+ * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
+ *   J1.19   GPIO3_A1      D2      GPIO3_A1_U/SPI_TXD
+ *   J1.21   GPIO3_A2      E1      GPIO3_A2_D/SPI_RXD
+ *   J1.23   GPIO3_A0      E3      GPIO3_A0_U/SPI_CLK
+ *
+ * Notes:
+ *  J1.19   GPIO3_A1      D2      GPIO3_A1_U/SPI_TXD
+ *  J1.21   GPIO3_A2      E1      GPIO3_A2_D/SPI_RXD
+ *  J1.23   GPIO3_A0      E3      GPIO3_A0_U/SPI_CLK
+ * J1.19   GPIO3_A1      D2      GPIO3_A1_U/SPI_TXD
+ * J1.21   GPIO3_A2      E1      GPIO3_A2_D/SPI_RXD
+ * J1.23   GPIO3_A0      E3      GPIO3_A0_U/SPI_CLK
  */
-
 /dts-v1/;
 /plugin/;
 

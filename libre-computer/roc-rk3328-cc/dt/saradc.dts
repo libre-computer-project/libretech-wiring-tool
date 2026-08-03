@@ -4,10 +4,16 @@
  * Author: Da Xue <da@libre.computer>
  */
 /*
- * Enables SARADC on 3P header J21 pins 1 (IN1) and 3 (IN0)
+ * Summary: SARADC on 3P header J21 pins 1 (IN1) and 3 (IN0)
+ *
+ * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
+ *   J1.3    GPIO2_D1      R17     I2C0_SDA
+ *
+ * Notes:
+ *  J1.3    GPIO2_D1      R17     I2C0_SDA
+ * J1.3    GPIO2_D1      R17     I2C0_SDA
  * This overlay will not be necessary in the future as it will be integrated with the base tree.
  */
-
 /dts-v1/;
 /plugin/;
 

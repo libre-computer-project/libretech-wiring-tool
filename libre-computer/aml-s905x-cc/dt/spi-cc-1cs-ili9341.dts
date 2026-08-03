@@ -1,24 +1,32 @@
 // SPDX-License-Identifier: (GPL-2.0-or-later OR MIT)
 /*
- * Display stack: tinydrm (DRM tiny / panel) preferred; staging fbtft is the
- * legacy fallback when both are built. Compatible order is tinydrm-first.
- * Properties tagged "fbtft/legacy" are ignored by tinydrm (CONFIG_FB_TFT_* only).
- */
-/*
  * Copyright (c) 2018 BayLibre, SAS.
  * Author: Neil Armstrong <narmstrong@baylibre.com>
  */
 /*
- * Overlay aimed to enable the Ilitek ILI9341 based panels such as the :
- * - Adafruit 2.2" SPI display
- * - Adafruit 2.8" Touch Shield V2 (SPI)
- * - Adafruit 2.4" TFT LCD with Touchscreen Breakout w/MicroSD Socket
- * - Adafruit 2.8" TFT LCD with Touchscreen Breakout Board w/MicroSD Socket
- * - Adafruit 2.2" 18-bit color TFT LCD display with microSD card breakout
- * - Adafruit TFT FeatherWing - 2.4" 320x240 Touchscreen For All Feathers
- * Pins 19 (MOSI), 21 (MISO), 23 (CLK), 24 (CS), 29 (DC), 31 (Reset)
+ * Summary: The Ilitek ILI9341 based panels such as the
+ *
+ * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
+ *   7J1.19   GPIOX_8       B4      BTPCM_DOUT
+ *   7J1.21   GPIOX_9       B3      BTPCM_DIN
+ *   7J1.23   GPIOX_11      C4      BTPCM_CLK
+ *   7J1.24   GPIOX_10      C5      BTPCM_SYNC
+ *   7J1.29   GPIOX_17      B5      BT_EN
+ *   7J1.31   GPIOX_18      B7      BT_WAKE_HOST
+ *
+ * Requires: spi-cc-1cs
+ *
+ * Notes:
+ *   Display stack: tinydrm (DRM tiny / panel) preferred; staging fbtft is the
+ *   legacy fallback when both are built. Compatible order is tinydrm-first.
+ *   Properties tagged "fbtft/legacy" are ignored by tinydrm (CONFIG_FB_TFT_* only).
+ *   - Adafruit 2.2" SPI display
+ *   - Adafruit 2.8" Touch Shield V2 (SPI)
+ *   - Adafruit 2.4" TFT LCD with Touchscreen Breakout w/MicroSD Socket
+ *   - Adafruit 2.8" TFT LCD with Touchscreen Breakout Board w/MicroSD Socket
+ *   - Adafruit 2.2" 18-bit color TFT LCD display with microSD card breakout
+ *   - Adafruit TFT FeatherWing - 2.4" 320x240 Touchscreen For All Feathers
  */
-
 /dts-v1/;
 /plugin/;
 

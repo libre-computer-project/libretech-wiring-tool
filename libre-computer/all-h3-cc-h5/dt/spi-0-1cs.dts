@@ -3,13 +3,15 @@
  * Copyright (c) 2023 Da Xue <da@libre.computer>
  * Author: Da Xue <da@libre.computer>
  */
-/* 40P GPIO
- * Pin 19 MOSI
- * Pin 21 MISO
- * Pin 23 CLK
- * Pin 24 CE0
+/*
+ * Summary: 40P GPIO
+ *
+ * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
+ *   7J1.19   PC0           C15     SPI0-MOSI
+ *   7J1.21   PC1           C16     SPI0-MISO
+ *   7J1.23   PC2           B16     SPI0-CLK
+ *   7J1.24   PC3           B15     SPI0-CS
  */
-
 /dts-v1/;
 /plugin/;
 

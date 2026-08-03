@@ -4,10 +4,14 @@
  * Author: Neil Armstrong <narmstrong@baylibre.com>
  */
 /*
- * Overlay aimed to enable UART_A on Header 7J1 :
- * Pins 8 (TX), 10 (RX), 16 (CTS), 18 (RTS)
+ * Summary: UART_A on Header 7J1
+ *
+ * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
+ *   7J1.8    GPIOX_12      A6      UART_A_TX
+ *   7J1.10   GPIOX_13      B6      UART_A_RX
+ *   7J1.16   GPIOX_14      C6      UART_A_CTS_N
+ *   7J1.18   GPIOX_15      C7      UART_A_RTS_N
  */
-
 /dts-v1/;
 /plugin/;
 

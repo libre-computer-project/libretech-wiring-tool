@@ -1,12 +1,13 @@
 // SPDX-License-Identifier: (GPL-2.0-or-later OR MIT)
-/*                                                                                                       
- * Copyright (c) 2024 Da Xue                                                                             
- * Author: Da Xue <da@libre.computer>                                                                    
+/*
+ * Copyright (c) 2024 Da Xue
+ * Author: Da Xue <da@libre.computer>
  */
 /*
- * Enables SPICC1 userspace spidev for spi-cc1-1cs
+ * Summary: SPICC1 userspace spidev for spi-cc1-1cs
+ *
+ * Requires: spi-cc1-2cs
  */
-
 /dts-v1/;
 /plugin/;
 

@@ -4,9 +4,18 @@
  * Author: Da Xue <da@libre.computer>
  */
 /*
- * Enables I2C0 on 40P header J1 pins 3 (SDA) and 5 (SCL)
+ * Summary: I2C0 on 40P header J1 pins 3 (SDA) and 5 (SCL)
+ *
+ * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
+ *   J1.3    GPIO2_D1      R17     I2C0_SDA
+ *   J1.5    GPIO2_D0      P17     I2C0_SCL
+ *
+ * Notes:
+ *  J1.3    GPIO2_D1      R17     I2C0_SDA
+ *  J1.5    GPIO2_D0      P17     I2C0_SCL
+ * J1.3    GPIO2_D1      R17     I2C0_SDA
+ * J1.5    GPIO2_D0      P17     I2C0_SCL
  */
-
 /dts-v1/;
 /plugin/;
 

@@ -4,9 +4,18 @@
  * Author: Matthew Chandler
  */
 /*
- * Overlay aimed to enable fan on PWM 2 on 40P header Pin 12 with tach on 40P header Pin 11
+ * Summary: Fan on PWM 2 on 40P header Pin 12 with tach on 40P header Pin 11
+ *
+ * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
+ *   J1.11   GPIO2_C4      V18     GPIO2_C4_U/I2S1_SDO1
+ *   J1.12   GPIO2_A6      M19     GPIO2_A6_U/PWM2
+ *
+ * Notes:
+ *  J1.11   GPIO2_C4      V18     GPIO2_C4_U/I2S1_SDO1
+ *  J1.12   GPIO2_A6      M19     GPIO2_A6_U/PWM2
+ * J1.11   GPIO2_C4      V18     GPIO2_C4_U/I2S1_SDO1
+ * J1.12   GPIO2_A6      M19     GPIO2_A6_U/PWM2
  */
-
 /dts-v1/;
 /plugin/;
 

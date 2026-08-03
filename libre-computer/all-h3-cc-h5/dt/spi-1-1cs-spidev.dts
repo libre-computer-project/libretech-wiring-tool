@@ -1,4 +1,12 @@
 // SPDX-License-Identifier: (GPL-2.0-or-later OR MIT)
+/*
+ * Copyright (c) Libre Computer Project
+ */
+/*
+ * Summary: spi-1-1cs-spidev
+ *
+ * Requires: spi-1-1cs
+ */
 /dts-v1/;
 /plugin/;
 

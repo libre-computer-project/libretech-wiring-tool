@@ -4,9 +4,15 @@
  * Author: Da Xue <da@libre.computer>
  */
 /*
- * Enables PWM on 40P header J1 pin 12
+ * Summary: PWM on 40P header J1 pin 12
+ *
+ * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
+ *   J1.12   GPIO2_A6      M19     GPIO2_A6_U/PWM2
+ *
+ * Notes:
+ *  J1.12   GPIO2_A6      M19     GPIO2_A6_U/PWM2
+ * J1.12   GPIO2_A6      M19     GPIO2_A6_U/PWM2
  */
-
 /dts-v1/;
 /plugin/;
 

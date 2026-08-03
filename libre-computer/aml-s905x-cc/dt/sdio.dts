@@ -4,10 +4,14 @@
  * Author: Nicolas Belin <nbelin@baylibre.com>
  */
 /*
- * Overlay aimed to enable SDIO on emmc_a. This includes enabling pwm-e and
+ * Summary: SDIO on emmc_a. This includes enabling pwm-e and
+ *
+ * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
+ *   7J1.33   GPIOX_6       D2      WIFI_PWREN
+ *
+ * Notes:
  * uartc.
  */
-
 /dts-v1/;
 /plugin/;
 

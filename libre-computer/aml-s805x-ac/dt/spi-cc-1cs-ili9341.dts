@@ -1,24 +1,38 @@
 // SPDX-License-Identifier: (GPL-2.0-or-later OR MIT)
 /*
- * Display stack: tinydrm (DRM tiny / panel) preferred; staging fbtft is the
- * legacy fallback when both are built. Compatible order is tinydrm-first.
- * Properties tagged "fbtft/legacy" are ignored by tinydrm (CONFIG_FB_TFT_* only).
- */
-/*
  * Copyright (c) 2024 Da Xue
  * Author: Da Xue <da@libre.computer>
  */
 /*
- * Enables Ilitek ILI9341 panels:
+ * Summary: Ilitek ILI9341 panels
+ *
+ * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
+ *   7J1.19   GPIOX_8       A5      UART_C_TX
+ *   7J1.21   GPIOX_9       B5      UART_C_RX
+ *   7J1.23   GPIOX_11      B6      UART_C_RTS_N
+ *   7J1.24   GPIOX_10      A4      UART_C_CTS_N
+ *   7J1.29   GPIODV_27     G3      SYS_LED
+ *   7J1.31   GPIOAO_2      B7      PWR_KEY_DET
+ *   ?.?    GPIOX_17      ?       (not in gpio.map)
+ *   ?.?    GPIOX_18      ?       (not in gpio.map)
+ *
+ * Requires: spi-cc-1cs
+ *
+ * Notes:
+ * Display stack: tinydrm (DRM tiny / panel) preferred; staging fbtft is the
+ * legacy fallback when both are built. Compatible order is tinydrm-first.
+ * Properties tagged "fbtft/legacy" are ignored by tinydrm (CONFIG_FB_TFT_* only).
+ *  ?.?    GPIOX_17      ?       (not in gpio.map)
+ *  ?.?    GPIOX_18      ?       (not in gpio.map)
+ * ?.?    GPIOX_17      ?       (not in gpio.map)
+ * ?.?    GPIOX_18      ?       (not in gpio.map)
  * - Adafruit 2.2" SPI display
  * - Adafruit 2.8" Touch Shield V2 (SPI)
  * - Adafruit 2.4" TFT LCD with Touchscreen Breakout w/MicroSD Socket
  * - Adafruit 2.8" TFT LCD with Touchscreen Breakout Board w/MicroSD Socket
  * - Adafruit 2.2" 18-bit color TFT LCD display with microSD card breakout
  * - Adafruit TFT FeatherWing - 2.4" 320x240 Touchscreen For All Feathers
- * Pins 19 (MOSI), 21 (MISO), 23 (CLK), 24 (CS), 29 (DC), 31 (Reset)
  */
-
 /dts-v1/;
 /plugin/;
 

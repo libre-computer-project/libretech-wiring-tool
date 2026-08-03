@@ -4,9 +4,14 @@
  * Author: Da Xue <da@libre.computer>
  */
 /*
- * Enables UART_C on 40P header 7J1 pins 19 (TX), 21 (RX), 23 (RTS), 24 (CTS)
+ * Summary: UART_C on 40P header 7J1 pins 19 (TX), 21 (RX), 23 (RTS), 24 (CTS)
+ *
+ * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
+ *   7J1.19   GPIOX_8       A5      UART_C_TX
+ *   7J1.21   GPIOX_9       B5      UART_C_RX
+ *   7J1.23   GPIOX_11      B6      UART_C_RTS_N
+ *   7J1.24   GPIOX_10      A4      UART_C_CTS_N
  */
-
 /dts-v1/;
 /plugin/;
 

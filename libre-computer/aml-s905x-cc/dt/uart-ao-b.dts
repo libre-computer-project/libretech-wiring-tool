@@ -4,11 +4,12 @@
  * Author: Da Xue <da@libre.computer>
  */
 /*
- * UART_AO_B on Header 7J1 up to 921600 baud with no flow control
- * Pin 3 Incoming (RX)
- * Pin 5 Outgoing (TX)
+ * Summary: UART_AO_B on Header 7J1 up to 921600 baud with no flow control
+ *
+ * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
+ *   7J1.3    GPIOAO_5      D13     I2C_SDA_AO
+ *   7J1.5    GPIOAO_4      A10     I2C_SCK_AO
  */
-
 /dts-v1/;
 /plugin/;
 

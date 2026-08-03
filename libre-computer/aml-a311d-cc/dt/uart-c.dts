@@ -4,9 +4,12 @@
  * Author: Da Xue <da@libre.computer>
  */
 /*
- * Enables UART_C 40 Header 7J2 pins 23 (TX) and 24 (RX)
+ * Summary: UART_C 40 Header 7J2 pins 23 (TX) and 24 (RX)
+ *
+ * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
+ *   7J1.23   GPIOH_7       AB38    SPI_B_SCLK
+ *   7J1.24   GPIOH_6       H40     SPI_B_SS0
  */
-
 /dts-v1/;
 /plugin/;
 

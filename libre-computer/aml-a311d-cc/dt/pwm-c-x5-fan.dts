@@ -4,9 +4,12 @@
  * Author: Da Xue <da@libre.computer>
  */
 /*
- * Overlay aimed to enable fan on PWM C a on Header 7J1 Pin 33 with tach on Header 7J1 Pin 35
+ * Summary: Fan on PWM C a on Header 7J1 Pin 33 with tach on Header 7J1 Pin 35
+ *
+ * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
+ *   7J1.33   GPIOX_5       BK38    GPIOX_5
+ *   7J1.35   GPIOX_10      BD31    PCM_SYNC
  */
-
 /dts-v1/;
 /plugin/;
 

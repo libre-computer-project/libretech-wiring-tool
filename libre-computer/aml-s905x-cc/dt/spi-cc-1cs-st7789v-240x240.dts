@@ -1,18 +1,25 @@
 // SPDX-License-Identifier: (GPL-2.0-or-later OR MIT)
 /*
- * Display stack: mixed. Shared SPI/GPIO fields serve tinydrm when the
- * compatible matches a DRM driver; properties tagged "fbtft/legacy" are only
- * for staging fbtft (CONFIG_FB_TFT_*).
- *
- * power-supply: HAT VCC is hardwired/variable per module, so a dummy
- * regulator-fixed (no GPIO) satisfies panel-sitronix-st7789v + schema.
- * Enable/disable is a software refcount only — does not gate real power.
- */
-/*
  * Copyright (c) 2022 Da Xue
  * Author: Da Xue <da@libre.computer>
  */
-
+/*
+ * Summary: Power-supply: HAT VCC is hardwired/variable per module, so a dummy
+ *
+ * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
+ *   7J1.22   GPIOX_0       A2      WIFI_SD_D0
+ *   7J1.29   GPIOX_17      B5      BT_EN
+ *   7J1.31   GPIOX_18      B7      BT_WAKE_HOST
+ *
+ * Requires: spi-cc-1cs
+ *
+ * Notes:
+ * Display stack: mixed. Shared SPI/GPIO fields serve tinydrm when the
+ * compatible matches a DRM driver; properties tagged "fbtft/legacy" are only
+ * for staging fbtft (CONFIG_FB_TFT_*).
+ * regulator-fixed (no GPIO) satisfies panel-sitronix-st7789v + schema.
+ * Enable/disable is a software refcount only — does not gate real power.
+ */
 /dts-v1/;
 /plugin/;
 

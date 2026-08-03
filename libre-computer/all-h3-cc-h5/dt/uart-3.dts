@@ -3,11 +3,13 @@
  * Copyright (c) 2023 Da Xue <da@libre.computer>
  * Author: Da Xue <da@libre.computer>
  */
-/* 40P GPIO
- * Pin 22 RX
- * Pin 32 TX
+/*
+ * Summary: 40P GPIO
+ *
+ * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
+ *   7J1.22   PA14          G12     UART3-RX
+ *   7J1.32   PA13          E15     UART3-TX
  */
-
 /dts-v1/;
 /plugin/;
 

@@ -1,14 +1,21 @@
 // SPDX-License-Identifier: (GPL-2.0-or-later OR MIT)
 /*
+ * Copyright (c) 2022
+ * Author: Da Xue <da@libre.computer>
+ */
+/*
+ * Summary: spi-cc-1cs-st7735r-128x128
+ *
+ * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
+ *   7J1.22   GPIOX_0       A2      WIFI_SD_D0
+ *   7J1.29   GPIOX_17      B5      BT_EN
+ *   7J1.31   GPIOX_18      B7      BT_WAKE_HOST
+ *
+ * Notes:
  * Display stack: tinydrm (DRM tiny / panel) preferred; staging fbtft is the
  * legacy fallback when both are built. Compatible order is tinydrm-first.
  * Properties tagged "fbtft/legacy" are ignored by tinydrm (CONFIG_FB_TFT_* only).
  */
-/*
- * Copyright (c) 2022
- * Author: Da Xue <da@libre.computer>
- */
-
 /dts-v1/;
 /plugin/;
 

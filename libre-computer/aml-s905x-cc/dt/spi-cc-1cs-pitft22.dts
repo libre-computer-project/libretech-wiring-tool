@@ -1,20 +1,28 @@
 // SPDX-License-Identifier: (GPL-2.0-or-later OR MIT)
 /*
- * Display stack: tinydrm (DRM tiny / panel) preferred; staging fbtft is the
- * legacy fallback when both are built. Compatible order is tinydrm-first.
- * Properties tagged "fbtft/legacy" are ignored by tinydrm (CONFIG_FB_TFT_* only).
- */
-/*
  * Copyright (c) 2022 Thomas McKahan <tonymckahan@gmail.com>
  * Author: Thomas McKahan <tonymckahan@gmail.com>
  */
 /*
- * Overlay to enable the Ilitek ILI9341 Hat-shaped panels:
+ * Summary: Overlay to enable the Ilitek ILI9341 Hat-shaped panels
+ *
+ * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
+ *   7J1.19   GPIOX_8       B4      BTPCM_DOUT
+ *   7J1.21   GPIOX_9       B3      BTPCM_DIN
+ *   7J1.22   GPIOX_0       A2      WIFI_SD_D0
+ *   7J1.23   GPIOX_11      C4      BTPCM_CLK
+ *   7J1.24   GPIOX_10      C5      BTPCM_SYNC
+ *   7J1.31   GPIOX_18      B7      BT_WAKE_HOST
+ *
+ * Requires: spi-cc-1cs
+ *
+ * Notes:
+ * Display stack: tinydrm (DRM tiny / panel) preferred; staging fbtft is the
+ * legacy fallback when both are built. Compatible order is tinydrm-first.
+ * Properties tagged "fbtft/legacy" are ignored by tinydrm (CONFIG_FB_TFT_* only).
  * - Adafruit 2.4" TFT LCD with Touchscreen Hat
  * - Adafruit 2.8" TFT LCD with Touchscreen Hat
- * Pins 19 (MOSI), 21 (MISO), 23 (CLK), 24 (CS), 22 (DC)
  */
-
 /dts-v1/;
 /plugin/;
 

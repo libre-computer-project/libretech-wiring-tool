@@ -1,12 +1,17 @@
 // SPDX-License-Identifier: (GPL-2.0-or-later OR MIT)
-/*                                                                                                       
- * Copyright (c) 2024 Da Xue                                                                             
- * Author: Da Xue <da@libre.computer>                                                                    
+/*
+ * Copyright (c) 2024 Da Xue
+ * Author: Da Xue <da@libre.computer>
  */
 /*
- * Enables SPICC1 on Header 7J2 on pins 19 (MOSI), 21 (MISO), 23 (SCLK), and 24 (SS0)
+ * Summary: SPICC1 on Header 7J2 on pins 19 (MOSI), 21 (MISO), 23 (SCLK), and 24 (SS0)
+ *
+ * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
+ *   7J1.19   GPIOH_4       W40     SPI_B_MOSI
+ *   7J1.21   GPIOH_5       W38     SPI_B_MISO
+ *   7J1.23   GPIOH_7       AB38    SPI_B_SCLK
+ *   7J1.24   GPIOH_6       H40     SPI_B_SS0
  */
-
 /dts-v1/;
 /plugin/;
 

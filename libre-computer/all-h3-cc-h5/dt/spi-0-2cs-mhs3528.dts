@@ -1,18 +1,19 @@
 // SPDX-License-Identifier: (GPL-2.0-or-later OR MIT)
 /*
- * Display stack: tinydrm (DRM tiny / panel) preferred; staging fbtft is the
- * legacy fallback when both are built. Compatible order is tinydrm-first.
- * Properties tagged "fbtft/legacy" are ignored by tinydrm (CONFIG_FB_TFT_* only).
- */
-/*
  * Copyright (c) 2022 Da Xue <da@libre.computer>
  * Author: Da Xue <da@libre.computer>
  */
 /*
- * Enables ILI9486 based 3.5" touchscreen on 40P header 7J1 without tuning parameters
+ * Summary: ILI9486 based 3.5" touchscreen on 40P header 7J1 without tuning parameters
+ *
+ * Requires: spi-0-2cs
+ *
+ * Notes:
+ * Display stack: tinydrm (DRM tiny / panel) preferred; staging fbtft is the
+ * legacy fallback when both are built. Compatible order is tinydrm-first.
+ * Properties tagged "fbtft/legacy" are ignored by tinydrm (CONFIG_FB_TFT_* only).
  * Requires spi0-cs1 overlay
  */
-
 /dts-v1/;
 /plugin/;
 

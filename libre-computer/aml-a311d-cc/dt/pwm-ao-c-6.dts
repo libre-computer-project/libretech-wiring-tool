@@ -4,11 +4,15 @@
  * Author: Da Xue <da@libre.computer>
  */
 /*
- * Overlay aimed to enable PWM AO C on Header 7J1 Pin 7
+ * Summary: PWM AO C on Header 7J1 Pin 7
+ *
+ * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
+ *   7J1.7    GPIOAO_6      AV44    GPIOAO_6/JTAG_CLK
+ *
+ * Notes:
  * pwm_AO_d is already active in the base tree, so we must re-define pinctrl-0
  * This overlay can only be merged and not enabled since it is already probed.
  */
-
 /dts-v1/;
 /plugin/;
 

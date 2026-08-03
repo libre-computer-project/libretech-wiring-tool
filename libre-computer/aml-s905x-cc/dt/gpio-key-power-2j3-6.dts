@@ -4,9 +4,11 @@
  * Author: Da Xue <da@libre.computer>
  */
 /*
- * Create a GPIO button on 2J3 pin 6 (GPIOH_6) linked to the power key
+ * Summary: Create a GPIO button on 2J3 pin 6 (GPIOH_6) linked to the power key
+ *
+ * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
+ *   2J3.6    GPIOH_6       N20     I2S-AM-CLK
  */
-
 /dts-v1/;
 /plugin/;
 

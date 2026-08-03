@@ -4,9 +4,10 @@
  * Author: Mark Bumiller <mark.bumiller@gmail.com>
  */
 /*
- * Overlay aimed to add an RV3028 RTC module on I2C_AO bus, address 0x68.
+ * Summary: Add an RV3028 RTC module on I2C_AO bus, address 0x68.
+ *
+ * Requires: i2c-ao
  */
-
 /dts-v1/;
 /plugin/;
 

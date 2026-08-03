@@ -4,14 +4,14 @@
  * Author: Neil Armstrong <narmstrong@baylibre.com>
  */
 /*
- * Raspberry Pi Sense HAT sensors on I2C_AO.
+ * Summary: Raspberry Pi Sense HAT sensors on I2C_AO.
  *
+ * Notes:
  * Discrete IIO devices match linux-6.18.y-lc of_device_id tables.
  * The ATMega at 0x46 has no matching I2C driver on mainline 6.18
  * (only platform child raspberrypi,sensehat-joystick exists), so that
  * node is omitted until a mainline MFD is available.
  */
-
 /dts-v1/;
 /plugin/;
 

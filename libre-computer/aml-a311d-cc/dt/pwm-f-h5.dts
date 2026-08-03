@@ -4,10 +4,14 @@
  * Author: Da Xue <da@libre.computer>
  */
 /*
- * Overlay aimed to enable PWM F on Header 7J1 Pin 21
+ * Summary: PWM F on Header 7J1 Pin 21
+ *
+ * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
+ *   7J1.21   GPIOH_5       W38     SPI_B_MISO
+ *
+ * Notes:
  * pwm_e on GPIOX_16 is NC, pwm_f on GPIOH_5
  */
-
 /dts-v1/;
 /plugin/;
 

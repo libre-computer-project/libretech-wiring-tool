@@ -4,10 +4,12 @@
  * Author: Neil Armstrong <narmstrong@baylibre.com>
  */
 /*
- * Overlay aimed to enable I2C_B on Header 7J1 :
- * Pins 27 (SDA), 28 (SCL)
+ * Summary: I2C_B on Header 7J1
+ *
+ * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
+ *   7J1.27   GPIODV_26     E2      I2C_SDA_A
+ *   7J1.28   GPIODV_27     F3      I2C_SCK_A
  */
-
 /dts-v1/;
 /plugin/;
 

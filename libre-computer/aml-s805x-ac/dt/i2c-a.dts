@@ -4,10 +4,15 @@
  * Author: Da Xue <da@libre.computer>
  */
 /*
- * Enables I2C_A on 40P header 7J1 pins 27 (SDA) and 28 (SCL) as i2c-1
+ * Summary: I2C_A on 40P header 7J1 pins 27 (SDA) and 28 (SCL) as i2c-1
+ *
+ * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
+ *   7J1.27   GPIODV_24     F3      I2C_SDA_A
+ *   7J1.28   GPIODV_25     D1      I2C_SCK_A
+ *
+ * Notes:
  * Please update the AML-S805X-AC firmware to the latest version.
  */
-
 /dts-v1/;
 /plugin/;
 

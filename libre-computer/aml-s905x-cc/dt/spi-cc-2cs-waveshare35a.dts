@@ -1,14 +1,23 @@
 // SPDX-License-Identifier: (GPL-2.0-or-later OR MIT)
 /*
+ * Copyright (c) 2022 Da Xue <da@libre.computer>
+ * Author: Da Xue <da@libre.computer>
+ */
+/*
+ * Summary: spi-cc-2cs-waveshare35a
+ *
+ * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
+ *   7J1.11   GPIOAO_8*     F17     I2SOUT-CH23
+ *   7J1.18   GPIOX_15      C7      UART_A_RTS_N
+ *   7J1.22   GPIOX_0       A2      WIFI_SD_D0
+ *
+ * Requires: spi-cc-2cs
+ *
+ * Notes:
  * Display stack: tinydrm (DRM tiny / panel) preferred; staging fbtft is the
  * legacy fallback when both are built. Compatible order is tinydrm-first.
  * Properties tagged "fbtft/legacy" are ignored by tinydrm (CONFIG_FB_TFT_* only).
  */
-/*
- * Copyright (c) 2022 Da Xue <da@libre.computer>
- * Author: Da Xue <da@libre.computer>
- */
-
 /dts-v1/;
 /plugin/;
 

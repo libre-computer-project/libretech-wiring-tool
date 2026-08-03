@@ -4,9 +4,12 @@
  * Author: Da Xue <da@libre.computer>
  */
 /*
- * Enables UART_C on 40P header 7J1 pins 19 (TX) and 21 (RX) with CLK81 for additional baud rates
+ * Summary: UART_C on 40P header 7J1 pins 19 (TX) and 21 (RX) with CLK81 for additional baud rates
+ *
+ * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
+ *   7J1.19   GPIOX_8       A5      UART_C_TX
+ *   7J1.21   GPIOX_9       B5      UART_C_RX
  */
-
 /dts-v1/;
 /plugin/;
 

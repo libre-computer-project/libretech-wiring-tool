@@ -3,8 +3,12 @@
  * Copyright (C) 2024 Libre Computer, Inc.
  * Author: Luke Lu <luke.lu@libre.computer>
  */
-/* enable 40 Header J72 - Pin 27 (SDA), 28 (SCL) */
-
+/*
+ * Summary: 40 Header J72 - Pin 27 (SDA), 28 (SCL)
+ *
+ * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
+ *   7J1.27   GPIOX_17      BF31    I2C_EE_M2_SDA
+ */
 /dts-v1/;
 /plugin/;
 

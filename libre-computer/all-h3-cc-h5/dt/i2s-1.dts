@@ -3,13 +3,15 @@
  * Copyright (c) 2026 Da Xue <da@libre.computer>
  * Author: Da Xue <da@libre.computer>
  */
-/* 40P GPIO
- * Pin 12 PG11 I2S1_BCLK
- * Pin 35 PG10 I2S1_LRCK
- * Pin 38 PG13 I2S1_DIN
- * Pin 40 PG12 I2S1_DOUT
+/*
+ * Summary: 40P GPIO
+ *
+ * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
+ *   7J1.12   PG11          D2      BB-PCM-CLK
+ *   7J1.35   PG10          M3      BB-PCM-SYNC
+ *   7J1.38   PG13          B1      BB-PCM-DIN
+ *   7J1.40   PG12          D1      BB-PCM-DOUT
  */
-
 /dts-v1/;
 /plugin/;
 

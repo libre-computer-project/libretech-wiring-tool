@@ -4,10 +4,13 @@
  * Author: Da Xue <da@libre.computer>
  */
 /*
- * Enables spidev interfaces for spi-0-2cs
+ * Summary: Spidev interfaces for spi-0-2cs
+ *
+ * Requires: spi-0-2cs
+ *
+ * Notes:
  * Requires spi-0-2cs overlay
  */
-
 /dts-v1/;
 /plugin/;
 

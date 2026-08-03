@@ -4,9 +4,11 @@
  * Author: Da Xue <da@libre.computer>
  */
 /*
- * Overlay aimed to create a gpio button on 7J1 pin 31 (GPIOX_18) linked to the power key
+ * Summary: Create a gpio button on 7J1 pin 31 (GPIOX_18) linked to the power key
+ *
+ * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
+ *   7J1.31   GPIOX_18      B7      BT_WAKE_HOST
  */
-
 /dts-v1/;
 /plugin/;
 

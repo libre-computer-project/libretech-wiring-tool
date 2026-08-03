@@ -4,9 +4,10 @@
  * Author: Neil Armstrong <narmstrong@baylibre.com>
  */
 /*
- * Overlay aimed to enable a spidev interface on SPICC bus with CS0
+ * Summary: A spidev interface on SPICC bus with CS0
+ *
+ * Requires: spi-cc-1cs
  */
-
 /dts-v1/;
 /plugin/;
 

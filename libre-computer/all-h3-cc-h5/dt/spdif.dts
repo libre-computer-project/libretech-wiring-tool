@@ -3,10 +3,12 @@
  * Copyright (c) 2023 Da Xue <da@libre.computer>
  * Author: Da Xue <da@libre.computer>
  */
-/* 40P GPIO
- * Pin 26
+/*
+ * Summary: 40P GPIO
+ *
+ * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
+ *   7J1.26   PA17          C14     SPDIF
  */
-
 /dts-v1/;
 /plugin/;
 

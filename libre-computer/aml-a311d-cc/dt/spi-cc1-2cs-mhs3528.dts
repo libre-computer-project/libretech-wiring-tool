@@ -1,14 +1,23 @@
 // SPDX-License-Identifier: (GPL-2.0-or-later OR MIT)
 /*
+ * Copyright (c) 2024 Da Xue
+ * Author: Da Xue <da@libre.computer>
+ */
+/*
+ * Summary: spi-cc1-2cs-mhs3528
+ *
+ * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
+ *   7J1.11   GPIOAO_7      AV46    GPIOAO_7/JTAG_TMS
+ *   7J1.18   GPIOA_5       J13     GPIOA_5
+ *   7J1.22   GPIOA_6       E15     GPIOA_6
+ *
+ * Requires: spi-cc1-2cs
+ *
+ * Notes:
  * Display stack: tinydrm (DRM tiny / panel) preferred; staging fbtft is the
  * legacy fallback when both are built. Compatible order is tinydrm-first.
  * Properties tagged "fbtft/legacy" are ignored by tinydrm (CONFIG_FB_TFT_* only).
  */
-/*
- * Copyright (c) 2024 Da Xue
- * Author: Da Xue <da@libre.computer>
- */
-
 /dts-v1/;
 /plugin/;
 

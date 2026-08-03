@@ -1,18 +1,30 @@
 // SPDX-License-Identifier: (GPL-2.0-or-later OR MIT)
 /*
- * Display stack: tinydrm (DRM tiny / panel) preferred; staging fbtft is the
- * legacy fallback when both are built. Compatible order is tinydrm-first.
- * Properties tagged "fbtft/legacy" are ignored by tinydrm (CONFIG_FB_TFT_* only).
- */
-/*
  * Copyright (c) 2024 Da Xue
  * Author: Da Xue <da@libre.computer>
  */
 /*
- * Enables ILI9486 based 3.5" touchscreen on 40P header J1 without tuning parameters
+ * Summary: ILI9486 based 3.5" touchscreen on 40P header J1 without tuning parameters
+ *
+ * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
+ *   ?.?    RK_PA2        ?       (not in gpio.map)
+ *   ?.?    RK_PA5        ?       (not in gpio.map)
+ *   ?.?    RK_PC4        ?       (not in gpio.map)
+ *
+ * Requires: spi-0-2cs
+ *
+ * Notes:
+ * Display stack: tinydrm (DRM tiny / panel) preferred; staging fbtft is the
+ * legacy fallback when both are built. Compatible order is tinydrm-first.
+ * Properties tagged "fbtft/legacy" are ignored by tinydrm (CONFIG_FB_TFT_* only).
+ *  ?.?    RK_PA2        ?       (not in gpio.map)
+ *  ?.?    RK_PA5        ?       (not in gpio.map)
+ *  ?.?    RK_PC4        ?       (not in gpio.map)
+ * ?.?    RK_PA2        ?       (not in gpio.map)
+ * ?.?    RK_PA5        ?       (not in gpio.map)
+ * ?.?    RK_PC4        ?       (not in gpio.map)
  * Requires spi0-cs1 overlay
  */
-
 /dts-v1/;
 /plugin/;
 

@@ -4,10 +4,14 @@
  * Author: Da Xue <da@libre.computer>
  */
 /*
- * Overlay aimed to enable PWM C on Header 7J1 Pin 38
+ * Summary: PWM C on Header 7J1 Pin 38
+ *
+ * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
+ *   7J1.38   GPIOX_8       BB34    PCM_DIN
+ *
+ * Notes:
  * pwm_c on GPIOX_8, pwm_d is potentially used by GPIOX_3 as LED
  */
-
 /dts-v1/;
 /plugin/;
 

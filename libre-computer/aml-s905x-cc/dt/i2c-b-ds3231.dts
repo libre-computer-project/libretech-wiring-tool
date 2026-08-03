@@ -4,9 +4,10 @@
  * Author: Neil Armstrong <narmstrong@baylibre.com>
  */
 /*
- * Overlay aimed to add an DS3231 RTC module on I2C_B bus, address 0x68.
+ * Summary: Add an DS3231 RTC module on I2C_B bus, address 0x68.
+ *
+ * Requires: i2c-b
  */
-
 /dts-v1/;
 /plugin/;
 

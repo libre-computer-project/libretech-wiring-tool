@@ -3,11 +3,13 @@
  * Copyright (c) 2023 Da Xue <da@libre.computer>
  * Author: Da Xue <da@libre.computer>
  */
-/* DVP
+/*
+ * Summary: DVP
+ *
+ * Notes:
  * PE12 SCL
  * PE13 SDA
  */
-
 /dts-v1/;
 /plugin/;
 

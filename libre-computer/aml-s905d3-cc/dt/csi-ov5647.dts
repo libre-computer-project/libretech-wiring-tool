@@ -2,15 +2,25 @@
 /*
  * Copyright (C) 2026 Libre Computer, Inc.
  * Enable OV5647 camera on camera connector (J1) for AML-S905D3-CC
- *
  * I2C3_SDA on GPIOA_14, I2C3_SCL on GPIOA_15
  * PWDN on GPIOA_12 (active low)
  * CAM_EN LED on GPIOAO_10 (active high)
- *
  * NOTE: Uses fixed-clock for OV5647 XCLK. Pi Camera V1 has onboard
  * 25MHz crystal oscillator.
  */
-
+/*
+ * Summary: csi-ov5647
+ *
+ * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
+ *   ?.?    GPIOAO_10     ?       (not in gpio.map)
+ *   ?.?    GPIOA_12      ?       (not in gpio.map)
+ *
+ * Notes:
+ *  ?.?    GPIOAO_10     ?       (not in gpio.map)
+ *  ?.?    GPIOA_12      ?       (not in gpio.map)
+ * ?.?    GPIOAO_10     ?       (not in gpio.map)
+ * ?.?    GPIOA_12      ?       (not in gpio.map)
+ */
 /dts-v1/;
 /plugin/;
 

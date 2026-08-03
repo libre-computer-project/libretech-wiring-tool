@@ -4,8 +4,14 @@
  * Author: Da Xue <da@libre.computer>
  */
 /*
- * Overlay to enable temperature-based fan control for EMC2301 on I2C_AO
- * This controller is present on the LoveRPi PoE+ HAT for Alta/Solitude
+ * Summary: Temperature-based fan control for EMC2301 on I2C_AO (LoveRPi PoE+ HAT)
+ *
+ * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
+ *   7J1.3    GPIOAO_3      BF13    I2C_AO_M0_SDA
+ *   7J1.5    GPIOAO_2      AU40    I2C_AO_M0_SCL
+ *
+ * Notes:
+ *   Requires i2c-ao-emc2301 (device + fan0). Maps cpu-thermal trips to fan0.
  */
 
 /dts-v1/;

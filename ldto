@@ -27,11 +27,6 @@ PATH_OF_DT=/sys/firmware/fdt
 PATH_OF_DTB_OVERRIDE=
 PATH_OF_EFI_DTB=
 
-if [ ! -d "$PATH_OF_CONFIG" ]; then
-	echo "The running kernel does not support this tool." >&2
-	exit 1
-fi
-
 cd $(dirname $(readlink -f "${BASH_SOURCE[0]}"))
 
 PATH_DTBO=$VENDOR/$BOARD/dt
@@ -47,11 +42,16 @@ LDTO_loadMap()
 {
 	if [ -e "$MAP_FILE" ]; then
 		while IFS= read -r mapping; do
+			[ -z "$mapping" ] && continue
+			[[ "$mapping" =~ ^# ]] && continue
 			local dt_alias=${mapping%%$TAB_CHAR*}
 			local dt_file=${mapping##*$TAB_CHAR}
+			# skip non-TSV / empty keys (bash: bad array subscript)
+			[ -z "$dt_alias" ] || [ -z "$dt_file" ] && continue
+			[ "$dt_alias" = "$mapping" ] && continue
 			MAP_DT_ALIAS[$dt_file]="$dt_alias"
 			MAP_ALIAS_DT[$dt_alias]="$dt_file"
-		done < <(grep -v '^#' "$MAP_FILE")
+		done < <(grep -v '^#' "$MAP_FILE" || true)
 	fi
 }
 
@@ -400,12 +400,395 @@ LDTO_reset()
 	echo "Overlay: reset for next boot" >&2
 }
 
+
+GPIO_MAP_FILE=
+
+LDTO_loadGpioMap()
+{
+	GPIO_MAP_FILE="$VENDOR/$BOARD/gpio.map"
+	if [ ! -f "$GPIO_MAP_FILE" ]; then
+		GPIO_MAP_FILE=""
+	fi
+}
+
+# Lookup gpio.map row by SoC pad Name (column 6). Prints:
+# Header Pin Chip Line sysfs Name Pad Ref Desc
+LDTO_gpioLookupName()
+{
+	local name="$1"
+	local bare="${name%\*}"
+	[ -z "$GPIO_MAP_FILE" ] && return 1
+	# Match Name column; allow trailing * in map (e.g. GPIOAO_8*)
+	awk -F '\t' -v n="$bare" '
+		/^#/ || NF < 6 { next }
+		{
+			mapn = $6
+			sub(/\*$/, "", mapn)
+			if (mapn == n) {
+				print $0
+				found = 1
+			}
+		}
+		END { exit found ? 0 : 1 }
+	' "$GPIO_MAP_FILE"
+}
+
+# Lookup by header + pin number
+LDTO_gpioLookupPin()
+{
+	local header="$1" pin="$2"
+	[ -z "$GPIO_MAP_FILE" ] && return 1
+	awk -F '\t' -v h="$header" -v p="$pin" '
+		BEGIN { hl = tolower(h) }
+		/^#/ || NF < 2 { next }
+		tolower($1) == hl && $2 == p { print; found = 1 }
+		END { exit found ? 0 : 1 }
+	' "$GPIO_MAP_FILE"
+}
+
+LDTO_getDTS()
+{
+	# Prefer source .dts (comments); fall back to nothing if only .dtbo
+	local base="$PATH_DTBO/$1"
+	if [ -f "${base}.dts" ]; then
+		echo "${base}.dts"
+	elif [ -L "${base}.dts" ]; then
+		echo "${base}.dts"
+	fi
+}
+
+# Print free-form header comments that precede /dts-v1/
+LDTO_extractHeaderComments()
+{
+	local dts="$1"
+	[ -f "$dts" ] || return 0
+	awk '
+		BEGIN { in_block = 0; spdx_done = 0 }
+		/^\/dts-v1\// { exit }
+		/^\/\// {
+			# keep SPDX line out of Description (shown separately)
+			if ($0 ~ /SPDX-License-Identifier/) next
+			print
+			next
+		}
+		/^\/\*/ {
+			in_block = 1
+			# strip leading /*
+			line = $0
+			sub(/^\/\*+[[:space:]]?/, "", line)
+			if (line ~ /\*\//) {
+				sub(/[[:space:]]*\*\/.*/, "", line)
+				in_block = 0
+				if (line != "" && line !~ /^[[:space:]]*$/) print line
+				next
+			}
+			if (line != "" && line !~ /^[[:space:]]*$/) print line
+			next
+		}
+		in_block {
+			line = $0
+			if (line ~ /\*\//) {
+				sub(/[[:space:]]*\*\/.*/, "", line)
+				sub(/^[[:space:]]*\*[[:space:]]?/, "", line)
+				if (line != "" && line !~ /^[[:space:]]*$/) print line
+				in_block = 0
+				next
+			}
+			sub(/^[[:space:]]*\*[[:space:]]?/, "", line)
+			print line
+			next
+		}
+	' "$dts"
+}
+
+# Collect unique SoC pad names referenced in DTS body (not GPIO_ACTIVE_*)
+LDTO_extractGpioNames()
+{
+	local dts="$1"
+	[ -f "$dts" ] || return 0
+	# Body only (after /dts-v1/) so header prose is not double-counted as "from DTS"
+	awk '
+		BEGIN { body = 0 }
+		/^\/dts-v1\// { body = 1 }
+		body { print }
+	' "$dts" | grep -oE '\b(GPIO[A-Z][A-Z0-9_]*|GPIODV_[0-9]+|TEST_N|RK_P[A-Z0-9_]+|PIN_[A-Z0-9_]+)\b' \
+		| grep -vE '^(GPIO_ACTIVE_|GPIO_OPEN_|GPIO_PULL_|GPIO_PERSISTENT)' \
+		| sort -u
+}
+
+# Reverse-deps: consumers that list this overlay as a provider
+LDTO_requiredBy()
+{
+	local name="$1"
+	[ -e "$DEPS_FILE" ] || return 0
+	awk -F '\t' -v n="$name" '
+		/^#/ || NF < 2 { next }
+		{
+			for (i = 2; i <= NF; i++) {
+				# providers may be space-separated in field 2+
+				split($i, a, /[[:space:]]+/)
+				for (j in a) if (a[j] == n) print $1
+			}
+		}
+	' "$DEPS_FILE" | sort -u
+}
+
+LDTO_infoHelp()
+{
+	echo "$0 info [OVERLAY|ALIAS]..." >&2
+	echo "  Show overlay description, deps, map aliases, and gpio.map pinout." >&2
+	echo "  Set VENDOR/BOARD when not running on the target board." >&2
+}
+
+LDTO_info()
+{
+	if [ -z "$1" ]; then
+		LDTO_infoHelp
+		return 1
+	fi
+	LDTO_loadMap
+	LDTO_loadDeps
+	LDTO_loadGpioMap
+
+	local dto
+	for dto in "$@"; do
+		local dto_real
+		dto_real=$(LDTO_getAliasDT "$dto")
+		if [ -n "$dto_real" ]; then
+			echo "Alias: $dto -> $dto_real"
+			dto=$dto_real
+		fi
+
+		local dts dtbo
+		dts=$(LDTO_getDTS "$dto")
+		dtbo=$(LDTO_getDTBO "$dto")
+		if [ -z "$dts" ] && [ -z "$dtbo" ]; then
+			echo "Overlay $dto: not found under $PATH_DTBO" >&2
+			return 1
+		fi
+
+		echo "Overlay: $dto"
+		if [ -n "$dts" ]; then
+			if [ -L "$dts" ]; then
+				echo "Source:  $dts -> $(readlink -f "$dts" 2>/dev/null || readlink "$dts")"
+			else
+				echo "Source:  $dts"
+			fi
+		fi
+		if [ -n "$dtbo" ]; then
+			echo "Binary:  $dtbo"
+		else
+			echo "Binary:  (missing — run make BOARD_NAME=$BOARD)"
+		fi
+
+		# H40P / product aliases that point at this overlay
+		local aliases=""
+		local a
+		for a in "${!MAP_ALIAS_DT[@]}"; do
+			if [ "${MAP_ALIAS_DT[$a]}" = "$dto" ]; then
+				aliases="$aliases $a"
+			fi
+		done
+		if [ -n "$aliases" ]; then
+			echo "Map aliases:$aliases"
+		fi
+
+		# Requires (providers)
+		local prov=""
+		if [[ -v "MAP_DEPS[$dto]" ]]; then
+			prov="${MAP_DEPS[$dto]}"
+		fi
+		# also check symlink basename deps if dto is alias consumer
+		if [ -z "$prov" ] && [ -n "$1" ]; then
+			:
+		fi
+		if [ -n "$prov" ]; then
+			echo "Requires: $prov"
+		else
+			echo "Requires: (none)"
+		fi
+
+		local rev
+		rev=$(LDTO_requiredBy "$dto" | tr '\n' ' ')
+		if [ -n "${rev// }" ]; then
+			echo "Required by: $rev"
+		fi
+
+		# Active?
+		if [ -d "$PATH_OF_CONFIG" ] && [ -e "$PATH_OF_CONFIG/$dto" ]; then
+			echo "Active: yes ($(cat "$PATH_OF_CONFIG/$dto/status" 2>/dev/null || echo applied))"
+		elif [ -d "$PATH_OF_CONFIG" ]; then
+			echo "Active: no"
+		fi
+
+		if [ -n "$dts" ]; then
+			echo
+			local desc
+			desc=$(LDTO_extractHeaderComments "$dts")
+			if [ -n "$desc" ]; then
+				# Prefer structured Summary/Pins/Requires/Notes if present
+				if printf '%s\n' "$desc" | grep -q '^Summary:'; then
+					printf '%s\n' "$desc" | awk '
+						BEGIN { skip_copy = 1 }
+						/^[Cc]opyright/ { next }
+						/^[Aa]uthor:/ { next }
+						{ print "  " $0 }
+					'
+				else
+					echo "Description:"
+					printf '%s\n' "$desc" | sed 's/^/  /'
+				fi
+			else
+				echo "Description:"
+				echo "  (no header comment)"
+			fi
+		fi
+
+		# GPIO cross-ref table
+		echo
+		if [ -z "$GPIO_MAP_FILE" ]; then
+			echo "GPIO map: (not available for $VENDOR/$BOARD)"
+		else
+			echo "GPIO connections (DTS pad refs x gpio.map):"
+			printf '  %-6s %-4s %-14s %-8s %-10s %s\n' "Header" "Pin" "Name" "Pad" "Chip:Line" "Ref / Desc"
+			local name row header pin chip line sysfs gname pad ref desc
+			local any=0
+			while IFS= read -r name; do
+				[ -z "$name" ] && continue
+				if row=$(LDTO_gpioLookupName "$name"); then
+					# may be multiple rows (unlikely); print each
+					while IFS= read -r r; do
+						[ -z "$r" ] && continue
+						IFS=$'\t' read -r header pin chip line sysfs gname pad ref desc <<<"$r"
+						printf '  %-6s %-4s %-14s %-8s %-10s %s\n' \
+							"$header" "$pin" "$gname" "$pad" "${chip}:${line}" "${ref}${desc:+ / $desc}"
+						any=1
+					done <<<"$row"
+				else
+					printf '  %-6s %-4s %-14s %-8s %-10s %s\n' \
+						"-" "-" "$name" "-" "-" "(not in gpio.map)"
+					any=1
+				fi
+			done < <(LDTO_extractGpioNames "$dts")
+			if [ "$any" -eq 0 ]; then
+				echo "  (no SoC pad names in DTS body — bus/pinctrl may use phandles;"
+				echo "   see Description for header pin notes, or enable provider bus overlay)"
+			fi
+		fi
+
+		# Header pin notes from comment prose × gpio.map
+		if [ -n "$dts" ] && [ -n "$GPIO_MAP_FILE" ]; then
+			local pin_notes def_hdr hdr_from_cmt pins_csv
+			pin_notes=$(LDTO_extractHeaderComments "$dts")
+			def_hdr=$(grep -v '^#' "$GPIO_MAP_FILE" | head -n1 | cut -f1)
+			hdr_from_cmt=$(printf '%s\n' "$pin_notes" | grep -oE '\b[0-9]+[Jj][0-9]+\b' | head -n1 || true)
+			[ -n "$hdr_from_cmt" ] && def_hdr=$hdr_from_cmt
+
+			pins_csv=$(
+				printf '%s\n' "$pin_notes" | awk -v defh="$def_hdr" '
+					BEGIN { IGNORECASE = 1 }
+					function emit(h, p) {
+						p = p + 0
+						if (p < 1 || p > 99) return
+						key = h SUBSEP p
+						if (key in seen) return
+						seen[key] = 1
+						print h "\t" p
+					}
+					{
+						line = $0
+						# 7J1.24
+						while (match(line, /[0-9]+[Jj][0-9]+\.[0-9]+/)) {
+							tok = substr(line, RSTART, RLENGTH)
+							split(tok, a, /\./)
+							emit(a[1], a[2])
+							line = substr(line, RSTART + RLENGTH)
+						}
+						line = $0
+						# 7J1 pin 22
+						while (match(line, /[0-9]+[Jj][0-9]+[[:space:]]+pin[[:space:]]*[0-9]+/)) {
+							tok = substr(line, RSTART, RLENGTH)
+							match(tok, /[0-9]+[Jj][0-9]+/)
+							h = substr(tok, RSTART, RLENGTH)
+							match(tok, /[0-9]+$/)
+							emit(h, substr(tok, RSTART, RLENGTH))
+							line = substr(line, RSTART + RLENGTH)
+						}
+						line = $0
+						# bare "pin 22" (word pin, not pins / pinmux / pinctrl)
+						while (match(line, /\<pin[[:space:]]+[0-9]+/)) {
+							tok = substr(line, RSTART, RLENGTH)
+							match(tok, /[0-9]+/)
+							emit(defh, substr(tok, RSTART, RLENGTH))
+							line = substr(line, RSTART + RLENGTH)
+						}
+						# "Pins 19 (MOSI), 21 ..." or "pins (7J1 19/21/23/24)" — plural only
+						if (match($0, /\<pins[[:space:]]+/)) {
+							rest = substr($0, RSTART + RLENGTH)
+							if (match(rest, /^\([^)]*\)/)) {
+								inner = substr(rest, 2, RLENGTH - 2)
+								gsub(/[0-9]+[Jj][0-9]+/, " ", inner)
+								n = split(inner, parts, /[^0-9]+/)
+								for (i = 1; i <= n; i++)
+									if (parts[i] != "") emit(defh, parts[i])
+							} else {
+								# strip (role) labels so SS0/CS0 digits are not pins
+								gsub(/\([^)]*\)/, " ", rest)
+								# stop before trailing prose
+								sub(/[[:space:]]+(come|from|with|using|on)[[:space:]].*/i, "", rest)
+								n = split(rest, parts, /[^0-9]+/)
+								for (i = 1; i <= n; i++)
+									if (parts[i] != "") emit(defh, parts[i])
+							}
+						}
+					}
+				' | sort -t$'\t' -k1,1 -k2,2n
+			)
+			if [ -n "$pins_csv" ]; then
+				echo
+				echo "Header pin notes (comment text x gpio.map, header $def_hdr):"
+				printf '  %-6s %-4s %-14s %-8s %s\n' "Header" "Pin" "Name" "Pad" "Ref"
+				local seen_hp=""
+				while IFS=$'\t' read -r h p; do
+					[ -z "$p" ] && continue
+					r=""
+					if r=$(LDTO_gpioLookupPin "$h" "$p"); then
+						true
+					else
+						map_def=$(grep -v '^#' "$GPIO_MAP_FILE" | head -n1 | cut -f1)
+						if [ "$h" != "$map_def" ]; then
+							r=$(LDTO_gpioLookupPin "$map_def" "$p" || true)
+						fi
+					fi
+					if [ -n "$r" ]; then
+						IFS=$'\t' read -r header pin chip line sysfs gname pad ref desc <<<"$r"
+						# skip pure power/GND rows (noise from stray digit matches)
+						case "$gname" in
+							GND|5V|3.3V) continue ;;
+						esac
+						case " $seen_hp " in
+							*" $header:$pin "*) continue ;;
+						esac
+						seen_hp="$seen_hp $header:$pin"
+						printf '  %-6s %-4s %-14s %-8s %s\n' "$header" "$pin" "$gname" "$pad" "$ref"
+					fi
+					# omit unresolved silk-header misses when map fallback also failed
+				done <<<"$pins_csv"
+			fi
+		fi
+
+		echo
+		echo "----"
+	done
+}
+
 LDTO_help(){
 	echo "$0 list"
 	echo "$0 status"
 	echo "$0 active [DTBO]"
 	echo "$0 enable [DTBO]   # auto-applies providers from dt.deps"
 	echo "$0 disable [DTBO]"
+	echo "$0 info [DTBO]     # description, deps, gpio.map pinout"
 	echo "$0 current"
 	echo "$0 merge [DTBO]    # auto-merges providers from dt.deps"
 	echo "$0 show"
@@ -413,9 +796,25 @@ LDTO_help(){
 	echo "$0 reset"
 }
 
+LDTO_requireConfigFS()
+{
+	if [ ! -d "$PATH_OF_CONFIG" ]; then
+		echo "The running kernel does not support this tool (configfs overlays)." >&2
+		return 1
+	fi
+}
+
 cmd=help
 if [ ! -z "$1" ]; then
 	cmd=$1
 	shift
 fi
-LDTO_${cmd,,} "$@"
+cmd_lc=${cmd,,}
+case "$cmd_lc" in
+	help|list|info)
+		;;
+	*)
+		LDTO_requireConfigFS || exit 1
+		;;
+esac
+LDTO_${cmd_lc} "$@"

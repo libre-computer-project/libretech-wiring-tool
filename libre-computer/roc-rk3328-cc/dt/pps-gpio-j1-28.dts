@@ -4,9 +4,18 @@
  * Author: Jaime Jackson-Block
  */
 /*
- * Enables soft PPS on 40P header J1 pin 28
+ * Summary: Soft PPS on 40P header J1 pin 28
+ *
+ * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
+ *   J1.28   GPIO2_A5      N20     I2C1_SCL_PMIC
+ *   ?.?    RK_PD4        ?       (not in gpio.map)
+ *
+ * Notes:
+ *  J1.28   GPIO2_A5      N20     I2C1_SCL_PMIC
+ *  ?.?    RK_PD4        ?       (not in gpio.map)
+ * J1.28   GPIO2_A5      N20     I2C1_SCL_PMIC
+ * ?.?    RK_PD4        ?       (not in gpio.map)
  */
-
 /dts-v1/;
 /plugin/;
 

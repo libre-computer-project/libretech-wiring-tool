@@ -4,10 +4,14 @@
  * Author: Neil Armstrong <narmstrong@baylibre.com>
  */
 /*
- * Overlay aimed to enable SPICC on Header 7J1 :
- * Pins 19 (MOSI), 21 (MISO), 23 (CLK), 24 (SS0)
+ * Summary: SPICC on Header 7J1
+ *
+ * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
+ *   7J1.19   GPIOX_8       B4      BTPCM_DOUT
+ *   7J1.21   GPIOX_9       B3      BTPCM_DIN
+ *   7J1.23   GPIOX_11      C4      BTPCM_CLK
+ *   7J1.24   GPIOX_10      C5      BTPCM_SYNC
  */
-
 /dts-v1/;
 /plugin/;
 

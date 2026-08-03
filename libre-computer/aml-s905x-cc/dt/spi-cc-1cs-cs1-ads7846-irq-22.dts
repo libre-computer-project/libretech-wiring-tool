@@ -3,7 +3,14 @@
  * Copyright (c) 2022 Da Xue
  * Author: Da Xue <da@libre.computer>
  */
-
+/*
+ * Summary: spi-cc-1cs-cs1-ads7846-irq-22
+ *
+ * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
+ *   7J1.22   GPIOX_0       A2      WIFI_SD_D0
+ *
+ * Requires: spi-cc-1cs-cs1
+ */
 /dts-v1/;
 /plugin/;
 

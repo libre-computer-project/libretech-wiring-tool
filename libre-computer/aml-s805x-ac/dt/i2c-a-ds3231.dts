@@ -4,9 +4,10 @@
  * Author: Da Xue <da@libre.computer>
  */
 /*
- * Enables DS3231 RTC on I2C_A bus address 0x68
+ * Summary: DS3231 RTC on I2C_A bus address 0x68
+ *
+ * Requires: i2c-a
  */
-
 /dts-v1/;
 /plugin/;
 

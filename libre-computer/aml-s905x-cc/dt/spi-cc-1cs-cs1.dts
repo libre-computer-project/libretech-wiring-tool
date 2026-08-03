@@ -3,7 +3,12 @@
  * Copyright (c) 2022 Da Xue
  * Author: Da Xue <da@libre.computer>
  */
-
+/*
+ * Summary: spi-cc-1cs-cs1
+ *
+ * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
+ *   7J1.26   GPIOX_1       C3      WIFI_SD_D1
+ */
 /dts-v1/;
 /plugin/;
 

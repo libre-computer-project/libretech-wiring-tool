@@ -4,12 +4,22 @@
  * Author: Da Xue <da@libre.computer>
  */
 /*
- * ENC28J60 SPI ethernet on SPICC CS0.
+ * Summary: ENC28J60 SPI ethernet on SPICC CS0.
+ *
+ * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
+ *   7J1.19   GPIOX_8       A5      UART_C_TX
+ *   7J1.21   GPIOX_9       B5      UART_C_RX
+ *   7J1.22   GPIOX_0       A2      WIFI_D0
+ *   7J1.23   GPIOX_11      B6      UART_C_RTS_N
+ *   7J1.24   GPIOX_10      A4      UART_C_CTS_N
+ *
+ * Requires: spi-cc-1cs
+ *
+ * Notes:
  * SPI bus pins (7J1 19/21/23/24) come from the spi-cc-1cs bus overlay.
  * IRQ: GPIOX_0 = 7J1 pin 22 (edge-falling; ENC28J60 INT is open-drain).
  * pinctrl forces GPIOX_0 to gpio_periphs (not SDIO_D0) as input + pull-up.
  */
-
 /dts-v1/;
 /plugin/;
 

@@ -4,9 +4,11 @@
  * Author: Da Xue <da@libre.computer>
  */
 /*
- * Overlay aimed to enable PWM A on Header 7J1 Pin 33
+ * Summary: PWM A on Header 7J1 Pin 33
+ *
+ * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
+ *   7J1.33   GPIOX_6       D2      WIFI_PWREN
  */
-
 /dts-v1/;
 /plugin/;
 

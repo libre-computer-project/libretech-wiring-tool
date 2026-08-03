@@ -3,13 +3,15 @@
  * Copyright (c) 2026 Da Xue <da@libre.computer>
  * Author: Da Xue <da@libre.computer>
  */
-/* 40P GPIO
- * Pin 27 PA19 I2S0_BCLK
- * Pin 28 PA18 I2S0_LRCK
- * Pin 29 PA20 I2S0_DOUT
- * Pin 31 PA21 I2S0_DIN
+/*
+ * Summary: 40P GPIO
+ *
+ * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
+ *   7J1.27   PA19          B14     I2S0-SCLK
+ *   7J1.28   PA18          B13     I2S0-LRCK
+ *   7J1.29   PA20          A13     I2S0-SDO
+ *   7J1.31   PA21          A14     I2S0-SDI
  */
-
 /dts-v1/;
 /plugin/;
 

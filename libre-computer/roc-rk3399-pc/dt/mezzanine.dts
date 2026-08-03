@@ -1,4 +1,10 @@
 // SPDX-License-Identifier: (GPL-2.0-or-later OR MIT)
+/*
+ * Copyright (c) Libre Computer Project
+ */
+/*
+ * Summary: mezzanine
+ */
 /dts-v1/;
 /plugin/;
 

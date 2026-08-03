@@ -4,9 +4,11 @@
  * Author: Da Xue <da@libre.computer>
  */
 /*
- * Overlay aimed to enable PWM AO A on Header 7J1 Pin 11
+ * Summary: PWM AO A on Header 7J1 Pin 11
+ *
+ * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
+ *   7J1.11   GPIOAO_8*     F17     I2SOUT-CH23
  */
-
 /dts-v1/;
 /plugin/;
 

@@ -4,9 +4,11 @@
  * Author: Thomas McKahan <tonymckahan@gmail.com>
  */
 /*
- * Overlay to enable 1-wire on gpio "4" (BCM)
+ * Summary: Overlay to enable 1-wire on gpio "4" (BCM)
+ *
+ * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
+ *   7J1.7    GPIOCLK_0     E9      GPIOCLK_0
  */
-
 /dts-v1/;
 /plugin/;
 

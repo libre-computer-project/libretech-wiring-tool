@@ -3,11 +3,13 @@
  * Copyright (c) 2022 Da Xue <da@libre.computer>
  * Author: Da Xue <da@libre.computer>
  */
-/* 40P GPIO
- * Pin 27 SDA
- * Pin 28 SCL
-*/
-
+/*
+ * Summary: 40P GPIO
+ *
+ * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
+ *   7J1.27   PA19          B14     I2S0-SCLK
+ *   7J1.28   PA18          B13     I2S0-LRCK
+ */
 /dts-v1/;
 /plugin/;
 

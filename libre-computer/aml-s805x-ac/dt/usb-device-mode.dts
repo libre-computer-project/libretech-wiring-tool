@@ -3,7 +3,9 @@
  * Copyright (c) 2024 Da Xue
  * Author: Da Xue <da@libre.computer>
  */
-
+/*
+ * Summary: usb-device-mode
+ */
 /dts-v1/;
 /plugin/;
 

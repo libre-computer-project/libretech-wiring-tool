@@ -4,9 +4,12 @@
  * Author: Da Xue <da@libre.computer>
  */
 /*
- * Enables UART_A on 40P header 7J1 pins 8 (TX) and 10 (RX)
+ * Summary: UART_A on 40P header 7J1 pins 8 (TX) and 10 (RX)
+ *
+ * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
+ *   7J1.8    GPIOX_12      B4      BT_EN
+ *   7J1.10   GPIOX_13      A6      BT_WAKE_HOST
  */
-
 /dts-v1/;
 /plugin/;
 

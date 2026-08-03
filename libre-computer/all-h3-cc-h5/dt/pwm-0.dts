@@ -3,10 +3,12 @@
  * Copyright (c) 2023 Da Xue <da@libre.computer>
  * Author: Da Xue <da@libre.computer>
  */
-/* 3P UART
- * Pin 3
+/*
+ * Summary: 3P UART
+ *
+ * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
+ *   7J1.3    PA12          C13     TWI0-SDA
  */
-
 /dts-v1/;
 /plugin/;
 

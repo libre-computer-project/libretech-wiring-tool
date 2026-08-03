@@ -4,9 +4,12 @@
  * Author: Da Xue <da@libre.computer>
  */
 /*
- * Overlay aimed to enable automatic temperature-based fan control on PWM A on Header 7J1 Pin 33 with tach on Header 9J1 Pin 2
+ * Summary: Automatic temperature-based fan control on PWM A on Header 7J1 Pin 33 with tach on Header 9J1 Pin 2
+ *
+ * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
+ *   7J1.33   GPIOX_6       D2      WIFI_PWREN
+ *   9J1.2    GPIOH_4       G19     SPDIF_OUT
  */
-
 /dts-v1/;
 /plugin/;
 

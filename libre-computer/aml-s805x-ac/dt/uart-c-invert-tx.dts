@@ -4,10 +4,14 @@
  * Author: Da Xue <da@libre.computer>
  */
 /*
- * Invert UART_C TX on 40P header 7J1 pin 19
+ * Summary: Invert UART_C TX on 40P header 7J1 pin 19
+ *
+ * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
+ *   7J1.19   GPIOX_8       A5      UART_C_TX
+ *
+ * Notes:
  * This overlay must be merged and will only take effect after reboot.
  */
-
 /dts-v1/;
 /plugin/;
 

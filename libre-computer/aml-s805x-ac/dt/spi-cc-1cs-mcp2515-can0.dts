@@ -3,7 +3,11 @@
  * Copyright (c) Libre Computer
  * Author: Thomas McKahan <tonymckahan@gmail.com>
  */
-
+/*
+ * Summary: spi-cc-1cs-mcp2515-can0
+ *
+ * Requires: spi-cc-1cs
+ */
 /dts-v1/;
 /plugin/;
 

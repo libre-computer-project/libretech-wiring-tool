@@ -4,10 +4,14 @@
  * Author: Da Xue <da@libre.computer>
  */
 /*
- * Enables SPICC on header 7J1 pins:
+ * Summary: SPICC on header 7J1 pins
+ *
+ * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
+ *   7J1.24   GPIOX_10      A4      UART_C_CTS_N
+ *
+ * Notes:
  * 19 (MOSI), 21 (MISO), 23 (CLK), 24 (CE0)
  */
-
 /dts-v1/;
 /plugin/;
 

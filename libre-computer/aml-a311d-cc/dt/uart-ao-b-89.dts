@@ -4,9 +4,12 @@
  * Author: Da Xue <da@libre.computer>
  */
 /*
- * Enables UART_AO_B 40 Header 7J2 pins 8 (TX) and 10 (RX)
+ * Summary: UART_AO_B 40 Header 7J2 pins 8 (TX) and 10 (RX)
+ *
+ * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
+ *   7J1.8    GPIOAO_8      AT42    GPIOAO_8/JTAG_TDI
+ *   7J1.10   GPIOAO_9      AT44    GPIOAO_9/JTAG_TDO
  */
-
 /dts-v1/;
 /plugin/;
 

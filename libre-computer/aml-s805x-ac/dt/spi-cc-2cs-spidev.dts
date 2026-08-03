@@ -4,9 +4,10 @@
  * Author: Da Xue <da@libre.computer>
  */
 /*
- * Enables SPICC userspace spidev for spi-cc-2cs
+ * Summary: SPICC userspace spidev for spi-cc-2cs
+ *
+ * Requires: spi-cc-2cs
  */
-
 /dts-v1/;
 /plugin/;
 

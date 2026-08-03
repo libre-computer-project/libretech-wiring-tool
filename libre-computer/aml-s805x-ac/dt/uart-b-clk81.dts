@@ -4,9 +4,12 @@
  * Author: Da Xue <da@libre.computer>
  */
 /*
- * Enables UART_B on 40P header 7J1 pins 27 (TX) and 28 (RX) with CLK81 for additional baud rates
+ * Summary: UART_B on 40P header 7J1 pins 27 (TX) and 28 (RX) with CLK81 for additional baud rates
+ *
+ * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
+ *   7J1.27   GPIODV_24     F3      I2C_SDA_A
+ *   7J1.28   GPIODV_25     D1      I2C_SCK_A
  */
-
 /dts-v1/;
 /plugin/;
 

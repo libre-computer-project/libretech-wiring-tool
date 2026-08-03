@@ -2,16 +2,17 @@
 /*
  * Copyright (c) 2017 BayLibre, SAS.
  * Copyright (c) 2023 Joshua Dye.
- *
  * Original Author: Neil Armstrong <narmstrong@baylibre.com>
- *
  * Modified for PCF8523 by: Joshua Dye
  */
 /*
- * Overlay aimed to add an PCF823 RTC module on I2C_AO bus, address 0x68.
+ * Summary: Add an PCF823 RTC module on I2C_AO bus, address 0x68.
+ *
+ * Requires: i2c-ao
+ *
+ * Notes:
  * Modified from DS3231 overlay.
  */
-
 /dts-v1/;
 /plugin/;
 

@@ -1,5 +1,15 @@
 // SPDX-License-Identifier: (GPL-2.0-or-later OR MIT)
 /*
+ * Copyright (c) Libre Computer Project
+ */
+/*
+ * Summary: spi-gpio-1cs-ili9486
+ *
+ * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
+ *   7J1.18   GPIOX_15      C7      UART_A_RTS_N
+ *   7J1.22   GPIOX_0       A2      WIFI_SD_D0
+ *
+ * Notes:
  * Display stack: tinydrm (DRM tiny / panel) preferred; staging fbtft is the
  * legacy fallback when both are built. Compatible order is tinydrm-first.
  * Properties tagged "fbtft/legacy" are ignored by tinydrm (CONFIG_FB_TFT_* only).

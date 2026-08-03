@@ -4,9 +4,8 @@
  * Author: Da Xue <da@libre.computer>
  */
 /*
- * Enables AT24C32 EEPROM on I2C_A bus address 0x57
+ * Summary: AT24C32 EEPROM on I2C_A bus address 0x57
  */
-
 /dts-v1/;
 /plugin/;
 

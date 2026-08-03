@@ -3,7 +3,15 @@
  * Copyright (c) 2022 Da Xue
  * Author: Da Xue <da@libre.computer>
  */
-
+/*
+ * Summary: spi-cc-1cs-ssd1306-128x64
+ *
+ * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
+ *   7J1.29   GPIOX_17      B5      BT_EN
+ *   7J1.31   GPIOX_18      B7      BT_WAKE_HOST
+ *
+ * Requires: spi-cc-1cs
+ */
 /dts-v1/;
 /plugin/;
 

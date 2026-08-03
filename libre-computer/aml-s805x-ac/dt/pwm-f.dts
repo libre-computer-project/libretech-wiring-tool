@@ -4,9 +4,11 @@
  * Author: Da Xue <da@libre.computer>
  */
 /*
- * Enables PWM F on Header 7J1 Pin 35
+ * Summary: PWM F on Header 7J1 Pin 35
+ *
+ * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
+ *   7J1.35   GPIOX_7       C1      WIFI_WAKE_HOST
  */
-
 /dts-v1/;
 /plugin/;
 

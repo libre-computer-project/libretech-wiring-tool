@@ -3,8 +3,12 @@
  * Copyright (C) 2024 Libre Computer, Inc.
  * Author: Luke Lu <luke.lu@libre.computer>
  */
-/* enable 40 Header J72 - Pin 3 (SDA), 5 (SCL) */
-
+/*
+ * Summary: 40 Header J72 - Pin 3 (SDA), 5 (SCL)
+ *
+ * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
+ *   7J1.3    GPIOAO_3      BF13    I2C_AO_M0_SDA
+ */
 /dts-v1/;
 /plugin/;
 

@@ -3,7 +3,16 @@
  * Copyright (c) 2022 Da Xue
  * Author: Da Xue <da@libre.computer>
  */
-
+/*
+ * Summary: spi-gpio-2cs
+ *
+ * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
+ *   7J1.19   GPIOX_8       B4      BTPCM_DOUT
+ *   7J1.21   GPIOX_9       B3      BTPCM_DIN
+ *   7J1.23   GPIOX_11      C4      BTPCM_CLK
+ *   7J1.24   GPIOX_10      C5      BTPCM_SYNC
+ *   7J1.26   GPIOX_1       C3      WIFI_SD_D1
+ */
 /dts-v1/;
 /plugin/;
 

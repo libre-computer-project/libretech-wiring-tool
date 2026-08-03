@@ -4,10 +4,17 @@
  * Author: Da Xue <da@libre.computer>
  */
 /*
- * Overlay to enable EMC2301 fan controller on I2C_AO (Header J72 Pin 3: SDA, Pin 5: SCL)
+ * Summary: Overlay to enable EMC2301 fan controller on I2C_AO (Header J72 Pin 3: SDA, Pin 5: SCL)
+ *
+ * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
+ *   7J1.3    GPIOAO_3      BF13    I2C_AO_M0_SDA
+ *   7J1.5    GPIOAO_2      AU40    I2C_AO_M0_SCL
+ *
+ * Requires: i2c-ao
+ *
+ * Notes:
  * This controller is present on the LoveRPi PoE+ HAT
  */
-
 /dts-v1/;
 /plugin/;
 

@@ -4,9 +4,11 @@
  * Author: Da Xue <da@libre.computer>
  */
 /*
- * Create a GPIO button on 9J1 pin 2 (GPIOH_4) linked to the power key
+ * Summary: Create a GPIO button on 9J1 pin 2 (GPIOH_4) linked to the power key
+ *
+ * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
+ *   9J1.2    GPIOH_4       G19     SPDIF_OUT
  */
-
 /dts-v1/;
 /plugin/;
 

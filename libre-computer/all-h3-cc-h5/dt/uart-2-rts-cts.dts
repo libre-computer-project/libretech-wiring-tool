@@ -3,13 +3,15 @@
  * Copyright (c) 2023 Da Xue <da@libre.computer>
  * Author: Da Xue <da@libre.computer>
  */
-/* 40P GPIO
- * Pin 7 RTS
- * Pin 11 RX
- * Pin 13 TX
- * Pin 15 CTS
+/*
+ * Summary: 40P GPIO
+ *
+ * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
+ *   7J1.7    PA2           D6      CPUX-TDO
+ *   7J1.11   PA1           D5      CPUX-TCK
+ *   7J1.13   PA0           D11     CPUX-TMS
+ *   7J1.15   PA3           D13     CPUX-TDI
  */
-
 /dts-v1/;
 /plugin/;
 

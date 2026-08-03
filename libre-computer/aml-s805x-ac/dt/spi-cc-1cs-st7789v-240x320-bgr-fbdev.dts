@@ -1,14 +1,23 @@
 // SPDX-License-Identifier: (GPL-2.0-or-later OR MIT)
 /*
+ * Copyright (c) 2022 Da Xue
+ * Author: Da Xue <da@libre.computer>
+ */
+/*
+ * Summary: spi-cc-1cs-st7789v-240x320-bgr-fbdev
+ *
+ * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
+ *   7J1.22   GPIOX_0       A2      WIFI_D0
+ *   7J1.29   GPIODV_27     G3      SYS_LED
+ *   7J1.31   GPIOAO_2      B7      PWR_KEY_DET
+ *
+ * Requires: spi-cc-1cs
+ *
+ * Notes:
  * Display stack: fbtft/legacy only (CONFIG_FB_TFT / staging/fbtft).
  * Filename uses -fbdev. Not the tinydrm/DRM panel path.
  * Properties tagged "fbtft/legacy" apply to this stack.
  */
-/*
- * Copyright (c) 2022 Da Xue
- * Author: Da Xue <da@libre.computer>
- */
-
 /dts-v1/;
 /plugin/;
 

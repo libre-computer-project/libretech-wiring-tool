@@ -1,14 +1,16 @@
 // SPDX-License-Identifier: (GPL-2.0-or-later OR MIT)
 /*
- * eMMC HS400 Enhanced Strobe (HS400-ES) for AML-S905D3-CC.
+ * Copyright (c) Libre Computer Project
+ */
+/*
+ * Summary: EMMC HS400 Enhanced Strobe (HS400-ES) for AML-S905D3-CC.
  *
+ * Notes:
  * HS400 with the device-driven data strobe used for CMD/response as well as
  * data, removing per-command tuning. Enhanced strobe (EXT_CSD BUS_WIDTH bit 7)
  * is defined ONLY for an 8-bit DDR bus per JEDEC; the eMMC must also report
  * STROBE_SUPPORT (EXT_CSD[184]).
- *
  * !!! REQUIRES THE ON-BOARD SPI NOR TO BE PHYSICALLY DE-POPULATED !!!
- *
  * Same hardware constraint as plain HS400 (emmc-hs400.dts): the NOR
  * (GD25LQ128E, 1.8 V) shares eMMC data lines d4/d5/d6 and its ~6 pF pad load
  * silently corrupts 8-bit HS400 writes at 400 MHz DDR. Because HS400-ES is
@@ -16,16 +18,13 @@
  * card rejects DDR_BUS_WIDTH_4 | STROBE (err -EBADMSG). The NOR must be
  * de-populated so d4/d5/d6 are eMMC-only. See amlogic/software/kernel/
  * emmc-hs400-plan.md.
- *
  * ALSO REQUIRES kernel HS400 driver support that mainline lacks (HS400 is
  * disabled in meson-gx-mmc.c; the DS/DLL + fixadj-tuning + ES port lives on the
  * topic/hs400 branch, untested, with an unvalidated strobe-teardown brick fix).
  * This DT property is necessary but NOT sufficient without that port landed.
- *
  * The eMMC data-strobe pins (emmc_ds_pins) are already muxed in the base DTS.
  * Apply this OR emmc-hs400.dts, not both.
  */
-
 /dts-v1/;
 /plugin/;
 

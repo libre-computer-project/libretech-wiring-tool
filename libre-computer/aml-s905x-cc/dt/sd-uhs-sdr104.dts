@@ -3,8 +3,9 @@
  * Copyright (c) 2022 Da Xue
  * Author: Da Xue <da@libre.computer>
  */
-/* SD UHS increase max clock */
-
+/*
+ * Summary: SD UHS increase max clock
+ */
 /dts-v1/;
 /plugin/;
 

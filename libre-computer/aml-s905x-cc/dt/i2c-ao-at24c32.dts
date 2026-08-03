@@ -4,9 +4,10 @@
  * Author: Thomas Rohloff <v10lator@myway.de>
  */
 /*
- * Overlay aimed to add an AT24C32 EEPROM module on I2C_AO bus, address 0x57.
+ * Summary: Add an AT24C32 EEPROM module on I2C_AO bus, address 0x57.
+ *
+ * Requires: i2c-ao
  */
-
 /dts-v1/;
 /plugin/;
 

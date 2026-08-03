@@ -4,9 +4,11 @@
  * Author: Da Xue <da@libre.computer>
  */
 /*
- * Enables soft 1-wire on 40P header 7J1 pin 7
+ * Summary: Soft 1-wire on 40P header 7J1 pin 7
+ *
+ * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
+ *   7J1.7    GPIOH_6       K14     TCK
  */
-
 /dts-v1/;
 /plugin/;
 
