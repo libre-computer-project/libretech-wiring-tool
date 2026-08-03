@@ -94,20 +94,21 @@ def overlay_root_status_okay(overlay_body: str) -> bool:
 
 
 def has_device_children(overlay_body: str) -> bool:
+    # Node name: "spidev@0" or bare "spidev {" (H3 overlays omit unit address)
     if re.search(
-        r"(display|touchscreen|spidev|ethernet|can|adc|sensor|eeprom|rtc)@\d+",
+        r"(display|touchscreen|spidev|ethernet|can|adc|sensor|eeprom|rtc)"
+        r"(@\d+)?\s*\{",
         overlay_body,
     ):
         return True
     if re.search(
-        r'compatible\s*=\s*"[^"]*(spidev|ili9486|ili9341|ads7846|mcp2515|'
+        r'compatible\s*=\s*"[^"]*(spidev|rohm,dh2228fv|ili9486|ili9341|ads7846|mcp2515|'
         r"enc28j60|ssd1306|st7789|st7735|mcp3008|at24|ds3231|pcf8523|"
         r'rv3028|emc2301|waveshare)',
         overlay_body,
     ):
         return True
     return False
-
 
 def max_reg(overlay_body: str) -> int:
     regs = [int(x) for x in re.findall(r"reg\s*=\s*<(\d+)>", overlay_body)]
@@ -252,6 +253,10 @@ def resolve_board(dt_dir: Path) -> dict[str, list[str]]:
                 continue
             enough = [(n, pn, al) for n, pn, al in cands if pn >= need_n]
             pool = enough or cands
+            # Prefer real (non-symlink) sources; only fall back to aliases
+            # when no regular provider exists for this capability.
+            non_alias = [(n, pn, al) for n, pn, al in pool if not al]
+            pool = non_alias or pool
             pool.sort(
                 key=lambda t: provider_score(
                     t[0], t[1], need_n, is_alias=t[2]
