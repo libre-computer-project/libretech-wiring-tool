@@ -37,9 +37,11 @@ cd $(dirname $(readlink -f "${BASH_SOURCE[0]}"))
 PATH_DTBO=$VENDOR/$BOARD/dt
 PATH_DTCFG=$VENDOR/$BOARD/dt.config
 MAP_FILE="$VENDOR/$BOARD/dt.map"
+DEPS_FILE="$VENDOR/$BOARD/dt.deps"
 TAB_CHAR='	'
 declare -A MAP_DT_ALIAS
 declare -A MAP_ALIAS_DT
+declare -A MAP_DEPS
 
 LDTO_loadMap()
 {
@@ -51,6 +53,59 @@ LDTO_loadMap()
 			MAP_ALIAS_DT[$dt_alias]="$dt_file"
 		done < <(grep -v '^#' "$MAP_FILE")
 	fi
+}
+
+
+LDTO_loadDeps()
+{
+	MAP_DEPS=()
+	if [ -e "$DEPS_FILE" ]; then
+		while IFS=$'\t' read -r consumer providers || [ -n "$consumer" ]; do
+			[ -z "$consumer" ] && continue
+			[[ "$consumer" =~ ^# ]] && continue
+			MAP_DEPS[$consumer]="$providers"
+		done < "$DEPS_FILE"
+	fi
+}
+
+# Expand args with auto-providers from dt.deps (providers first, no dups).
+LDTO_expandDeps()
+{
+	LDTO_loadDeps
+	local -a ordered=()
+	local -A seen=()
+
+	_ldto_add() {
+		local name="$1"
+		local depth="${2:-0}"
+		local dep realp
+		if [ "$depth" -gt 6 ]; then
+			return
+		fi
+		realp=$(LDTO_getAliasDT "$name")
+		if [ -n "$realp" ]; then
+			name="$realp"
+		fi
+		if [[ -v "seen[$name]" ]]; then
+			return
+		fi
+		if [[ -v "MAP_DEPS[$name]" ]]; then
+			for dep in ${MAP_DEPS[$name]}; do
+				_ldto_add "$dep" $((depth + 1))
+			done
+		fi
+		if [[ -v "seen[$name]" ]]; then
+			return
+		fi
+		seen[$name]=1
+		ordered+=("$name")
+	}
+
+	local arg
+	for arg in "$@"; do
+		_ldto_add "$arg" 0
+	done
+	printf '%s\n' "${ordered[@]}"
 }
 
 LDTO_getDTAlias()
@@ -114,10 +169,13 @@ LDTO_enable()
 	fi
 	LDTO_checkOFConfig RW
 	LDTO_loadMap
-	for dto in "$@"; do
+	local -a seq
+	mapfile -t seq < <(LDTO_expandDeps "$@")
+	local dto
+	for dto in "${seq[@]}"; do
 		local dto_real=$(LDTO_getAliasDT "$dto")
 		if [ ! -z "$dto_real" ]; then
-			local dto=$dto_real
+			dto=$dto_real
 		fi
 		local dtbo_file=$(LDTO_getDTBO "$dto")
 		if [ -z "$dtbo_file" ]; then
@@ -125,8 +183,8 @@ LDTO_enable()
 			return 1
 		fi
 		if [ -e "$PATH_OF_CONFIG/$dto" ]; then
-			echo "Overlay $dto: already exists" >&2
-			return 1
+			echo "Overlay $dto: already active" >&2
+			continue
 		fi
 		mkdir "$PATH_OF_CONFIG/$dto"
 		cat "$dtbo_file" > "$PATH_OF_CONFIG/$dto/dtbo"
@@ -271,10 +329,13 @@ LDTO_merge()
 		return 1
 	fi
 	LDTO_loadMap
-	for dto in "$@"; do
+	local -a seq
+	mapfile -t seq < <(LDTO_expandDeps "$@")
+	local dto
+	for dto in "${seq[@]}"; do
 		local dto_real=$(LDTO_getAliasDT "$dto")
 		if [ ! -z "$dto_real" ]; then
-			local dto=$dto_real
+			dto=$dto_real
 		fi
 		local dtbo_file=$(LDTO_getDTBO "$dto")
 		if [ -z "$dtbo_file" ]; then
@@ -343,10 +404,10 @@ LDTO_help(){
 	echo "$0 list"
 	echo "$0 status"
 	echo "$0 active [DTBO]"
-	echo "$0 enable [DTBO]"
+	echo "$0 enable [DTBO]   # auto-applies providers from dt.deps"
 	echo "$0 disable [DTBO]"
 	echo "$0 current"
-	echo "$0 merge [DTBO]"
+	echo "$0 merge [DTBO]    # auto-merges providers from dt.deps"
 	echo "$0 show"
 	echo "$0 diff"
 	echo "$0 reset"

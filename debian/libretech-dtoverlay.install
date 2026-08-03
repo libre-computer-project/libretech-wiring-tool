@@ -1,5 +1,7 @@
 opt/librecomputer/libretech-wiring-tool/ldto
+opt/librecomputer/libretech-wiring-tool/scripts/overlay-deps.py
 opt/librecomputer/libretech-wiring-tool/libre-computer/*/dt.config
 opt/librecomputer/libretech-wiring-tool/libre-computer/*/dt.map
+opt/librecomputer/libretech-wiring-tool/libre-computer/*/dt.deps
 # Whole dt/ dirs (preserves v2 / h3 whole-dir symlinks + all .dtbo)
 opt/librecomputer/libretech-wiring-tool/libre-computer/*/dt

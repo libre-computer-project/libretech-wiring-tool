@@ -35,10 +35,23 @@ DESTGPIOMAPS	:= $(patsubst %,$(PREFIX)/%,$(wildcard libre-computer/*/gpio.map))
 DESTDTMAPS	:= $(patsubst %,$(PREFIX)/%,$(wildcard libre-computer/*/dt.map))
 DESTDTOCFG	:= $(patsubst %,$(PREFIX)/%,$(wildcard libre-computer/*/dt.config))
 DESTDTBOS	:= $(patsubst %,$(PREFIX)/%,$(wildcard libre-computer/*/dt/*.dtbo))
+# Per-board auto-dependency tables (consumer -> provider).
+ifneq ($(BOARD_FILTER),)
+  DEPS_FILES := libre-computer/$(BOARD_FILTER)/dt.deps
+else
+  DEPS_BOARDS := $(sort $(foreach d,$(DT_DTS),$(word 2,$(subst /, ,$(d)))))
+  DEPS_FILES := $(addprefix libre-computer/,$(addsuffix /dt.deps,$(DEPS_BOARDS)))
+endif
 
-.PHONY : clean install-lgpio install-ldto install
+.PHONY : clean install-lgpio install-ldto install deps
 
-all: $(DTOS_REAL) $(DTOS_SYM)
+all: $(DTOS_REAL) $(DTOS_SYM) $(DEPS_FILES)
+
+deps: $(DEPS_FILES)
+
+# dt.deps is generated from .dts (not .dtbo); rebuild when sources change.
+libre-computer/%/dt.deps: scripts/overlay-deps.py
+	@dt=libre-computer/$*/dt; 	if [ -L "$$dt" ]; then dt=$$(readlink -f "$$dt"); fi; 	python3 scripts/overlay-deps.py "$$dt" -o $@
 
 ifneq ($(strip $(DTOS_SYM)),)
 $(DTOS_SYM): $(DTOS_REAL)
@@ -73,7 +86,7 @@ endif
 	fi
 
 clean:
-	rm -f $(DTOS) $(patsubst %.dtbo,%.pre.dts,$(DTOS))
+	rm -f $(DTOS) $(patsubst %.dtbo,%.pre.dts,$(DTOS)) $(DEPS_FILES)
 
 boarddirs:
 	mkdir -p $(PREFIX) $(patsubst %,$(PREFIX)/%,$(wildcard libre-computer/*))
@@ -125,7 +138,10 @@ $(PREFIX)/libre-computer/%.dtbo: boarddirs dtodirs
 		install -p -m 644 "$$src" $@; \
 	fi
 
-install-ldto: boarddirs $(DESTDTOCFG) $(DESTDTMAPS) $(DESTDTBOS)
+install-ldto: boarddirs $(DESTDTOCFG) $(DESTDTMAPS) $(DESTDTBOS) $(DEPS_FILES)
 	install -p -m 755 ldto $(PREFIX)
+	install -d -m 755 $(PREFIX)/scripts
+	install -p -m 755 scripts/overlay-deps.py $(PREFIX)/scripts/overlay-deps.py
+	@for f in $(DEPS_FILES); do 		if [ -f "$$f" ]; then 			install -p -m 644 "$$f" $(PREFIX)/$$f; 		fi; 	done
 
 install: install-lgpio install-ldto
