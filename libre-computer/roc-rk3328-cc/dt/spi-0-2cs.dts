@@ -14,7 +14,12 @@
 #include <dt-bindings/pinctrl/rockchip.h>
 
 / {
-	compatible = "libretech,roc-rk3328-cc", "rockchip,rk3328";
+	compatible = "libre-computer,roc-rk3328-cc",
+		"libretech,roc-rk3328-cc",
+		"libre-computer,roc-rk3328-cc-v2",
+		"libretech,roc-rk3328-cc-v2",
+		"firefly,roc-rk3328-cc",
+		"rockchip,rk3328";
 
 	fragment@0 {
 		target-path = "/aliases";

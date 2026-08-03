@@ -21,7 +21,12 @@
 #include <dt-bindings/gpio/meson-gxl-gpio.h>
 
 / {
-	compatible = "libretech,aml-s905x-cc", "amlogic,s905x", "amlogic,meson-gxl";
+	compatible = "libre-computer,aml-s905x-cc",
+		"libretech,aml-s905x-cc",
+		"libre-computer,aml-s905x-cc-v2",
+		"libretech,aml-s905x-cc-v2",
+		"amlogic,s905x",
+		"amlogic,meson-gxl";
 
 	fragment@0 {
 		target = <&spicc>;
@@ -40,7 +45,8 @@
 			 * - VCC/VIN to Pin17 (3.3V)
 			 */
 			display@0 {
-				compatible = "adafruit,yx240qv29", "ilitek,ili9341";
+				compatible = "adafruit,yx240qv29",
+					"ilitek,ili9341";
 				reg = <0>;
 				buswidth = <8>;
 				spi-max-frequency = <30000000>;

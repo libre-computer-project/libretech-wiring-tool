@@ -14,7 +14,12 @@
 /plugin/;
 
 / {
-	compatible = "libretech,all-h3-cc-h5", "libretech,all-h3-cc-h3", "allwinner,sun50i-h5", "allwinner,sun8i-h3";
+	compatible = "libre-computer,all-h3-cc-h3",
+		"libretech,all-h3-cc-h3",
+		"libre-computer,all-h3-cc-h5",
+		"libretech,all-h3-cc-h5",
+		"allwinner,sun8i-h3",
+		"allwinner,sun50i-h5";
 
 	fragment@0 {
 		target = <&uart2>;

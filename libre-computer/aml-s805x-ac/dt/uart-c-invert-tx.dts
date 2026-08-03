@@ -12,7 +12,12 @@
 /plugin/;
 
 / {
-	compatible = "libretech,aml-s805x-ac", "amlogic,s805x", "amlogic,meson-gxl";
+	compatible = "libre-computer,aml-s805x-ac",
+		"libretech,aml-s805x-ac",
+		"libre-computer,aml-s805x-ac-v2",
+		"libretech,aml-s805x-ac-v2",
+		"amlogic,s805x",
+		"amlogic,meson-gxl";
 
 	fragment@0 {
 		target = <&uart_C>;

@@ -18,7 +18,12 @@
 #include <dt-bindings/gpio/gpio.h>
 
 / {
-	compatible = "libretech,aml-s905d3-cc", "amlogic,s905d3", "amlogic,sm1";
+	compatible = "libre-computer,aml-s905d3-cc",
+		"libretech,aml-s905d3-cc",
+		"libre-computer,aml-s905d3-cc-v01",
+		"libretech,aml-s905d3-cc-v01",
+		"amlogic,s905d3",
+		"amlogic,sm1";
 
 	fragment@0 {
 		target-path = "/";

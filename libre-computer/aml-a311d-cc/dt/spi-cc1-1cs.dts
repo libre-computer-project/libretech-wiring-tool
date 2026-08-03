@@ -14,7 +14,18 @@
 #include <dt-bindings/gpio/meson-g12a-gpio.h>
 
 / {
-        compatible = "libretech,aml-a311d-cc", "amlogic,a311d", "amlogic,g12b", "libretech,aml-s905d3-cc", "amlogic,s905d3", "amlogic,sm1";
+        compatible = "libre-computer,aml-a311d-cc",
+            "libretech,aml-a311d-cc",
+            "libre-computer,aml-a311d-cc-v01",
+            "libretech,aml-a311d-cc-v01",
+            "libre-computer,aml-s905d3-cc",
+            "libretech,aml-s905d3-cc",
+            "libre-computer,aml-s905d3-cc-v01",
+            "libretech,aml-s905d3-cc-v01",
+            "amlogic,a311d",
+            "amlogic,g12b",
+            "amlogic,s905d3",
+            "amlogic,sm1";
 
         fragment@0 {
                 target-path = "/aliases";

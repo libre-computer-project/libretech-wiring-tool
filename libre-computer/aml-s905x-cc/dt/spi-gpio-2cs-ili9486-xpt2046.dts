@@ -13,7 +13,12 @@
 #include <dt-bindings/interrupt-controller/amlogic,meson-gxl-gpio-intc.h>
 
 / {
-	compatible = "libretech,aml-s905x-cc", "amlogic,s905x", "amlogic,meson-gxl";
+	compatible = "libre-computer,aml-s905x-cc",
+		"libretech,aml-s905x-cc",
+		"libre-computer,aml-s905x-cc-v2",
+		"libretech,aml-s905x-cc-v2",
+		"amlogic,s905x",
+		"amlogic,meson-gxl";
 
 	fragment@0 {
 		target = <&cec_AO>;
@@ -29,7 +34,8 @@
 		__overlay__ {
 
 			display@0 {
-				compatible = "waveshare,rpi-lcd-35", "ilitek,ili9486";
+				compatible = "waveshare,rpi-lcd-35",
+					"ilitek,ili9486";
 				reg = <0>;
 				spi-max-frequency = <30000000>;
 				reset-gpios = <&gpio GPIOX_0 GPIO_ACTIVE_HIGH>;

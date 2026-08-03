@@ -3,7 +3,9 @@
 /plugin/;
 
 / {
-	compatible = "libre-computer,roc-rk3399-pc", "rockchip,rk3399";
+	compatible = "libre-computer,roc-rk3399-pc",
+		"libretech,roc-rk3399-pc",
+		"rockchip,rk3399";
 	
 	
 	fragment@0 {

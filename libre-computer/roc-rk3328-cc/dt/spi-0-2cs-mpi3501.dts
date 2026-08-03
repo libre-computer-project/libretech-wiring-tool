@@ -21,7 +21,12 @@
  */
 
 / {
-	compatible = "libretech,roc-rk3328-cc", "rockchip,rk3328";
+	compatible = "libre-computer,roc-rk3328-cc",
+		"libretech,roc-rk3328-cc",
+		"libre-computer,roc-rk3328-cc-v2",
+		"libretech,roc-rk3328-cc-v2",
+		"firefly,roc-rk3328-cc",
+		"rockchip,rk3328";
 
 	fragment@0 {
 		target = <&spi0>;
@@ -29,7 +34,8 @@
 		__overlay__ {
 
 			display@0 {
-				compatible = "waveshare,rpi-lcd-35", "ilitek,ili9486";
+				compatible = "waveshare,rpi-lcd-35",
+					"ilitek,ili9486";
 				reg = <0>;
 				spi-max-frequency = <30000000>;
 				reset-gpios = <&gpio0 RK_PA2 GPIO_ACTIVE_HIGH>;

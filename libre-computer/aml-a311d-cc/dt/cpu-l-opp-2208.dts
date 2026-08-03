@@ -8,7 +8,12 @@
 /plugin/;
 
 / {
-	compatible = "libretech,aml-a311d-cc";
+	compatible = "libre-computer,aml-a311d-cc",
+		"libretech,aml-a311d-cc",
+		"libre-computer,aml-a311d-cc-v01",
+		"libretech,aml-a311d-cc-v01",
+		"amlogic,a311d",
+		"amlogic,g12b";
 
 	fragment@0 {
 		target = <&cpu_opp_table_0>;

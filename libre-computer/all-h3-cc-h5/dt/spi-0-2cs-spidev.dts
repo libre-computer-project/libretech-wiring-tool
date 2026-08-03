@@ -8,7 +8,12 @@
 /plugin/;
 
 / {
-	compatible = "allwinner,sun50i-h5";
+	compatible = "libre-computer,all-h3-cc-h3",
+		"libretech,all-h3-cc-h3",
+		"libre-computer,all-h3-cc-h5",
+		"libretech,all-h3-cc-h5",
+		"allwinner,sun8i-h3",
+		"allwinner,sun50i-h5";
 
 	fragment@0 {
 		target = <&spi0>;
@@ -16,12 +21,14 @@
 			#address-cells = <1>;
 			#size-cells = <0>;
 			spidev@0 {
-				compatible = "spidev", "rohm,dh2228fv";
+				compatible = "spidev",
+					"rohm,dh2228fv";
 				reg = <0>;
 				spi-max-frequency = <30000000>;
 			};
 			spidev@1 {
-				compatible = "spidev", "rohm,dh2228fv";
+				compatible = "spidev",
+					"rohm,dh2228fv";
 				reg = <1>;
 				spi-max-frequency = <30000000>;
 			};
