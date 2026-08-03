@@ -21,6 +21,11 @@ spi-cc-2cs-mhs3528	spi-cc-2cs
 spi-cc-2cs-mpi3501	spi-cc-2cs
 spi-cc-2cs-spidev	spi-cc-2cs
 spicc-cs1-ili9486-xpt2046	spi-cc-2cs
+spicc-cs1-mhs3528	spi-cc-2cs
+spicc-cs1-mpi3501	spi-cc-2cs
+spicc-cs1-spidev	spi-cc-2cs
 spicc-ili9341	spi-cc-1cs
 spicc-mcp2515-can0	spi-cc-1cs
+spicc-spidev	spi-cc-1cs
+spicc-st7789v-240x320-legacy	spi-cc-1cs
 spidev-spicc	spi-cc-1cs

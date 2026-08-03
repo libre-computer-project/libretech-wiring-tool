@@ -1,0 +1,9 @@
+# Copyright (C) 2021-2026 Da Xue <da@libre.computer>
+# SPDX-License-Identifier: MIT
+# H40P / product alias map: KEY<TAB><overlay-basename>
+# Values MUST name a real .dts/.dtbo under this board's dt/ (canonical name,
+# not a same-dir legacy alias). Consumed by ldto (MAP_ALIAS_DT).
+# v01 stub tree (opp + spifc only); header accessories use aml-s905d3-cc / a311d shared map
+
+CPU_OPP_2208	cpu-opp-2208
+SPIFC_NOR	spifc-nor

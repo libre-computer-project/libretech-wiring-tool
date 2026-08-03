@@ -1,8 +1,13 @@
-# Copyright (C) 2024 Da Xue <da@libre.computer>
+# Copyright (C) 2021-2026 Da Xue <da@libre.computer>
 # SPDX-License-Identifier: MIT
+# H40P / product alias map: KEY<TAB><overlay-basename>
+# Values MUST name a real .dts/.dtbo under this board's dt/ (canonical name,
+# not a same-dir legacy alias). Consumed by ldto (MAP_ALIAS_DT).
+
 # I2C
 H40P_I2C_0	i2c-ao
 H40P_I2C_1	i2c-2
+
 # SPI
 H40P_SPI_0_1CS	spi-cc1-1cs
 H40P_SPI_0_1CS_DEV	spi-cc1-1cs-spidev
@@ -11,16 +16,17 @@ H40P_SPI_0_2CS_DEV	spi-cc1-2cs-spidev
 H40P_SPI_0_2CS_LCD_35	spi-cc1-2cs-mpi3501
 H40P_SPI_0_2CS_LCD_35_MPI3501	spi-cc1-2cs-mpi3501
 H40P_SPI_0_2CS_LCD_35_MHS3528	spi-cc1-2cs-mhs3528
+H40P_SPI_0_2CS_LCD_35_ILI9486	spi-cc1-2cs-ili9486-xpt2046
 H40P_SPI_1_1CS	spi-cc0-1cs
 H40P_SPI_1_1CS_DEV	spi-cc0-1cs-spidev
+
 # UART
 H40P_UART_0	uart-ao-b-89
 H40P_UART_P5_P3	uart-ao-b-23
+
 # PWM
-H40P_PWM_P7	pwm-ao-c
-H40P_PWM_P16	pwm-d
+H40P_PWM_P7	pwm-ao-c-6
 H40P_PWM_P21	pwm-f-h5
-H40P_PWM_P23	pwm-b
 H40P_PWM_P32	pwm-f-a11
 H40P_PWM_P33	pwm-c-x5
 H40P_PWM_P35	pwm-c-x8

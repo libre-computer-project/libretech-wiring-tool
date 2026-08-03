@@ -11,6 +11,8 @@ spi-0-2cs-mpi3501	spi-0-2cs
 spi-0-2cs-spidev	spi-0-2cs
 spi-1-1cs-spidev	spi-1-1cs
 spi0-cs1-ili9486-xpt2046	spi-0-2cs
+spi0-cs1-mhs3528	spi-0-2cs
+spi0-cs1-mpi3501	spi-0-2cs
 spi0-cs1-spidev	spi-0-2cs
 spi0-spidev	spi-0-1cs
 spi1-spidev	spi-1-1cs

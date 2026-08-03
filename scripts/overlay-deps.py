@@ -117,10 +117,17 @@ def max_reg(overlay_body: str) -> int:
 
 def cs_count_from_name(name: str) -> int | None:
     n = name.lower()
-    if re.search(r"2cs|cs1|dual", n):
+    # 1cs-cs1 = count 1 on alternate pin (before bare cs1 -> 2)
+    m = re.search(r"(\d+)cs-cs\d", n)
+    if m:
+        return int(m.group(1))
+    if re.search(r"2cs|dual", n):
         return 2
-    if re.search(r"1cs|[^0-9]1cs", n) or re.search(r"-1cs", n):
+    if re.search(r"1cs", n):
         return 1
+    # legacy: bare -cs1 as 2cs bus synonym
+    if re.search(r"cs1", n):
+        return 2
     return None
 
 
@@ -186,10 +193,13 @@ def analyze_source(name: str, text: str) -> dict:
 
 
 _PURE_BUS = re.compile(
-    r"^(spi-cc\d*-[12]cs|spicc(-cs1)?|spi-[01]-[12]cs|spi-gpio-[12]cs|"
-    r"spigpio|i2c-[a-z0-9-]+|i2c_ao|i2c_ee.*)$",
+    r"^(spi-(cc|cc0|cc1|gpio|[01])-[12]cs(-cs\d+)?|"
+    r"spi-cc\d*-[12]cs(-cs\d+)?|"
+    r"spicc(-cs1|-ce1)?|spigpio(-cs1)?|"
+    r"i2c-[a-z0-9-]+|i2c_ao|i2c_ee.*)$",
     re.I,
 )
+
 _COMBO = re.compile(
     r"spidev|ili|mhs|mpi|pitft|st7|ssd|enc28|mcp|ads|display|fan|"
     r"at24|ds3231|pcf|rv3028|emc2301|sense|ov5647|waveshare|dn9488",
@@ -198,7 +208,12 @@ _COMBO = re.compile(
 
 
 def provider_score(
-    name: str, provides_n: int, need_n: int, *, is_alias: bool = False
+    name: str,
+    provides_n: int,
+    need_n: int,
+    *,
+    is_alias: bool = False,
+    consumer: str = "",
 ) -> tuple:
     """Higher is better. Prefer pure bus overlays with enough CS, exact match."""
     enough = 1 if provides_n >= need_n else 0
@@ -206,8 +221,16 @@ def provider_score(
     combo = 0 if _COMBO.search(name) else 1
     hw = 0 if re.search(r"gpio|spigpio", name, re.I) else 1
     canon = 0 if is_alias else 1
+    # Prefer longest path-prefix provider for the consumer
+    # (spi-cc-1cs-cs1-dev -> spi-cc-1cs-cs1, not spi-cc-1cs).
+    # When no prefix matches, prefer shorter bus names (1cs over 1cs-cs1).
+    if consumer and (consumer == name or consumer.startswith(name + "-")):
+        prefix_len = len(name)
+    else:
+        prefix_len = 0
     tight = -abs(provides_n - need_n)
-    return (enough, pure, combo, hw, canon, tight, name)
+    shorter = -len(name)
+    return (enough, pure, combo, hw, canon, prefix_len, tight, shorter, name)
 
 
 def resolve_board(dt_dir: Path) -> dict[str, list[str]]:
@@ -218,12 +241,17 @@ def resolve_board(dt_dir: Path) -> dict[str, list[str]]:
     for dts in sorted(dt_dir.glob("*.dts")):
         name = dts.stem
         real = Path(os.path.realpath(dts))
-        text = read_text(real)
-        # Alias names: re-score CS heuristics from the alias basename
-        info = analyze_source(name, text)
+        body = read_text(real)
+        # Always analyze structural CS count / provides from the *canonical*
+        # content name (realpath stem). Alias basenames like spi-cc-1cs2-* or
+        # spicc-ce1-* must not drive bus selection (they break prefix match to
+        # spi-cc-1cs-cs1 and used to land on spi-cc-1cs).
+        canon = real.stem
+        info = analyze_source(canon, body)
         entries.append(
             {
                 "name": name,
+                "canon": canon,
                 "provides": info["provides"],
                 "requires": info["requires"],
                 "is_alias": dts.is_symlink(),
@@ -259,7 +287,11 @@ def resolve_board(dt_dir: Path) -> dict[str, list[str]]:
             pool = non_alias or pool
             pool.sort(
                 key=lambda t: provider_score(
-                    t[0], t[1], need_n, is_alias=t[2]
+                    t[0],
+                    t[1],
+                    need_n,
+                    is_alias=t[2],
+                    consumer=e.get("canon", e["name"]),
                 ),
                 reverse=True,
             )

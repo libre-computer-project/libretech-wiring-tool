@@ -1,0 +1,8 @@
+# Copyright (C) 2021-2026 Da Xue <da@libre.computer>
+# SPDX-License-Identifier: MIT
+# H40P / product alias map: KEY<TAB><overlay-basename>
+# Values MUST name a real .dts/.dtbo under this board's dt/ (canonical name,
+# not a same-dir legacy alias). Consumed by ldto (MAP_ALIAS_DT).
+# minimal board tree
+
+MEZZANINE	mezzanine
