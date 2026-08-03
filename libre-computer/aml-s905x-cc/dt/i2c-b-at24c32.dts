@@ -1,10 +1,8 @@
+// SPDX-License-Identifier: (GPL-2.0-or-later OR MIT)
 /*
  * Copyright (c) 2017 BayLibre, SAS.
  * Author: Thomas Rohloff <v10lator@myway.de>
- *
- * SPDX-License-Identifier: (GPL-2.0+ OR MIT)
  */
-
 /*
  * Overlay aimed to add an AT24C32 EEPROM module on I2C_B bus, address 0x57.
  */

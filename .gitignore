@@ -1,6 +1,17 @@
 # Build products
 *.dtbo
 *.pre.dts
+__pycache__/
+*.pyc
+*.pyo
+
+# Local IDE / scratch (not part of the release tree or SBOM)
+.project
+TODO
+diff.patch
+patch.diff
+*.dts.da
+waveshare-vs-generic-init
 
 # debhelper / dpkg-buildpackage debris (never commit)
 debian/.debhelper/

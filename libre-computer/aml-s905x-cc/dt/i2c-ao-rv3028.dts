@@ -1,10 +1,8 @@
+// SPDX-License-Identifier: (GPL-2.0-or-later OR MIT)
 /*
  * Copyright (c) 2023 Mark Bumiller
  * Author: Mark Bumiller <mark.bumiller@gmail.com>
- *
- * SPDX-License-Identifier: (GPL-2.0+ OR MIT)
  */
-
 /*
  * Overlay aimed to add an RV3028 RTC module on I2C_AO bus, address 0x68.
  */

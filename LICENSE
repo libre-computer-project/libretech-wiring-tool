@@ -1,1 +1,37 @@
-Please see each individual file for its respective license.
+Libre Computer Wiring Tool — license notice
+==========================================
+
+This project is REUSE-compliant (https://reuse.software/).  Every covered
+source file carries an SPDX license tag (or is covered by REUSE.toml).
+Full license texts live in LICENSES/ (SPDX License List identifiers).
+
+Summary of licenses used in project-authored files:
+
+  Overlay device-tree sources (libre-computer/*/dt/*.dts)
+      SPDX: (GPL-2.0-or-later OR MIT)
+
+  Tools and build system (ldto, lgpio, Makefile, scripts/, test/, debian/
+  packaging helpers, vendor board helpers)
+      SPDX: GPL-2.0-only
+
+  Board maps and config/deps data (*.map, dt.config, gpio.config, dt.deps)
+      SPDX: MIT
+
+  This notice file, debian/copyright, REUSE.toml
+      SPDX: CC0-1.0
+
+Vendored Linux kernel UAPI headers under include/dt-bindings/ keep their
+upstream license intent, expressed with modern SPDX identifiers
+(GPL-2.0-only, dual GPL/MIT, GPL OR BSD-3-Clause, etc.).
+
+SBOM export (SPDX tag-value document):
+
+  make sbom                 # writes sbom.spdx (requires `reuse`)
+  # or:  reuse spdx -o sbom.spdx
+
+Verify REUSE compliance:
+
+  make reuse-lint           # requires `reuse` (pipx install reuse)
+
+Debian packaging machine-readable copyright: debian/copyright
+SPDX License List: https://spdx.org/licenses/

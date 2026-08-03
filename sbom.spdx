@@ -1,0 +1,2666 @@
+SPDXVersion: SPDX-2.1
+DataLicense: CC0-1.0
+SPDXID: SPDXRef-DOCUMENT
+DocumentName: libretech-wiring-tool
+DocumentNamespace: http://spdx.org/spdxdocs/spdx-v2.1-28513035-534b-4c31-b23d-28df3a575a05
+Creator: Person: Anonymous ()
+Creator: Organization: Anonymous ()
+Creator: Tool: reuse-6.2.0
+Created: 2026-08-03T05:21:21Z
+CreatorComment: <text>This document was created automatically using available reuse information consistent with REUSE.</text>
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-397fcd2bc2f5330d9713af53a7ff5b46
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-a2b3304f20b2282c4de74493beaaf661
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-aaac00d107db9cd13b39830f1bfc83c0
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-774d6b84e5b2df2f0323efe89bf5cee7
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-e06eb57bcb577f12491e9e691351573c
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-f45b7195ccadf7b6947e610217fa66bf
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-2e190d71a3ba11dfaa102419c41a5e46
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-8a84ee1e59fb2632f0f5019c8cb4172e
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-f5d036d4e0844bda9356ac5ea0bc8690
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-4de729a8f0087788fdc01a9d838953cb
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-44db1deadbd2912c493646ab63985061
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-19baeb90865f5210e90c880f581d0191
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-fd908fa4e3096ccc0d45bc61b15639fd
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-78a8e0109054034145089b29ef85db67
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-6578bf01612a2b47c6b2706fe60ad859
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-e7b1324bdd05f94c62c121c5040908ea
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-420dd59e934c4c4dacdc8cf5e330a4dd
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-359e23e4d77ea1236e7090f727582db5
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-520a1a69133738513d4c58b48a304c48
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-427d9e6f2e033a37bc782c8cba3bd20f
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-d811e183417985d8b014ce3e32efb479
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-e1a05bea97575322725b541d00848abd
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-8aaa1109b568ead2968962aca32ba0e0
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-eb3c0673b07f14aeb2d9d8e11d9b0294
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-37c664474bd9d9ce134ca79ade44c3a3
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-f8b2d5c4504851143e7657b32e2d5364
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-8382bb29cd15de769f961d23e3fdc67b
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-882b70f47252de83bc0bb4f44fa70eba
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-82c770b67d9bd6c04812b891c8129bfb
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-5a2e04ee56243d5a3851de7561c0c263
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-24ebbe9b53b0d8979fdf37f5bab70d96
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-d80c2ed97d9383a3dee2fa38621be804
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-d7ec03088f9c46b32aa4e7ae67274a4c
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-cfdf5f79d6e91008f027c91c0b978379
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-936082db01853a06a351b5e6e2974ac7
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-c1cbedb0553888b87424b9412efcd264
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-133a36d1c9db377424339103921c557f
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-f42303b9165577bd49515de2ccb6a7d0
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-8128e14c07ad84034adacdbca2f2e278
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-e6ef384292089c17f3602deacfb830a9
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-66f9b23e4efe89b4f56cc98740370a0d
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-7258405900c66ff9532d6a950075ede8
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-5841bff5c866aef7c7d7cfd48decf40a
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-bb97daf1b49770cf7c239719a1b7c274
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-2818de9c78425e003a6bcc446c69af3a
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-ec3c75dfe3c9776b1671989cbf2482fd
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-8eb5a3bb2aca99488c68125d728b9d96
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-d8bad60346edd950b7fd262d6b54b76c
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-4724ffc533374ae8293b23a268252456
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-033c21e9cfbcedde62e6c2ea23657f53
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-fe0f38a84e880a15c73abefa8734a52c
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-c50a9452a8915a01c64b224d0fc54c69
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-9c24899dd039ccd4fc8401b271b237ab
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-23ce5463d1cee2970daff43366036c50
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-5dfd5fad52d9e7508d67b9d2bd64f18d
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-250fe4aefd2fadf41c8f0344ae454192
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-eb8e8230510737481f0e6a6b3afcb110
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-acb1cdd0097eac36aa5396ab6c3f6ee0
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-be65a1df9ca2369a11bb7aa7a215a6c6
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-a5b599be7795c91da2611595e043d993
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-1d34f70ead89c0a59ec777fdeceb28cd
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-ebc0704e584f3392252842dc79641f14
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-8dfe23edc9abd9fae1887b2dfdd3b3f0
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-fe4f6456e67cc4fc66d1ba386021b807
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-6d2e501bfbc8ee874acef84828fdf19b
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-d81188f6c783cd8095730badd32880cb
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-62365c0517bb0c3e53d46d80df77d6da
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-9b66ea2e8eff0016a4fc804d6bcb0b63
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-d099e1f2c1917b37eaafd6d14184990d
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-2e7696a720e0d1ad0b5d27982e67e42e
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-168dedc9896c51ddbde532e1183efbeb
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-d1442482619214acfdfadfe6dd1aafd0
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-d62c2c46958670b5703dc36a10350251
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-30c2e6474535c26eb4a75fb9673bd057
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-1795dde418f6a4ed29bc28c8249b8145
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-15085a3bebe2ea92737f02b37d0c8024
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-c95ec658e934e8ec65fdd3ce1a9044bf
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-1de64a3ceea54a4dc5dbf903d3f2d6cd
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-cbe52f66cf371d02e707e20c867d2e00
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-085dc5381de761745aeeec82c41ec937
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-1f505323f3387ea5f78700eff233c1e5
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-2891084ba150831b1416a396fe6f57b7
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-7fba28270ebc9cbbc6fea4872f16fce4
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-7c327501807b261fdd79da87fdb5fbb8
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-1e49bc15f99161a0f9971afab534808c
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-9f7e945dc82a70e6efeec269db72cda1
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-5916f3dc1450511ce897da290004a0bf
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-477a901cff8e5e74a9e9987d0eeb6e8b
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-26935945977fcd7aca3c7907d827e6d3
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-3709d4da71a12f68024b54d286c82edc
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-98602a050c8c5c6aaa7f9736b27b097b
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-c1e44f318faa7922a3fc59433748cf0c
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-47793f4c49a7e8838bb8e8d70d337972
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-8996a5b77b50d530b5b824f77f040b8d
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-c88497a728853461cedf671788dc5bce
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-451a0776691a85f3e79d3e078d60dd52
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-1543a796b4472f5917709c8e253fc8df
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-37928494e244583ed642657e40193242
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-de9cdf9ba343c45215bcb326409a3b83
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-8b4bc3ffda90374728e1361a78c9bcfd
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-df4b37dabcf86ba8876c53628dbfb5ed
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-458aed80bafa7fafc9617cbb498d9802
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-002a9c2ade0a3e8a1196688edcdb654c
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-4f5153df059b0b5e70b42936d0110e15
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-69aa9dfa9835b5b7c0a98e415e4978fe
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-576270e10be02286735ff84d2dbe9f9e
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-60edab04c606ba41f26bb3d11c5d9d9b
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-e2b46d062010e6a2b85e950fc61e89db
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-776c035a69305d8dbb9fb29edb00fc38
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-ebcd6907f6527f2f14ff23a95b333460
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-bb9fe050a0a252639fa7a8d395638a8e
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-f15ef105ccaf49357508ee6c006ab3ec
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-540d701d44301cdf0b6e71932392c7a8
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-05260704e8c32436770e384dde97addb
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-17d86f866857755c9b52190b4ca71b81
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-aa3fc7cfce4cbc3155c125f5dffd424e
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-3134f0a43c643cbfda7bcce6e7a50b01
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-8c385d11930f465bb619ea8324f35482
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-9eec3677be4ee31b4acaa81409116bb9
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-5da7441b19c10fc4a3dba380a2177006
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-76fac1e7817e4798d708bde4ab956d76
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-bfe3a11b342980371c56bc6f35ea91dc
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-70573f6244169ea2c426aab0aaa557aa
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-5c6001a40d823b9c481521a21ef026b3
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-90f56529a2909f980aa5cdebad322ebf
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-5e97e8ffa10262c0f2128f7017bbb6ed
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-d43c337a71ca1f6cae74f052a734acef
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-399950fc8a6db430a7f369958988f84b
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-8af8c500df98ce9b549212a472174b1a
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-e2e58a698ec7a1b95f33d8d58004fd66
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-380bfd4545b96d8a9b79ffd6e3323fe5
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-ff02b4da09c4ff82be73b43499997eb0
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-9fcb5bd1f1430d8676d477efa5fcf889
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-ee40d3ee81d5e8efed1ab6508897d4cd
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-e94a6fd8aa10c676402a4c8ce1d5adc4
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-1c59f2b35109c3022efc905e515365b0
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-faa159b37ff0b46c07c89d5c6ffec526
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-6dfed1a0985efdeac4f73edffd828984
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-ba598a7873799c80f3e302edec7f8bbe
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-339fdc22af067d5659b048f10777bd1a
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-72cff5e8e5e91cb5015b23e00328fed1
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-97567f427e9c21112831a710920a2a18
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-d47d8e13fd753d642d4e2cdaf8ec1fe4
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-3ad477784b13499b34db862b8c7e2e62
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-94dc827cbc2d722e43befc78b9e5c460
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-cd7f56e02b9fd912066e89e188ca6738
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-66154ba7aa3d7d7da55aee595bae144e
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-07150a40dc26bba97da98a143b1001f3
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-4f87d3d2cf857aaad59aae70246cde16
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-c7a469e8d5ae4978348cd1182b58da94
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-d43247be03bbca85f9bb05303d142f18
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-92fec15f482bf272231c84b254dc440e
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-b1a14f14ba8425826d395c6e600d26a1
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-950b24eac107a079eaef90ac4455797c
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-8781ccec9d33633347d53fdeccdf6e51
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-5487270670b70e6656f4b50524e14196
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-519853ba679acd1f076a6f8dc3cc343c
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-b1d5d8d3fccffd55cc0844f2855dfe29
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-9164c3582c43ebb92b16ebd35c4dacc6
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-9064755de974f5fe7a4c0e091f4dcbcc
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-9ec5e3c7d0ff8796745ff45c1407f499
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-e9e9ee6e542d39c6e137e358aa3b6294
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-2187f95c8cf7d3358c8ad7a7418ca8e0
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-d61652b48e85e9f0e519abdd69198f5d
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-d8b2256a9dc7388921505d2d3ee368ba
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-3fc808249e0938aa3b90211dc406cfe6
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-d6c01cce11adc2f78f3b8432e23dfdb3
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-66ca8e8cfe624819803fe14a95cacd5b
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-0c4fda0b0f520ed9502cd10aeb09e660
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-3c73a961a62bf9207df0f5c61e9850a1
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-cfdf05dedc73b073d9a9813c140d3462
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-69c5bcb3724574531096a812d6dc9a25
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-a018d62e304e3607920b431a0df64505
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-edde8df5a673fc3bd73b3d3d726a4b8c
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-6f4ac522bc27a2c644dca4e8e20cab5e
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-cbaa79c01cef6448272308b584f8250e
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-540267635010a42d15192b40868aae5c
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-4125c7cc913526fbc7bf200553ab2553
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-0ed542fe2081db19da6696fbc3ed1d47
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-63523493876040daad826082add3ef55
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-741478b2c7480018d4d46be8812bd3e5
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-1b17524568c21642ac2ba281b0800cfa
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-60f4f3d38b0a1b798b31783911f59401
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-7de88e82662fa2c8deebfeba90506a2b
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-9cc653237ee06e8257f199d53e091e7b
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-80d830979070c5eec78b98bfb18ebabb
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-00f3955407ed7b52307fd9fc9755c49b
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-f93e459b4a666513635eea78fc66b913
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-38aba171de4aa4f738720977d9eedd66
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-f7cc6e5bbd56401de17434f8be7a73bd
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-b0055da8a7a6b1c85e7b204efa0bd83b
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-aa2c33a2326e2d4161b7052248c5305c
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-b3598c15c7fe887533671994b61c39b7
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-42887927461a92a1d9e3aa6b6082b870
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-61cbb8813d2783d71fa921517ed37bef
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-30fcc57fcd34f1e2bd4f49a9ba3e9d76
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-eef56d0d0ff1e242ed7d4119dd4cf4eb
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-b2ded77633cb837c5d4056995056c767
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-f41a342cb8db18218a57719d3db4d13c
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-b43884b8c5fa7cf63b4a0a0b9d066548
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-e611d9a9f532f4909dd30d192b83c5f4
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-d9cd089b8d45c5950f0d4180f1af5f87
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-0ade8c01aa8408fe7fa9a83309340820
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-8b998270589324ecf85cafb6950c5758
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-9fae24f5ecdbfefc704f95583842f2a7
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-132185d3f4a2d64c30ce17419991d23c
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-9612cdc15fe91301715bd5976128c37b
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-947ddddd7e7b2d249ef8d2ce1eeeecd4
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-94aabd43e8706d1ece91aff6077efa22
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-85b5c4169b4271329cfc434f9d5e2614
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-f45080f1352ad58ec66fcafa977fada7
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-39dfc25cbc0518fec730c9d513ba179f
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-437cf162f35244bce4b49c93b4bcb056
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-6a86faf3457e103bf3ee9e89af2b68c7
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-2f59552906100a0c1d3b1e306e3ade1e
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-d561577a6067b4e016763fa9570770a4
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-215f4843f790262249e548cb2f237ca3
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-fb0d4c20ae0af063d5583f485f15c1c8
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-95f16aa0564ff2603f51519c7a4d2c81
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-c27cb89dff6d4e73662b19df7f8584a0
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-7ebad4b783f14edd4db4e4ef1f3be56f
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-99c51069d5f4074b97cf5c2d68bc0cdd
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-65f07b2aff68480e2eef79a9b417e487
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-63577c054a1a378485ec3b6cb3bc63a2
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-3a6fc5f81fa41cfcd9732a8031b7a282
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-ddcd9117d7299e0484a32abbc4a05ed6
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-2f675945f8bedd97a7f6f7f9bd68fd65
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-46787689cfc8d0aa877862744d529af6
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-550082693d6e79f08e9142e354acdc5c
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-fc37cd653166812de5ab6ae2b0357eac
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-df480a67101f90ca7e902bc8b8428071
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-d2052db440d9078aec4194453431c7c0
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-c4542e6fbf767702496655fdb6bedb5a
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-ae8ffbdb883b38db7c164f058b266a4f
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-24253dbe06162ff486b2a6f71980a432
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-2944af7098edefaba92aa6a53aa1716e
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-534ca6141e9e2a41b009b1a0e285d7aa
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-5d7f969c523fb0249daea2757a8b425d
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-8fc6f367b48dc048f9dbe120ad69b9ba
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-99081ee5cc77826cfc7f85646bd1a09d
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-1b0689da8a435dc38d650a7122d09eab
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-63e91ec564c8cdc058f3b2e805b9532c
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-ae525e88f90b74c0e15c476b3881294e
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-afad614bda121d914876b5b2d1c4c1e0
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-e361dc126b3ecd7b182302a8e8ed9677
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-228f3d73f2cff8e1f171ad26c27f3249
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-7c69d686de17b4e6ccbc658278adaaaf
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-95ea9684dc8fa221fb5f714407246a5c
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-6c24f9347a80d602178fc6ee84a2e8e8
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-4ae6fc6fe37800222441fe161c16b1fb
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-e58115056a9a471d13662ea538ab29d1
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-d22e3835875a09590ac0e045af4b66bb
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-4d0b20f1d6124a81c788b20fa4bbeb93
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-a94a4190707e7d8611ff841ca7e76b80
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-e9cadd20ee06b5158fc129be5f723d7b
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-9321928324942c03db634aee90b3a807
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-13ff2741be3f4921e2294e430c43c89c
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-8ed6908a29cfe0739c6445f5c8f1b7e0
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-9d1c8a55680dbd5ffdd4b4978eae7079
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-20dddf7b9d632ac3149905aa4b480ea0
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-c93ee05e0a50a02a7eccee00911e28c9
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-76ac4f085e4beb2a4ea24e21bf775e2d
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-6e85662cf8b087c5a0fe152777eb35d6
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-8a0dc4666df693ec7378222d98333778
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-d32bb9384508d4d312f2b7602493b284
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-cd226f234379ef7305b84d51b103396a
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-6a0c214d43a1f49628e5307561a09456
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-87c5da52e928ec2e153aea180314f552
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-ca3752cc2c6911dbe4463b0944f8053c
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-93a59a1b8cffe25e28222e117465b00d
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-2de83bdfdf2cc28b02cfc517410c140e
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-68dc79f368735522d30882b13d02db12
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-696c0b532e536b16bf38a15c28f0bfa1
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-90d366fbab1d1028252d35583f88d917
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-1f0d8cd7c9e893ba802b1e9f3654816d
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-5428088825eb23962f124ec051288c6e
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-f4094bf1994f4ef618cd1ee111c867d7
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-c6f2a902d6bfde7f932895048e656619
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-bd617b57c45ef4647ba964ddf8beade0
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-f6fd29bc8702bce9538b97cb267d6133
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-79d834af13cac14fe12c1fe79c5ef437
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-3d0b068fcd930db228aab8c952ef49f1
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-0cde0c46124b69ab082a02756d824229
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-565d61bd41f8e2dcab679c133aa1c7af
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-7fefe7a79e1b054b6bbb8dc809b1ca5a
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-bb033a6f8fd3d4eebe9a8912db141a61
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-c47dc8dba80be0dd1167e7307802905d
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-b6fb5aeb74c5520da00d9b93f32fbe6d
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-32a23d77bb4341703707693001a06a0e
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-7f021ac1f765382369ffdb95b3844e3e
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-7c09f188d9b0efe4b051a6657a86433b
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-ce12c8fd83b155153cba368d259adb3d
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-1049742f9c2d1d0f046dfd5afe9c5a7b
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-6c506b77bba6a0c3ba1ff0f0b295cd63
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-a8afc22a82dc0846833b1c6f07d36344
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-5c79d864e8117596a60f802d162056c2
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-3b0069b265fd6f34f66d854730981976
+
+FileName: ./.gitignore
+SPDXID: SPDXRef-397fcd2bc2f5330d9713af53a7ff5b46
+FileChecksum: SHA1: 9387733a0f4eb3e9b6014499a20a851139ca08f1
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-only
+FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
+
+FileName: ./Makefile
+SPDXID: SPDXRef-a2b3304f20b2282c4de74493beaaf661
+FileChecksum: SHA1: 79047ecfa9c1c21e1892ea1acb785705758a2a1e
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-only
+LicenseInfoInFile: GPL-2.0-only
+FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
+
+FileName: ./README.md
+SPDXID: SPDXRef-aaac00d107db9cd13b39830f1bfc83c0
+FileChecksum: SHA1: 39ba23eb6042941e9a0fa2cd58106e59eb3a3774
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-only
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
+
+FileName: ./build.sh
+SPDXID: SPDXRef-774d6b84e5b2df2f0323efe89bf5cee7
+FileChecksum: SHA1: ecd0a082f7c065d41e25dce9553d6c43861b4450
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-only
+LicenseInfoInFile: GPL-2.0-only
+FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
+
+FileName: ./calibrate.sh
+SPDXID: SPDXRef-e06eb57bcb577f12491e9e691351573c
+FileChecksum: SHA1: f27f2d10731e13572c653abbf9e599a9d72d5aba
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-only
+FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
+
+FileName: ./debian/changelog
+SPDXID: SPDXRef-f45b7195ccadf7b6947e610217fa66bf
+FileChecksum: SHA1: 318cb16e3a6633e0424f07ff215d25324189e5a6
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-only
+FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
+
+FileName: ./debian/control
+SPDXID: SPDXRef-2e190d71a3ba11dfaa102419c41a5e46
+FileChecksum: SHA1: 0005bc202ebedd2e449306ab2cce229b00d77ac9
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-only
+LicenseInfoInFile: GPL-2.0-only
+FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
+
+FileName: ./debian/copyright
+SPDXID: SPDXRef-8a84ee1e59fb2632f0f5019c8cb4172e
+FileChecksum: SHA1: cc7b21e286709ea784b7ac8bd5ec6addbd7e0b5f
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: CC0-1.0
+FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
+
+FileName: ./debian/libretech-dtoverlay.alternatives
+SPDXID: SPDXRef-f5d036d4e0844bda9356ac5ea0bc8690
+FileChecksum: SHA1: 42b6d482356deff3c0ea1b8531b79b95bf512e9e
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-only
+LicenseInfoInFile: GPL-2.0-only
+FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
+
+FileName: ./debian/libretech-dtoverlay.install
+SPDXID: SPDXRef-4de729a8f0087788fdc01a9d838953cb
+FileChecksum: SHA1: 2c5a9f8081dbb87e59ee42d9f3f3e5c65ce7cd88
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-only
+LicenseInfoInFile: GPL-2.0-only
+FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
+
+FileName: ./debian/libretech-gpio.alternatives
+SPDXID: SPDXRef-44db1deadbd2912c493646ab63985061
+FileChecksum: SHA1: 679463ae474075b5fc22e2d06d40bb31b6365e26
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-only
+LicenseInfoInFile: GPL-2.0-only
+FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
+
+FileName: ./debian/libretech-gpio.install
+SPDXID: SPDXRef-19baeb90865f5210e90c880f581d0191
+FileChecksum: SHA1: 6b43fd7fbe4a3d9ed2cde924d992d2c102b10cf0
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-only
+LicenseInfoInFile: GPL-2.0-only
+FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
+
+FileName: ./debian/not-installed
+SPDXID: SPDXRef-fd908fa4e3096ccc0d45bc61b15639fd
+FileChecksum: SHA1: f71ca358e7b3ab54895c0e59b625cf4b255be6ff
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-only
+LicenseInfoInFile: GPL-2.0-only
+FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
+
+FileName: ./debian/rules
+SPDXID: SPDXRef-78a8e0109054034145089b29ef85db67
+FileChecksum: SHA1: 5d5677b5c2ed8a99427cec817f9361856c66dde3
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-only
+LicenseInfoInFile: GPL-2.0-only
+FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
+
+FileName: ./debian/source/format
+SPDXID: SPDXRef-6578bf01612a2b47c6b2706fe60ad859
+FileChecksum: SHA1: f8738a6566306ae25f93456a019426af51ccc827
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-only
+FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
+
+FileName: ./demo.sh
+SPDXID: SPDXRef-e7b1324bdd05f94c62c121c5040908ea
+FileChecksum: SHA1: c8dbf64e482e66818922e1673afa08b7a85cc192
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-only
+FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
+
+FileName: ./include/dt-bindings/clock/axg-audio-clkc.h
+SPDXID: SPDXRef-420dd59e934c4c4dacdc8cf5e330a4dd
+FileChecksum: SHA1: f3f37b61af2dece342dfe0bb5f794ca2683f6fe9
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-only
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2018 Baylibre SAS.</text>
+
+FileName: ./include/dt-bindings/clock/gxbb-aoclkc.h
+SPDXID: SPDXRef-359e23e4d77ea1236e7090f727582db5
+FileChecksum: SHA1: 9fb76988a0161598ab58c3374994e4c1bcce8773
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-only
+LicenseInfoInFile: GPL-2.0-only
+FileCopyrightText: <text>Copyright (C) 2016 BayLibre, SAS.
+SPDX-FileCopyrightText: Linux kernel contributors</text>
+
+FileName: ./include/dt-bindings/clock/gxbb-clkc.h
+SPDXID: SPDXRef-520a1a69133738513d4c58b48a304c48
+FileChecksum: SHA1: aa19ab793b3a011af060e9ce483f0d93fc2cf164
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-only
+LicenseInfoInFile: GPL-2.0-only
+FileCopyrightText: <text>SPDX-FileCopyrightText: Linux kernel contributors</text>
+
+FileName: ./include/dt-bindings/gpio/gpio.h
+SPDXID: SPDXRef-427d9e6f2e033a37bc782c8cba3bd20f
+FileChecksum: SHA1: cd9bc5c8b126f920c3ca131630a2181614b70dda
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-only
+LicenseInfoInFile: GPL-2.0-only
+FileCopyrightText: <text>SPDX-FileCopyrightText: Linux kernel contributors</text>
+
+FileName: ./include/dt-bindings/gpio/meson-g12a-gpio.h
+SPDXID: SPDXRef-d811e183417985d8b014ce3e32efb479
+FileChecksum: SHA1: 3a1b0b3c6117e13323f847d00c9ca437211ec947
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2018 Amlogic, Inc. All rights reserved.</text>
+
+FileName: ./include/dt-bindings/gpio/meson-gxl-gpio.h
+SPDXID: SPDXRef-e1a05bea97575322725b541d00848abd
+FileChecksum: SHA1: 10ad0df4cba92e0705bfcbe14316765355b0f008
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-only
+FileCopyrightText: <text>Copyright (C) 2016 Endless Mobile, Inc.</text>
+
+FileName: ./include/dt-bindings/interrupt-controller/amlogic,meson-g12a-gpio-intc.h
+SPDXID: SPDXRef-8aaa1109b568ead2968962aca32ba0e0
+FileChecksum: SHA1: 0350c6ce52bbc520292fec86d1bc2ab998150266
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-only
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2023 Amlogic, Inc. All rights reserved.</text>
+
+FileName: ./include/dt-bindings/interrupt-controller/amlogic,meson-gxl-gpio-intc.h
+SPDXID: SPDXRef-eb3c0673b07f14aeb2d9d8e11d9b0294
+FileChecksum: SHA1: e5093da8fe0fc524248e0f7baa912d0d5e2a80b4
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2022 Da Xue <da@libre.computer></text>
+
+FileName: ./include/dt-bindings/interrupt-controller/irq.h
+SPDXID: SPDXRef-37c664474bd9d9ce134ca79ade44c3a3
+FileChecksum: SHA1: 42b1ffd443a6bf913d4306ef1fdb50e433988c7e
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-only
+LicenseInfoInFile: GPL-2.0-only
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>SPDX-FileCopyrightText: Linux kernel contributors</text>
+
+FileName: ./include/dt-bindings/pinctrl/rockchip.h
+SPDXID: SPDXRef-f8b2d5c4504851143e7657b32e2d5364
+FileChecksum: SHA1: 3a56667430a68de892633dcf4420d7d32843e243
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+FileCopyrightText: <text>Copyright (C) 2013 MundoReader S.L.</text>
+
+FileName: ./include/dt-bindings/reset/amlogic,meson-g12a-audio-reset.h
+SPDXID: SPDXRef-8382bb29cd15de769f961d23e3fdc67b
+FileChecksum: SHA1: 1eeb56906d717b5ff3e3960d6fa94c0c1d2c94b2
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-only
+FileCopyrightText: <text>Copyright (C) 2019 BayLibre, SAS.</text>
+
+FileName: ./include/dt-bindings/reset/amlogic,meson-g12a-reset.h
+SPDXID: SPDXRef-882b70f47252de83bc0bb4f44fa70eba
+FileChecksum: SHA1: bd0676eda1e57ab24fcae91c3a6818ac43b59761
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: BSD-3-Clause
+LicenseInfoInFile: GPL-2.0-or-later
+FileCopyrightText: <text>Copyright (C) 2019 BayLibre, SAS.</text>
+
+FileName: ./include/dt-bindings/reset/amlogic,meson-gxbb-reset.h
+SPDXID: SPDXRef-82c770b67d9bd6c04812b891c8129bfb
+FileChecksum: SHA1: f24521720d9a4d48e250032321efed38d7166d14
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: BSD-3-Clause
+LicenseInfoInFile: GPL-2.0-only
+FileCopyrightText: <text>Copyright (C) 2016 BayLibre, SAS.</text>
+
+FileName: ./include/dt-bindings/sound/meson-aiu.h
+SPDXID: SPDXRef-5a2e04ee56243d5a3851de7561c0c263
+FileChecksum: SHA1: 223ed30944be737d886d43e0e026ab6ce08d2dad
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-only
+LicenseInfoInFile: GPL-2.0-only
+FileCopyrightText: <text>SPDX-FileCopyrightText: Linux kernel contributors</text>
+
+FileName: ./include/dt-bindings/sound/meson-g12a-toacodec.h
+SPDXID: SPDXRef-24ebbe9b53b0d8979fdf37f5bab70d96
+FileChecksum: SHA1: f8e3213c79de51fd00a21645e062c3f57131dc6e
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-only
+LicenseInfoInFile: GPL-2.0-only
+FileCopyrightText: <text>SPDX-FileCopyrightText: Linux kernel contributors</text>
+
+FileName: ./include/dt-bindings/sound/meson-g12a-tohdmitx.h
+SPDXID: SPDXRef-d80c2ed97d9383a3dee2fa38621be804
+FileChecksum: SHA1: c02c57d4021828fad6415aa208b980dc43744e13
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-only
+LicenseInfoInFile: GPL-2.0-only
+FileCopyrightText: <text>SPDX-FileCopyrightText: Linux kernel contributors</text>
+
+FileName: ./include/dt-bindings/thermal/thermal.h
+SPDXID: SPDXRef-d7ec03088f9c46b32aa4e7ae67274a4c
+FileChecksum: SHA1: aae9178cebdc588d41e93a0c521b43eb8b97662c
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-only
+FileCopyrightText: <text>Copyright (C) 2013 Texas Instruments</text>
+
+FileName: ./include/update.sh
+SPDXID: SPDXRef-cfdf5f79d6e91008f027c91c0b978379
+FileChecksum: SHA1: abd15a17eea6d168754bdc7d88d2c92d616e8942
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-only
+LicenseInfoInFile: GPL-2.0-only
+FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
+
+FileName: ./install.sh
+SPDXID: SPDXRef-936082db01853a06a351b5e6e2974ac7
+FileChecksum: SHA1: 4985c83aeae29f68ae0a73a80d8560fe1d6b0cf0
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-only
+LicenseInfoInFile: GPL-2.0-only
+FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
+
+FileName: ./ldti
+SPDXID: SPDXRef-c1cbedb0553888b87424b9412efcd264
+FileChecksum: SHA1: b15ae3c65da78a609d7671dd797891e9faefb5b5
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-only
+FileCopyrightText: <text>Copyright (C) 2021 Da Xue <da@libre.computer></text>
+
+FileName: ./ldto
+SPDXID: SPDXRef-133a36d1c9db377424339103921c557f
+FileChecksum: SHA1: 4ab46eaee40c10da8323e088beca37b8695198d8
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-only
+FileCopyrightText: <text>Copyright (C) 2021 Da Xue <da@libre.computer></text>
+
+FileName: ./ldto.config
+SPDXID: SPDXRef-f42303b9165577bd49515de2ccb6a7d0
+FileChecksum: SHA1: 048a9632f3a49e0b6f6fe9e837606b14d30f86eb
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
+
+FileName: ./lgpio
+SPDXID: SPDXRef-8128e14c07ad84034adacdbca2f2e278
+FileChecksum: SHA1: 5dfdee1f89f8cafa038062afadd8de199ec60239
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-only
+FileCopyrightText: <text>Copyright (C) 2021 Da Xue <da@libre.computer></text>
+
+FileName: ./libre-computer/all-h3-cc-h3/dt.config
+SPDXID: SPDXRef-e6ef384292089c17f3602deacfb830a9
+FileChecksum: SHA1: 88b133827065fdd9ea62178cc1be6f6dec584b5d
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: MIT
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
+
+FileName: ./libre-computer/all-h3-cc-h3/dt.deps
+SPDXID: SPDXRef-66f9b23e4efe89b4f56cc98740370a0d
+FileChecksum: SHA1: 8a9fa380755abe68ce58e9c21a93134c4c4c725e
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: MIT
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
+
+FileName: ./libre-computer/all-h3-cc-h5/dt.config
+SPDXID: SPDXRef-7258405900c66ff9532d6a950075ede8
+FileChecksum: SHA1: d4a044a43b7f60fd0dfa6ca27e944abb3a4b2d53
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: MIT
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
+
+FileName: ./libre-computer/all-h3-cc-h5/dt.deps
+SPDXID: SPDXRef-5841bff5c866aef7c7d7cfd48decf40a
+FileChecksum: SHA1: 8a9fa380755abe68ce58e9c21a93134c4c4c725e
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: MIT
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
+
+FileName: ./libre-computer/all-h3-cc-h5/dt.map
+SPDXID: SPDXRef-bb97daf1b49770cf7c239719a1b7c274
+FileChecksum: SHA1: af569633b60580a71681cbfd28c785ca6184eda9
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2021 Da Xue <da@libre.computer></text>
+
+FileName: ./libre-computer/all-h3-cc-h5/dt/i2c-0.dts
+SPDXID: SPDXRef-2818de9c78425e003a6bcc446c69af3a
+FileChecksum: SHA1: a0f4b434f25076f9da71487fc8bfb35a0f9f0f62
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2023 Da Xue <da@libre.computer></text>
+
+FileName: ./libre-computer/all-h3-cc-h5/dt/i2c-1.dts
+SPDXID: SPDXRef-ec3c75dfe3c9776b1671989cbf2482fd
+FileChecksum: SHA1: dee11276be2c29204a6fac793e9072c0e5f4da77
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2022 Da Xue <da@libre.computer></text>
+
+FileName: ./libre-computer/all-h3-cc-h5/dt/i2c-2.dts
+SPDXID: SPDXRef-8eb5a3bb2aca99488c68125d728b9d96
+FileChecksum: SHA1: 1359d8d2f22b84036d0b8fb66a25e2dd16ef0d77
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2023 Da Xue <da@libre.computer></text>
+
+FileName: ./libre-computer/all-h3-cc-h5/dt/i2s-0.dts
+SPDXID: SPDXRef-d8bad60346edd950b7fd262d6b54b76c
+FileChecksum: SHA1: 775062eb02ae9a654cbe8d552b2d9ac99e724ddf
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2026 Da Xue <da@libre.computer></text>
+
+FileName: ./libre-computer/all-h3-cc-h5/dt/i2s-1.dts
+SPDXID: SPDXRef-4724ffc533374ae8293b23a268252456
+FileChecksum: SHA1: b321978bd3f6b12d2e6b474db38c7586fd36458e
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2026 Da Xue <da@libre.computer></text>
+
+FileName: ./libre-computer/all-h3-cc-h5/dt/pwm-0.dts
+SPDXID: SPDXRef-033c21e9cfbcedde62e6c2ea23657f53
+FileChecksum: SHA1: 8f2561610e2ba499040326da6b4d36ba3571781f
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2023 Da Xue <da@libre.computer></text>
+
+FileName: ./libre-computer/all-h3-cc-h5/dt/spdif.dts
+SPDXID: SPDXRef-fe0f38a84e880a15c73abefa8734a52c
+FileChecksum: SHA1: 254114978c64507434f52e37031dc8ff1cf34901
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2023 Da Xue <da@libre.computer></text>
+
+FileName: ./libre-computer/all-h3-cc-h5/dt/spi-0-1cs-spidev.dts
+SPDXID: SPDXRef-c50a9452a8915a01c64b224d0fc54c69
+FileChecksum: SHA1: 94b9f9ad32d6f9c5a507f1553844e483879bfe01
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2023 Da Xue <da@libre.computer></text>
+
+FileName: ./libre-computer/all-h3-cc-h5/dt/spi-0-1cs.dts
+SPDXID: SPDXRef-9c24899dd039ccd4fc8401b271b237ab
+FileChecksum: SHA1: e2b40922602000e77ce0e1001ecdc03d6f6a11e7
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2023 Da Xue <da@libre.computer></text>
+
+FileName: ./libre-computer/all-h3-cc-h5/dt/spi-0-2cs-ili9486-xpt2046.dts
+SPDXID: SPDXRef-23ce5463d1cee2970daff43366036c50
+FileChecksum: SHA1: f196298a9d7d1dd344de646f4b4780df384b4507
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2022 Da Xue <da@libre.computer></text>
+
+FileName: ./libre-computer/all-h3-cc-h5/dt/spi-0-2cs-mhs3528.dts
+SPDXID: SPDXRef-5dfd5fad52d9e7508d67b9d2bd64f18d
+FileChecksum: SHA1: 1b268af03bbe4e325f51b22d9e56275d10c6d82e
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2022 Da Xue <da@libre.computer></text>
+
+FileName: ./libre-computer/all-h3-cc-h5/dt/spi-0-2cs-mpi3501.dts
+SPDXID: SPDXRef-250fe4aefd2fadf41c8f0344ae454192
+FileChecksum: SHA1: a9d0c40729a1f70167376628896afaf64ef73f5a
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2022 Da Xue <da@libre.computer></text>
+
+FileName: ./libre-computer/all-h3-cc-h5/dt/spi-0-2cs-spidev.dts
+SPDXID: SPDXRef-eb8e8230510737481f0e6a6b3afcb110
+FileChecksum: SHA1: 83b79548f98876b0c1dcbe545397f2bfe2320ffa
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2023 Da Xue <da@libre.computer></text>
+
+FileName: ./libre-computer/all-h3-cc-h5/dt/spi-0-2cs.dts
+SPDXID: SPDXRef-acb1cdd0097eac36aa5396ab6c3f6ee0
+FileChecksum: SHA1: ee10a7107853b880701514193d224ef90df44983
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2023 Da Xue <da@libre.computer></text>
+
+FileName: ./libre-computer/all-h3-cc-h5/dt/spi-1-1cs-spidev.dts
+SPDXID: SPDXRef-be65a1df9ca2369a11bb7aa7a215a6c6
+FileChecksum: SHA1: 42452912f753104778485c2e4ce49ed4c62ac1cc
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
+
+FileName: ./libre-computer/all-h3-cc-h5/dt/spi-1-1cs.dts
+SPDXID: SPDXRef-a5b599be7795c91da2611595e043d993
+FileChecksum: SHA1: 20c9b5a360de868ad747ba77679ed40c28e80057
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2023 Da Xue <da@libre.computer></text>
+
+FileName: ./libre-computer/all-h3-cc-h5/dt/uart-1-rts-cts.dts
+SPDXID: SPDXRef-1d34f70ead89c0a59ec777fdeceb28cd
+FileChecksum: SHA1: e96a7749341148ea8f57be319b702e04e10eb880
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2023 Da Xue <da@libre.computer></text>
+
+FileName: ./libre-computer/all-h3-cc-h5/dt/uart-1.dts
+SPDXID: SPDXRef-ebc0704e584f3392252842dc79641f14
+FileChecksum: SHA1: e008df1cab8d2ae00c212b66ec33266f34247a62
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2023 Da Xue <da@libre.computer></text>
+
+FileName: ./libre-computer/all-h3-cc-h5/dt/uart-2-rts-cts.dts
+SPDXID: SPDXRef-8dfe23edc9abd9fae1887b2dfdd3b3f0
+FileChecksum: SHA1: 83e941a837bfb774546931fb340e6752b0401866
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2023 Da Xue <da@libre.computer></text>
+
+FileName: ./libre-computer/all-h3-cc-h5/dt/uart-2.dts
+SPDXID: SPDXRef-fe4f6456e67cc4fc66d1ba386021b807
+FileChecksum: SHA1: a38edb3abd144f315293caa26723271c1cf44b1c
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2023 Da Xue <da@libre.computer></text>
+
+FileName: ./libre-computer/all-h3-cc-h5/dt/uart-3-rts-cts.dts
+SPDXID: SPDXRef-6d2e501bfbc8ee874acef84828fdf19b
+FileChecksum: SHA1: a07885bc70d76133dfa996db9d11cb28f972815d
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2023 Da Xue <da@libre.computer></text>
+
+FileName: ./libre-computer/all-h3-cc-h5/dt/uart-3.dts
+SPDXID: SPDXRef-d81188f6c783cd8095730badd32880cb
+FileChecksum: SHA1: 6ef48a8b6f5f4459cd264d5dd23eaf4824235a92
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2023 Da Xue <da@libre.computer></text>
+
+FileName: ./libre-computer/all-h3-cc-h5/gpio.map
+SPDXID: SPDXRef-62365c0517bb0c3e53d46d80df77d6da
+FileChecksum: SHA1: 387e4931f3e6806876cdc4e4446eafe4427b20d4
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2021 Da Xue <da@libre.computer></text>
+
+FileName: ./libre-computer/aml-a311d-cc-v01/dt.config
+SPDXID: SPDXRef-9b66ea2e8eff0016a4fc804d6bcb0b63
+FileChecksum: SHA1: 4cc97dd6929aa788c0dd5802ee87d2ae96c5dae6
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: MIT
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
+
+FileName: ./libre-computer/aml-a311d-cc-v01/dt.deps
+SPDXID: SPDXRef-d099e1f2c1917b37eaafd6d14184990d
+FileChecksum: SHA1: 1c8e04c4129fc41a4b8ece079cbb584eaac7dc53
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: MIT
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
+
+FileName: ./libre-computer/aml-a311d-cc-v01/gpio.map
+SPDXID: SPDXRef-2e7696a720e0d1ad0b5d27982e67e42e
+FileChecksum: SHA1: e060533880f4f326bdb02c2da6c55ca30eece2c0
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2023 Da Xue <da@libre.computer></text>
+
+FileName: ./libre-computer/aml-a311d-cc/dt.config
+SPDXID: SPDXRef-168dedc9896c51ddbde532e1183efbeb
+FileChecksum: SHA1: e1eddf1083edd2d9a100f474e4518c039f24968a
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: MIT
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
+
+FileName: ./libre-computer/aml-a311d-cc/dt.deps
+SPDXID: SPDXRef-d1442482619214acfdfadfe6dd1aafd0
+FileChecksum: SHA1: 1578a372106c4e20fdf841c99a1d4056c3590f53
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: MIT
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
+
+FileName: ./libre-computer/aml-a311d-cc/dt.map
+SPDXID: SPDXRef-d62c2c46958670b5703dc36a10350251
+FileChecksum: SHA1: 6b506b844d531fa3dd787db349981257c7ab8e3d
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2024 Da Xue <da@libre.computer></text>
+
+FileName: ./libre-computer/aml-a311d-cc/dt/cpu-b-opp-2304.dts
+SPDXID: SPDXRef-30c2e6474535c26eb4a75fb9673bd057
+FileChecksum: SHA1: 1791b98c894394351c9b4df49ad57268e36da78b
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2023 Da Xue <da@libre.computer></text>
+
+FileName: ./libre-computer/aml-a311d-cc/dt/cpu-l-opp-2208.dts
+SPDXID: SPDXRef-1795dde418f6a4ed29bc28c8249b8145
+FileChecksum: SHA1: fc27d0ee1eb0c85dcc2ebe7c3fd993cf6fb0603b
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2023 Da Xue <da@libre.computer></text>
+
+FileName: ./libre-computer/aml-a311d-cc/dt/i2c-2.dts
+SPDXID: SPDXRef-15085a3bebe2ea92737f02b37d0c8024
+FileChecksum: SHA1: 0b56998cfea03effae4b2053cde05710661a232a
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2024 Libre Computer, Inc.</text>
+
+FileName: ./libre-computer/aml-a311d-cc/dt/i2c-3-ov5647.dts
+SPDXID: SPDXRef-c95ec658e934e8ec65fdd3ce1a9044bf
+FileChecksum: SHA1: a362237364198bd4a7af84aa09a3b39b80e8923b
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2026 Libre Computer, Inc.</text>
+
+FileName: ./libre-computer/aml-a311d-cc/dt/i2c-ao-emc2301-auto.dts
+SPDXID: SPDXRef-1de64a3ceea54a4dc5dbf903d3f2d6cd
+FileChecksum: SHA1: 358c2c03e7c64bbe815cfca70e06192f90912b3f
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2025 Da Xue</text>
+
+FileName: ./libre-computer/aml-a311d-cc/dt/i2c-ao-emc2301.dts
+SPDXID: SPDXRef-cbe52f66cf371d02e707e20c867d2e00
+FileChecksum: SHA1: 922caf06935dad9267e3fbaa912763f6caca2305
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2025 Da Xue</text>
+
+FileName: ./libre-computer/aml-a311d-cc/dt/i2c-ao.dts
+SPDXID: SPDXRef-085dc5381de761745aeeec82c41ec937
+FileChecksum: SHA1: 3b7aaf24d461c02fcd73a8d05d2581c405acfb20
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2024 Libre Computer, Inc.</text>
+
+FileName: ./libre-computer/aml-a311d-cc/dt/npu.dts
+SPDXID: SPDXRef-1f505323f3387ea5f78700eff233c1e5
+FileChecksum: SHA1: c05e5f84586fa26b824497fb4e065b7870276a84
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2023 Da Xue <da@libre.computer></text>
+
+FileName: ./libre-computer/aml-a311d-cc/dt/pwm-ao-c-6.dts
+SPDXID: SPDXRef-2891084ba150831b1416a396fe6f57b7
+FileChecksum: SHA1: cf7d3fe41c6625ddae7ea58270e4029fd5a72d1c
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2025 Da Xue</text>
+
+FileName: ./libre-computer/aml-a311d-cc/dt/pwm-c-x5-fan-auto.dts
+SPDXID: SPDXRef-7fba28270ebc9cbbc6fea4872f16fce4
+FileChecksum: SHA1: 7e0541f40420628c2e23f87fecd4265fac1ee350
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2022 Da Xue</text>
+
+FileName: ./libre-computer/aml-a311d-cc/dt/pwm-c-x5-fan.dts
+SPDXID: SPDXRef-7c327501807b261fdd79da87fdb5fbb8
+FileChecksum: SHA1: ec8abd40d98d882737975004e00c9af0443cb3a5
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2025 Da Xue</text>
+
+FileName: ./libre-computer/aml-a311d-cc/dt/pwm-c-x5.dts
+SPDXID: SPDXRef-1e49bc15f99161a0f9971afab534808c
+FileChecksum: SHA1: 2ca608ebbf75f695336c2505c3a7c00c6b650102
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2025 Da Xue</text>
+
+FileName: ./libre-computer/aml-a311d-cc/dt/pwm-c-x8.dts
+SPDXID: SPDXRef-9f7e945dc82a70e6efeec269db72cda1
+FileChecksum: SHA1: bf55b28b03486a9665b8c70d89eff751f575fdc0
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2025 Da Xue</text>
+
+FileName: ./libre-computer/aml-a311d-cc/dt/pwm-f-a11.dts
+SPDXID: SPDXRef-5916f3dc1450511ce897da290004a0bf
+FileChecksum: SHA1: ee7a72f8de8d79f158c603bfe28753471799b4c0
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2025 Da Xue</text>
+
+FileName: ./libre-computer/aml-a311d-cc/dt/pwm-f-h5.dts
+SPDXID: SPDXRef-477a901cff8e5e74a9e9987d0eeb6e8b
+FileChecksum: SHA1: 9fcebb1fd91dda4a7fa5b36f4ccf9fb80a07eba4
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2025 Da Xue</text>
+
+FileName: ./libre-computer/aml-a311d-cc/dt/spi-cc0-1cs-spidev.dts
+SPDXID: SPDXRef-26935945977fcd7aca3c7907d827e6d3
+FileChecksum: SHA1: 120ddc46076f097c5feba1bbaf252970122fb764
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2024 Da Xue</text>
+
+FileName: ./libre-computer/aml-a311d-cc/dt/spi-cc0-1cs.dts
+SPDXID: SPDXRef-3709d4da71a12f68024b54d286c82edc
+FileChecksum: SHA1: c647e342e991e273ecf23d5a8f179fc2c245c93d
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2024 Da Xue</text>
+
+FileName: ./libre-computer/aml-a311d-cc/dt/spi-cc1-1cs-spidev.dts
+SPDXID: SPDXRef-98602a050c8c5c6aaa7f9736b27b097b
+FileChecksum: SHA1: 2c81b73edea516b3ec1f14c043065807bb1fb175
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2024 Da Xue</text>
+
+FileName: ./libre-computer/aml-a311d-cc/dt/spi-cc1-1cs.dts
+SPDXID: SPDXRef-c1e44f318faa7922a3fc59433748cf0c
+FileChecksum: SHA1: 611fdfaed15eae40e99afd7be553fc51860e8220
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2024 Da Xue</text>
+
+FileName: ./libre-computer/aml-a311d-cc/dt/spi-cc1-2cs-dn9488ssr.dts
+SPDXID: SPDXRef-47793f4c49a7e8838bb8e8d70d337972
+FileChecksum: SHA1: 35b64cdaec75eb0273825c669f0366259bba2c22
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2025 Da Xue</text>
+
+FileName: ./libre-computer/aml-a311d-cc/dt/spi-cc1-2cs-ili9486-xpt2046.dts
+SPDXID: SPDXRef-8996a5b77b50d530b5b824f77f040b8d
+FileChecksum: SHA1: ec3faa53ae2faa85d298c31b84a9e561126332d8
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2024 Da Xue</text>
+
+FileName: ./libre-computer/aml-a311d-cc/dt/spi-cc1-2cs-mhs3528.dts
+SPDXID: SPDXRef-c88497a728853461cedf671788dc5bce
+FileChecksum: SHA1: e4d0498b85bb36bc2c9e1e262bba18c1472509ec
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2024 Da Xue</text>
+
+FileName: ./libre-computer/aml-a311d-cc/dt/spi-cc1-2cs-mpi3501.dts
+SPDXID: SPDXRef-451a0776691a85f3e79d3e078d60dd52
+FileChecksum: SHA1: bdb07058924c0e52cfdbf46bcb88218e8f3f024f
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2024 Da Xue</text>
+
+FileName: ./libre-computer/aml-a311d-cc/dt/spi-cc1-2cs-spidev.dts
+SPDXID: SPDXRef-1543a796b4472f5917709c8e253fc8df
+FileChecksum: SHA1: a25a17dd902dc9c2c98a026a5f306d2741004627
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2024 Da Xue</text>
+
+FileName: ./libre-computer/aml-a311d-cc/dt/spi-cc1-2cs.dts
+SPDXID: SPDXRef-37928494e244583ed642657e40193242
+FileChecksum: SHA1: 35f012de2702313818e3600350779a91eeb1fb78
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2024 Da Xue</text>
+
+FileName: ./libre-computer/aml-a311d-cc/dt/spifc-nor.dts
+SPDXID: SPDXRef-de9cdf9ba343c45215bcb326409a3b83
+FileChecksum: SHA1: babdfb66293546c9cf3d7ea9b171b78bddd53f9b
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2023 Da Xue <da@libre.computer></text>
+
+FileName: ./libre-computer/aml-a311d-cc/dt/uart-ao-b-23.dts
+SPDXID: SPDXRef-8b4bc3ffda90374728e1361a78c9bcfd
+FileChecksum: SHA1: 52f9595070e3b8ee9d137d7bb216aefe60b9a354
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2024 Libre Computer, Inc.</text>
+
+FileName: ./libre-computer/aml-a311d-cc/dt/uart-ao-b-89.dts
+SPDXID: SPDXRef-df4b37dabcf86ba8876c53628dbfb5ed
+FileChecksum: SHA1: 07fbf1708f802cfe673bd27f84d7b87935168b8f
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2024 Libre Computer, Inc.</text>
+
+FileName: ./libre-computer/aml-a311d-cc/dt/uart-c-rts-cts.dts
+SPDXID: SPDXRef-458aed80bafa7fafc9617cbb498d9802
+FileChecksum: SHA1: 06f379545b21ce3a262adef0f5beb6f78666f74f
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2024 Libre Computer, Inc.</text>
+
+FileName: ./libre-computer/aml-a311d-cc/dt/uart-c.dts
+SPDXID: SPDXRef-002a9c2ade0a3e8a1196688edcdb654c
+FileChecksum: SHA1: 0d44cdb4280645bb1fc5a0abb091bfa75ca097fd
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2024 Libre Computer, Inc.</text>
+
+FileName: ./libre-computer/aml-a311d-cc/gpio.map
+SPDXID: SPDXRef-4f5153df059b0b5e70b42936d0110e15
+FileChecksum: SHA1: 6e20c2e17daf5dc34b13f5c0470ecfc20b79813d
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2023 Da Xue <da@libre.computer></text>
+
+FileName: ./libre-computer/aml-s805x-ac-v2/dt.config
+SPDXID: SPDXRef-69aa9dfa9835b5b7c0a98e415e4978fe
+FileChecksum: SHA1: 73d5e3a4c8178f596ace0a1f75a15ab3c543246d
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: MIT
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
+
+FileName: ./libre-computer/aml-s805x-ac-v2/dt.deps
+SPDXID: SPDXRef-576270e10be02286735ff84d2dbe9f9e
+FileChecksum: SHA1: 8c2f45f4e4bd8b67ea50a47eed1833f5c19c5cb7
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: MIT
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
+
+FileName: ./libre-computer/aml-s805x-ac-v2/dt.map
+SPDXID: SPDXRef-60edab04c606ba41f26bb3d11c5d9d9b
+FileChecksum: SHA1: d2d09e86dfd73a8e9e39d0cab6394f8bb6d18beb
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2023 Da Xue <da@libre.computer></text>
+
+FileName: ./libre-computer/aml-s805x-ac-v2/gpio.config
+SPDXID: SPDXRef-e2b46d062010e6a2b85e950fc61e89db
+FileChecksum: SHA1: ae5088a8259103eb0f8492d45cb7738000998486
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: MIT
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
+
+FileName: ./libre-computer/aml-s805x-ac-v2/gpio.map
+SPDXID: SPDXRef-776c035a69305d8dbb9fb29edb00fc38
+FileChecksum: SHA1: 710d588bc4e9c58337c3d82fc4acd0065c5d70cd
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2021 Da Xue <da@libre.computer></text>
+
+FileName: ./libre-computer/aml-s805x-ac/dt.config
+SPDXID: SPDXRef-ebcd6907f6527f2f14ff23a95b333460
+FileChecksum: SHA1: 73d5e3a4c8178f596ace0a1f75a15ab3c543246d
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: MIT
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
+
+FileName: ./libre-computer/aml-s805x-ac/dt.deps
+SPDXID: SPDXRef-bb9fe050a0a252639fa7a8d395638a8e
+FileChecksum: SHA1: 8c2f45f4e4bd8b67ea50a47eed1833f5c19c5cb7
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: MIT
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
+
+FileName: ./libre-computer/aml-s805x-ac/dt.map
+SPDXID: SPDXRef-f15ef105ccaf49357508ee6c006ab3ec
+FileChecksum: SHA1: d2d09e86dfd73a8e9e39d0cab6394f8bb6d18beb
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2023 Da Xue <da@libre.computer></text>
+
+FileName: ./libre-computer/aml-s805x-ac/dt/i2c-a-at24c32.dts
+SPDXID: SPDXRef-540d701d44301cdf0b6e71932392c7a8
+FileChecksum: SHA1: 7ea2b53380503ce3c4fa24cf2851414757aeb458
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2024 Da Xue</text>
+
+FileName: ./libre-computer/aml-s805x-ac/dt/i2c-a-ds3231.dts
+SPDXID: SPDXRef-05260704e8c32436770e384dde97addb
+FileChecksum: SHA1: 9aa078a0361494f47f235857da2eb85d4a298bcf
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2024 Da Xue</text>
+
+FileName: ./libre-computer/aml-s805x-ac/dt/i2c-a-ssd1306-128x32.dts
+SPDXID: SPDXRef-17d86f866857755c9b52190b4ca71b81
+FileChecksum: SHA1: 3599829c602c74a54f86df808b375808374a5d14
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2024 Da Xue</text>
+
+FileName: ./libre-computer/aml-s805x-ac/dt/i2c-a-ssd1306-128x64.dts
+SPDXID: SPDXRef-aa3fc7cfce4cbc3155c125f5dffd424e
+FileChecksum: SHA1: 9154b431647774525f57d48e9436ada79c7d813a
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2024 Da Xue</text>
+
+FileName: ./libre-computer/aml-s805x-ac/dt/i2c-a.dts
+SPDXID: SPDXRef-3134f0a43c643cbfda7bcce6e7a50b01
+FileChecksum: SHA1: cea2a2e1558f35f23a739e500d7723d63c8bc239
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2024 Da Xue</text>
+
+FileName: ./libre-computer/aml-s805x-ac/dt/pps-gpio-7j1-12.dts
+SPDXID: SPDXRef-8c385d11930f465bb619ea8324f35482
+FileChecksum: SHA1: f0b9325d1b21e52a7e7d30811ec0e770643e0d99
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2024 Peter Rippe</text>
+
+FileName: ./libre-computer/aml-s805x-ac/dt/pwm-a.dts
+SPDXID: SPDXRef-9eec3677be4ee31b4acaa81409116bb9
+FileChecksum: SHA1: e0c07be22ebd22648a867fac1bb7c8170f1fdd09
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2024 Da Xue</text>
+
+FileName: ./libre-computer/aml-s805x-ac/dt/pwm-ao-a.dts
+SPDXID: SPDXRef-5da7441b19c10fc4a3dba380a2177006
+FileChecksum: SHA1: 9b4ce9751fcf5d756db940eddc83eefaab6e3c89
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2024 Da Xue</text>
+
+FileName: ./libre-computer/aml-s805x-ac/dt/pwm-e.dts
+SPDXID: SPDXRef-76fac1e7817e4798d708bde4ab956d76
+FileChecksum: SHA1: 514c63d87513735ac1d1f4175f22cf4c21af34d5
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2024 Da Xue</text>
+
+FileName: ./libre-computer/aml-s805x-ac/dt/pwm-f.dts
+SPDXID: SPDXRef-bfe3a11b342980371c56bc6f35ea91dc
+FileChecksum: SHA1: ceb78a9b471fae5ed26ac2e57658c82a18905c48
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2024 Da Xue</text>
+
+FileName: ./libre-computer/aml-s805x-ac/dt/rpi-sense.dts
+SPDXID: SPDXRef-70573f6244169ea2c426aab0aaa557aa
+FileChecksum: SHA1: 810ef98c23327bf274ba8ec2a969306079ab7e64
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2017 BayLibre, SAS.</text>
+
+FileName: ./libre-computer/aml-s805x-ac/dt/sdio-rtl8822cs.dts
+SPDXID: SPDXRef-5c6001a40d823b9c481521a21ef026b3
+FileChecksum: SHA1: 64fef5a8c168e9955520e710eca5a084578080c4
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2020 BayLibre, SAS.</text>
+
+FileName: ./libre-computer/aml-s805x-ac/dt/sdio.dts
+SPDXID: SPDXRef-90f56529a2909f980aa5cdebad322ebf
+FileChecksum: SHA1: a4536144e91f5c2294357868cb762210b541d32c
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2020 BayLibre, SAS.</text>
+
+FileName: ./libre-computer/aml-s805x-ac/dt/spi-cc-1cs-enc28j60.dts
+SPDXID: SPDXRef-5e97e8ffa10262c0f2128f7017bbb6ed
+FileChecksum: SHA1: 70a95e2beb24a02edc55d1d4952c60df7e16910b
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2024 Da Xue</text>
+
+FileName: ./libre-computer/aml-s805x-ac/dt/spi-cc-1cs-ili9341.dts
+SPDXID: SPDXRef-d43c337a71ca1f6cae74f052a734acef
+FileChecksum: SHA1: 69e82118edcd8517b60d004e91361d750ecf8d30
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2024 Da Xue</text>
+
+FileName: ./libre-computer/aml-s805x-ac/dt/spi-cc-1cs-mcp2515-can0.dts
+SPDXID: SPDXRef-399950fc8a6db430a7f369958988f84b
+FileChecksum: SHA1: 8f6f74aa03c2481a9acf4954cec22360eb5720b0
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) Libre Computer</text>
+
+FileName: ./libre-computer/aml-s805x-ac/dt/spi-cc-1cs-pitft22.dts
+SPDXID: SPDXRef-8af8c500df98ce9b549212a472174b1a
+FileChecksum: SHA1: af06416db115a9101aa4bb7c103f4388646470c8
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2022 Thomas McKahan <tonymckahan@gmail.com></text>
+
+FileName: ./libre-computer/aml-s805x-ac/dt/spi-cc-1cs-spidev.dts
+SPDXID: SPDXRef-e2e58a698ec7a1b95f33d8d58004fd66
+FileChecksum: SHA1: 372e3e99212a917357a70c69b0bcb5d9c8c5ac13
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2024 Da Xue</text>
+
+FileName: ./libre-computer/aml-s805x-ac/dt/spi-cc-1cs-st7789v-240x320-bgr-fbdev.dts
+SPDXID: SPDXRef-380bfd4545b96d8a9b79ffd6e3323fe5
+FileChecksum: SHA1: 5a9e2522f20df110760d5d79e971c239ce76d2f0
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2022 Da Xue</text>
+
+FileName: ./libre-computer/aml-s805x-ac/dt/spi-cc-1cs-st7789v-240x320-fbdev.dts
+SPDXID: SPDXRef-ff02b4da09c4ff82be73b43499997eb0
+FileChecksum: SHA1: 5ee7e2db534beba7c01e614789850db53a41bf60
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2022 Da Xue</text>
+
+FileName: ./libre-computer/aml-s805x-ac/dt/spi-cc-1cs.dts
+SPDXID: SPDXRef-9fcb5bd1f1430d8676d477efa5fcf889
+FileChecksum: SHA1: ca8ff1255a824fb753198d5999291c92d73909c2
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2024 Da Xue</text>
+
+FileName: ./libre-computer/aml-s805x-ac/dt/spi-cc-2cs-ili9486-xpt2046.dts
+SPDXID: SPDXRef-ee40d3ee81d5e8efed1ab6508897d4cd
+FileChecksum: SHA1: a36b6f4f8d41cd7900827983739699cb38b2496c
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2024 Da Xue</text>
+
+FileName: ./libre-computer/aml-s805x-ac/dt/spi-cc-2cs-mhs3528.dts
+SPDXID: SPDXRef-e94a6fd8aa10c676402a4c8ce1d5adc4
+FileChecksum: SHA1: 76ce117b8d8b063bbafc53d7eeadfa0ca40ce19b
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2024 Da Xue</text>
+
+FileName: ./libre-computer/aml-s805x-ac/dt/spi-cc-2cs-mpi3501.dts
+SPDXID: SPDXRef-1c59f2b35109c3022efc905e515365b0
+FileChecksum: SHA1: 61f21a0bdb14366f70ec966f9b6954c73122e7b4
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2024 Da Xue</text>
+
+FileName: ./libre-computer/aml-s805x-ac/dt/spi-cc-2cs-spidev.dts
+SPDXID: SPDXRef-faa159b37ff0b46c07c89d5c6ffec526
+FileChecksum: SHA1: c14f29fcd453d8e4c733bd4199b233f4c5a57b0e
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2024 Da Xue</text>
+
+FileName: ./libre-computer/aml-s805x-ac/dt/spi-cc-2cs.dts
+SPDXID: SPDXRef-6dfed1a0985efdeac4f73edffd828984
+FileChecksum: SHA1: a86a05f1331c09a02908dec3293a4a04e47b9f28
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2024 Da Xue</text>
+
+FileName: ./libre-computer/aml-s805x-ac/dt/spi-cc-mosi-idle-low.dts
+SPDXID: SPDXRef-ba598a7873799c80f3e302edec7f8bbe
+FileChecksum: SHA1: ca05ead806c3cb9614e17c3bc22859280e5a1cce
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2024 Da Xue</text>
+
+FileName: ./libre-computer/aml-s805x-ac/dt/uart-a-clk81.dts
+SPDXID: SPDXRef-339fdc22af067d5659b048f10777bd1a
+FileChecksum: SHA1: 4cfdbb25ca02277f8a9aa06cc771017bf7d5d55c
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2024 Da Xue</text>
+
+FileName: ./libre-computer/aml-s805x-ac/dt/uart-a-invert-tx.dts
+SPDXID: SPDXRef-72cff5e8e5e91cb5015b23e00328fed1
+FileChecksum: SHA1: a18a582e886015347af2a85ec006ad4b7ae9fb32
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2024 Da Xue</text>
+
+FileName: ./libre-computer/aml-s805x-ac/dt/uart-a.dts
+SPDXID: SPDXRef-97567f427e9c21112831a710920a2a18
+FileChecksum: SHA1: a459f6d35489b9d369defd87d2cc881d3eb9f250
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2024 Da Xue</text>
+
+FileName: ./libre-computer/aml-s805x-ac/dt/uart-b-clk81.dts
+SPDXID: SPDXRef-d47d8e13fd753d642d4e2cdaf8ec1fe4
+FileChecksum: SHA1: 7e95229fd0f349d6042adb0b8ec9102762e7b0f6
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2024 Da Xue</text>
+
+FileName: ./libre-computer/aml-s805x-ac/dt/uart-b-invert-tx.dts
+SPDXID: SPDXRef-3ad477784b13499b34db862b8c7e2e62
+FileChecksum: SHA1: 0dc3b68fb0a268e0be85e151ec73c85c64ad5eab
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2024 Da Xue</text>
+
+FileName: ./libre-computer/aml-s805x-ac/dt/uart-b.dts
+SPDXID: SPDXRef-94dc827cbc2d722e43befc78b9e5c460
+FileChecksum: SHA1: 17bac88ee58e453a829c27b13ca67ea79dc2ca5f
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2024 Da Xue</text>
+
+FileName: ./libre-computer/aml-s805x-ac/dt/uart-c-clk81.dts
+SPDXID: SPDXRef-cd7f56e02b9fd912066e89e188ca6738
+FileChecksum: SHA1: 7caed1a1b2fcd005ca2c21ecf23bb43de2477a24
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2024 Da Xue</text>
+
+FileName: ./libre-computer/aml-s805x-ac/dt/uart-c-cts-rts-clk81.dts
+SPDXID: SPDXRef-66154ba7aa3d7d7da55aee595bae144e
+FileChecksum: SHA1: fde528af06bbeaed877833197d69a82d13dc1bed
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2024 Da Xue</text>
+
+FileName: ./libre-computer/aml-s805x-ac/dt/uart-c-cts-rts.dts
+SPDXID: SPDXRef-07150a40dc26bba97da98a143b1001f3
+FileChecksum: SHA1: 67712d1b0a8cd4f0b4020b748dcf29056dc7217e
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2024 Da Xue</text>
+
+FileName: ./libre-computer/aml-s805x-ac/dt/uart-c-invert-tx.dts
+SPDXID: SPDXRef-4f87d3d2cf857aaad59aae70246cde16
+FileChecksum: SHA1: 7a1ffdfc8b05afeeba46a16e15ad7004eaf196bf
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2024 Da Xue</text>
+
+FileName: ./libre-computer/aml-s805x-ac/dt/uart-c.dts
+SPDXID: SPDXRef-c7a469e8d5ae4978348cd1182b58da94
+FileChecksum: SHA1: f688d57739cdc5347472e5eeaf29017509f95fe3
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2024 Da Xue</text>
+
+FileName: ./libre-computer/aml-s805x-ac/dt/usb-device-mode.dts
+SPDXID: SPDXRef-d43247be03bbca85f9bb05303d142f18
+FileChecksum: SHA1: db42217efd04f7e31895c6dc762774a34d2fee90
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2024 Da Xue</text>
+
+FileName: ./libre-computer/aml-s805x-ac/dt/w1-gpio.dts
+SPDXID: SPDXRef-92fec15f482bf272231c84b254dc440e
+FileChecksum: SHA1: 8fba8754783217c40e90942d2674d3a7d883ef27
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2024 Da Xue</text>
+
+FileName: ./libre-computer/aml-s805x-ac/gpio.config
+SPDXID: SPDXRef-b1a14f14ba8425826d395c6e600d26a1
+FileChecksum: SHA1: ae5088a8259103eb0f8492d45cb7738000998486
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: MIT
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
+
+FileName: ./libre-computer/aml-s805x-ac/gpio.map
+SPDXID: SPDXRef-950b24eac107a079eaef90ac4455797c
+FileChecksum: SHA1: 710d588bc4e9c58337c3d82fc4acd0065c5d70cd
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2021 Da Xue <da@libre.computer></text>
+
+FileName: ./libre-computer/aml-s905d3-cc-v01/dt.config
+SPDXID: SPDXRef-8781ccec9d33633347d53fdeccdf6e51
+FileChecksum: SHA1: 8110359e7dea3edcee095597a25282866ccf040f
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: MIT
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
+
+FileName: ./libre-computer/aml-s905d3-cc-v01/dt.deps
+SPDXID: SPDXRef-5487270670b70e6656f4b50524e14196
+FileChecksum: SHA1: 1c8e04c4129fc41a4b8ece079cbb584eaac7dc53
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: MIT
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
+
+FileName: ./libre-computer/aml-s905d3-cc/dt.config
+SPDXID: SPDXRef-519853ba679acd1f076a6f8dc3cc343c
+FileChecksum: SHA1: 2b3daad8a2d9f1d4be32a46175b93cfb351e6b61
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: MIT
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
+
+FileName: ./libre-computer/aml-s905d3-cc/dt.deps
+SPDXID: SPDXRef-b1d5d8d3fccffd55cc0844f2855dfe29
+FileChecksum: SHA1: 1578a372106c4e20fdf841c99a1d4056c3590f53
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: MIT
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
+
+FileName: ./libre-computer/aml-s905d3-cc/dt/cpu-opp-2208.dts
+SPDXID: SPDXRef-9164c3582c43ebb92b16ebd35c4dacc6
+FileChecksum: SHA1: 451fd8312a2c2d44b85d85d26b8cb624d9394e2a
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2023 Da Xue <da@libre.computer></text>
+
+FileName: ./libre-computer/aml-s905d3-cc/dt/csi-ov5647.dts
+SPDXID: SPDXRef-9064755de974f5fe7a4c0e091f4dcbcc
+FileChecksum: SHA1: 0bfd3b4f7150cbdf20572a9cf16430d8e90627d5
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2026 Libre Computer, Inc.</text>
+
+FileName: ./libre-computer/aml-s905d3-cc/dt/csi.dts
+SPDXID: SPDXRef-9ec5e3c7d0ff8796745ff45c1407f499
+FileChecksum: SHA1: 70759edbbb7c66216be85944376ee56e8a0917cb
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2026 Libre Computer, Inc.</text>
+
+FileName: ./libre-computer/aml-s905d3-cc/dt/emmc-hs400-es.dts
+SPDXID: SPDXRef-e9e9ee6e542d39c6e137e358aa3b6294
+FileChecksum: SHA1: 1e0889f119cdd6cc250cbd8253d160a877c59072
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
+
+FileName: ./libre-computer/aml-s905d3-cc/dt/emmc-hs400.dts
+SPDXID: SPDXRef-2187f95c8cf7d3358c8ad7a7418ca8e0
+FileChecksum: SHA1: a062653ba6ffc3a83590369cee48f62a742875ef
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
+
+FileName: ./libre-computer/aml-s905d3-cc/dt/npu.dts
+SPDXID: SPDXRef-d61652b48e85e9f0e519abdd69198f5d
+FileChecksum: SHA1: 08f05ceb02c9f27de1af8b60f326e6cc75a0661c
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2023 Da Xue <da@libre.computer></text>
+
+FileName: ./libre-computer/aml-s905x-cc-v2/dt.config
+SPDXID: SPDXRef-d8b2256a9dc7388921505d2d3ee368ba
+FileChecksum: SHA1: 8e0211508c05e7cdf0b033ee73948aea9b057f02
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: MIT
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
+
+FileName: ./libre-computer/aml-s905x-cc-v2/dt.deps
+SPDXID: SPDXRef-3fc808249e0938aa3b90211dc406cfe6
+FileChecksum: SHA1: 2f6622c8b90d9cca43d1c1a338050ea6dbd32871
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: MIT
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
+
+FileName: ./libre-computer/aml-s905x-cc-v2/gpio.config
+SPDXID: SPDXRef-d6c01cce11adc2f78f3b8432e23dfdb3
+FileChecksum: SHA1: ae5088a8259103eb0f8492d45cb7738000998486
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: MIT
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt.config
+SPDXID: SPDXRef-66ca8e8cfe624819803fe14a95cacd5b
+FileChecksum: SHA1: 1da4ff8a92fc925237fa10f4e72dfdbafbdfbdfc
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: MIT
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt.deps
+SPDXID: SPDXRef-0c4fda0b0f520ed9502cd10aeb09e660
+FileChecksum: SHA1: 2f6622c8b90d9cca43d1c1a338050ea6dbd32871
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: MIT
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt.map
+SPDXID: SPDXRef-3c73a961a62bf9207df0f5c61e9850a1
+FileChecksum: SHA1: 635cef58e94cac1a2ac3ed627fbc7a83fc2f1c78
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2023 Da Xue <da@libre.computer></text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/bulk.sh
+SPDXID: SPDXRef-cfdf05dedc73b073d9a9813c140d3462
+FileChecksum: SHA1: 1fe61a03bd2f52192e6dca0c30abbbc4ee25d654
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-only
+FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/cvbs-disable.dts
+SPDXID: SPDXRef-69c5bcb3724574531096a812d6dc9a25
+FileChecksum: SHA1: d4f1ee554bd647170531a436955f800c97d6e726
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2023 Da Xue</text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/gpio-key-power-2j3-6.dts
+SPDXID: SPDXRef-a018d62e304e3607920b431a0df64505
+FileChecksum: SHA1: 81b2abde08f127f9650eb02c6b98f28ef035e359
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2024 Da Xue</text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/gpio-key-power-7j1-31.dts
+SPDXID: SPDXRef-edde8df5a673fc3bd73b3d3d726a4b8c
+FileChecksum: SHA1: bb2fd052d9b6e3ac555ed417a23062eb0ac0e14a
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2022 Da Xue</text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/gpio-key-power-9j1-2.dts
+SPDXID: SPDXRef-6f4ac522bc27a2c644dca4e8e20cab5e
+FileChecksum: SHA1: 7ff0f09a6df146ec53b8e72df01ba1d575a4099d
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2024 Da Xue</text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/gpu-turbo-1008.dts
+SPDXID: SPDXRef-cbaa79c01cef6448272308b584f8250e
+FileChecksum: SHA1: 8ab8e3c434c10e0168db713843984119265a41aa
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2026 Da Xue</text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/gpu-turbo-1200.dts
+SPDXID: SPDXRef-540267635010a42d15192b40868aae5c
+FileChecksum: SHA1: f9e3910c66720378953f89ad1fba477032e4faba
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2026 Da Xue</text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/gpu-turbo-1392.dts
+SPDXID: SPDXRef-4125c7cc913526fbc7bf200553ab2553
+FileChecksum: SHA1: b9d890b632bc33f8ce4b1047060b2186beaeca25
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2026 Da Xue</text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/gpu-turbo-1584.dts
+SPDXID: SPDXRef-0ed542fe2081db19da6696fbc3ed1d47
+FileChecksum: SHA1: fc8f24f38b10caa1d56042d0eec07ede5bd1bb96
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2026 Da Xue</text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/gpu-turbo-792.dts
+SPDXID: SPDXRef-63523493876040daad826082add3ef55
+FileChecksum: SHA1: 4cbbfb95f624c218d270309c0c578140db6ce21f
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2026 Da Xue</text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/i2c-ao-at24c32.dts
+SPDXID: SPDXRef-741478b2c7480018d4d46be8812bd3e5
+FileChecksum: SHA1: 37dcf3574cdb165db1df99a5eb71e9dce7d44f78
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2017 BayLibre, SAS.</text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/i2c-ao-ds3231.dts
+SPDXID: SPDXRef-1b17524568c21642ac2ba281b0800cfa
+FileChecksum: SHA1: 45958e57051f6544b00a149fe915d82700bf2611
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2017 BayLibre, SAS.</text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/i2c-ao-pcf8523.dts
+SPDXID: SPDXRef-60f4f3d38b0a1b798b31783911f59401
+FileChecksum: SHA1: 365fc2db40963ff580909fb1b5a86f5c4dcd3c40
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2017 BayLibre, SAS.
+Copyright (C) 2023 Joshua Dye.</text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/i2c-ao-rpi-sense.dts
+SPDXID: SPDXRef-7de88e82662fa2c8deebfeba90506a2b
+FileChecksum: SHA1: b148890d795062335bc0ddc5ee77e7ef914c6c3e
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2017 BayLibre, SAS.</text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/i2c-ao-rv3028.dts
+SPDXID: SPDXRef-9cc653237ee06e8257f199d53e091e7b
+FileChecksum: SHA1: cf0d5f688eacd7a06dd8eccb2a49e45f1a9f0b63
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2023 Mark Bumiller</text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/i2c-ao-ssd1306-128x64.dts
+SPDXID: SPDXRef-80d830979070c5eec78b98bfb18ebabb
+FileChecksum: SHA1: 2a1b1c433eb5587b0339b691cc511737e85bec95
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2022 Da Xue</text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/i2c-ao.dts
+SPDXID: SPDXRef-00f3955407ed7b52307fd9fc9755c49b
+FileChecksum: SHA1: 88dc36bb370a6e6ba5dfb0891aaad9742d561c97
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2017 BayLibre, SAS.</text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/i2c-b-at24c32.dts
+SPDXID: SPDXRef-f93e459b4a666513635eea78fc66b913
+FileChecksum: SHA1: b9d0aa63116989dde9b9dbf1fe12aade88e730f9
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2017 BayLibre, SAS.</text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/i2c-b-ds3231.dts
+SPDXID: SPDXRef-38aba171de4aa4f738720977d9eedd66
+FileChecksum: SHA1: 8cdfe92cf33f602be867ca23bcd94b9b78686328
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2017 BayLibre, SAS.</text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/i2c-b.dts
+SPDXID: SPDXRef-f7cc6e5bbd56401de17434f8be7a73bd
+FileChecksum: SHA1: 25f6f5d4282b5344fc5f5a96fef6229babc55f9b
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2017 BayLibre, SAS.</text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/pps-gpio-7j1-12.dts
+SPDXID: SPDXRef-b0055da8a7a6b1c85e7b204efa0bd83b
+FileChecksum: SHA1: ca3f4b8b601b974ff18607a2eb6cef0859808184
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2022 Da Xue</text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/pwm-a-fan-auto.dts
+SPDXID: SPDXRef-aa2c33a2326e2d4161b7052248c5305c
+FileChecksum: SHA1: 8550a571400c18aeb970f2ec4172fe0880ac33bd
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2022 Da Xue</text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/pwm-a-fan.dts
+SPDXID: SPDXRef-b3598c15c7fe887533671994b61c39b7
+FileChecksum: SHA1: 84f25152116ddcb306f2798739fe2fe99a4e9090
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2022 Da Xue</text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/pwm-a.dts
+SPDXID: SPDXRef-42887927461a92a1d9e3aa6b6082b870
+FileChecksum: SHA1: 4727e038642b45a26a81523df1e4dd76794a7aec
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2022 Da Xue</text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/pwm-ao-6.dts
+SPDXID: SPDXRef-61cbb8813d2783d71fa921517ed37bef
+FileChecksum: SHA1: 7477d9158abad3797144f2b1be3ee2574b0f8914
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2022 Da Xue</text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/pwm-ao-9.dts
+SPDXID: SPDXRef-30fcc57fcd34f1e2bd4f49a9ba3e9d76
+FileChecksum: SHA1: 826da2d2bdfb7f84c83f2df7450d54ac7096f192
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2022 Da Xue</text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/pwm-ao-a-fan.dts
+SPDXID: SPDXRef-eef56d0d0ff1e242ed7d4119dd4cf4eb
+FileChecksum: SHA1: 1ba3da94de19f786654b9ad1b18425cc71178368
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2022 Da Xue</text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/pwm-ao-a.dts
+SPDXID: SPDXRef-b2ded77633cb837c5d4056995056c767
+FileChecksum: SHA1: f75bcc026e50d4cd2af04dbcc0999dabe78dd94c
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2022 Da Xue</text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/pwm-ao-b-6-fan.dts
+SPDXID: SPDXRef-f41a342cb8db18218a57719d3db4d13c
+FileChecksum: SHA1: 8ac9e5337d23b54ab47bf968ac1a15d840e760d3
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2022 Da Xue</text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/pwm-ao-b-6.dts
+SPDXID: SPDXRef-b43884b8c5fa7cf63b4a0a0b9d066548
+FileChecksum: SHA1: adaa4ef5c738e872af7e08efe4fda14b582face0
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2022 Da Xue</text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/pwm-ao-b-9-fan.dts
+SPDXID: SPDXRef-e611d9a9f532f4909dd30d192b83c5f4
+FileChecksum: SHA1: 901f34a1f914986c19aee825a7b910a7b67d2c58
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2022 Da Xue</text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/pwm-ao-b-9.dts
+SPDXID: SPDXRef-d9cd089b8d45c5950f0d4180f1af5f87
+FileChecksum: SHA1: 340b7687dc8b97fc9728d678676317e925e0eb91
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2022 Da Xue</text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/pwm-e-fan.dts
+SPDXID: SPDXRef-0ade8c01aa8408fe7fa9a83309340820
+FileChecksum: SHA1: 44394ddc04e950792bd3d9ad433f3da1e350636c
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2022 Da Xue</text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/pwm-e.dts
+SPDXID: SPDXRef-8b998270589324ecf85cafb6950c5758
+FileChecksum: SHA1: ee7b018ad564f1c1305d8705e40842ba981b63c3
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2017 BayLibre, SAS.</text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/pwm-ef.dts
+SPDXID: SPDXRef-9fae24f5ecdbfefc704f95583842f2a7
+FileChecksum: SHA1: 4769ba3fc5bb5855cfca1846a96a03aa03f46beb
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2017 BayLibre, SAS.</text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/pwm-f-fan.dts
+SPDXID: SPDXRef-132185d3f4a2d64c30ce17419991d23c
+FileChecksum: SHA1: 0cda82d56505ec22302c4f91306251df44ea7a8c
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2022 Da Xue</text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/pwm-f.dts
+SPDXID: SPDXRef-9612cdc15fe91301715bd5976128c37b
+FileChecksum: SHA1: 0d1ea69bbe23bbef84cff0f88d8f166227b00bf3
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2022 Da Xue</text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/sd-uhs-sdr104.dts
+SPDXID: SPDXRef-947ddddd7e7b2d249ef8d2ce1eeeecd4
+FileChecksum: SHA1: dc9b67a716a06648dacf9ac2e00d6abf81a6dd82
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2022 Da Xue</text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/sdio.dts
+SPDXID: SPDXRef-94aabd43e8706d1ece91aff6077efa22
+FileChecksum: SHA1: 1456c4e227dc51008fce46bc23d9b3b2d6c1dba4
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2020 BayLibre, SAS.</text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/spdif.dts
+SPDXID: SPDXRef-85b5c4169b4271329cfc434f9d5e2614
+FileChecksum: SHA1: b08001c551010af3a1b8f8c6d1daba34fe2332fb
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2023 BayLibre, SAS.</text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/spi-cc-1cs-enc28j60.dts
+SPDXID: SPDXRef-f45080f1352ad58ec66fcafa977fada7
+FileChecksum: SHA1: c8280097c82d36a269004b5ba7c7dc3ec87f8e90
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2017 BayLibre, SAS.</text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/spi-cc-1cs-ili9341.dts
+SPDXID: SPDXRef-39dfc25cbc0518fec730c9d513ba179f
+FileChecksum: SHA1: 4d4099e277b695b89a09e0c236b7f69e35b02fd1
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2018 BayLibre, SAS.</text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/spi-cc-1cs-ili9486.dts
+SPDXID: SPDXRef-437cf162f35244bce4b49c93b4bcb056
+FileChecksum: SHA1: 1e954f47c7c5edcedb65446aa848969a2a79b1e8
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/spi-cc-1cs-mcp2515-can-dual.dts
+SPDXID: SPDXRef-6a86faf3457e103bf3ee9e89af2b68c7
+FileChecksum: SHA1: fe65abfbb89c25589eb7cc003c5ab2ea1f36dc78
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) Libre Computer</text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/spi-cc-1cs-mcp2515-can0.dts
+SPDXID: SPDXRef-2f59552906100a0c1d3b1e306e3ade1e
+FileChecksum: SHA1: 8f3870ab8fd3fbd7be726e5e180dbbf46586bb15
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) Libre Computer</text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/spi-cc-1cs-mcp3008.dts
+SPDXID: SPDXRef-d561577a6067b4e016763fa9570770a4
+FileChecksum: SHA1: f92fc0a29323159e4ef20503e365ab13dbbed5b4
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/spi-cc-1cs-pitft22.dts
+SPDXID: SPDXRef-215f4843f790262249e548cb2f237ca3
+FileChecksum: SHA1: 26c12d22a076d24c33e3eba90ea758403e310d6c
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2022 Thomas McKahan <tonymckahan@gmail.com></text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/spi-cc-1cs-spidev.dts
+SPDXID: SPDXRef-fb0d4c20ae0af063d5583f485f15c1c8
+FileChecksum: SHA1: ff864340bf42e1fc50dc9b960b35296b0436e067
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2017 BayLibre, SAS.</text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/spi-cc-1cs-ssd1306-128x64.dts
+SPDXID: SPDXRef-95f16aa0564ff2603f51519c7a4d2c81
+FileChecksum: SHA1: aaa73e3a50eb80c69108a22635987a10425cd778
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2022 Da Xue</text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/spi-cc-1cs-st7735r-128x128-fbdev.dts
+SPDXID: SPDXRef-c27cb89dff6d4e73662b19df7f8584a0
+FileChecksum: SHA1: 68e88bd81ca79bc51570bd10fa5cabebc3615a08
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2022 </text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/spi-cc-1cs-st7735r-128x128.dts
+SPDXID: SPDXRef-7ebad4b783f14edd4db4e4ef1f3be56f
+FileChecksum: SHA1: 1c58a25ddf772ba9eb3d20da33d9200436005012
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2022 </text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/spi-cc-1cs-st7789v-240x240.dts
+SPDXID: SPDXRef-99c51069d5f4074b97cf5c2d68bc0cdd
+FileChecksum: SHA1: f07c569c59c75e1068c6b52a8e19451ce154f350
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2022 Da Xue</text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/spi-cc-1cs-st7789v-240x320-fbdev.dts
+SPDXID: SPDXRef-65f07b2aff68480e2eef79a9b417e487
+FileChecksum: SHA1: e41992d4967a6b05fa89d996570a8ff2b6c7c5c6
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2022 Da Xue</text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/spi-cc-1cs.dts
+SPDXID: SPDXRef-63577c054a1a378485ec3b6cb3bc63a2
+FileChecksum: SHA1: 2a6cbbc69b726c7a3e1997f44f5bfa120e87f066
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2017 BayLibre, SAS.</text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/spi-cc-1cs2-ads7846-irq-22.dts
+SPDXID: SPDXRef-3a6fc5f81fa41cfcd9732a8031b7a282
+FileChecksum: SHA1: 35baab0025079c444a7d5f59f986b4552d9e65eb
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2022 Da Xue</text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/spi-cc-1cs2.dts
+SPDXID: SPDXRef-ddcd9117d7299e0484a32abbc4a05ed6
+FileChecksum: SHA1: f46eeccc8c1eb538c20f0262bab46dcdd0b05626
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2022 Da Xue</text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/spi-cc-2cs-ili9486-xpt2046.dts
+SPDXID: SPDXRef-2f675945f8bedd97a7f6f7f9bd68fd65
+FileChecksum: SHA1: 630645e0146502144f2da67062820d9055599d79
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2022 Da Xue</text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/spi-cc-2cs-mhs3528.dts
+SPDXID: SPDXRef-46787689cfc8d0aa877862744d529af6
+FileChecksum: SHA1: 19479151b8acb54678c8d233734fce8fbaac4769
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2022 Da Xue</text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/spi-cc-2cs-mpi3501.dts
+SPDXID: SPDXRef-550082693d6e79f08e9142e354acdc5c
+FileChecksum: SHA1: 25d62ea0a078114361afb6c20a300caea8384eba
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2022 Da Xue</text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/spi-cc-2cs-spidev.dts
+SPDXID: SPDXRef-fc37cd653166812de5ab6ae2b0357eac
+FileChecksum: SHA1: e785e9ce3f8f1a26154e8a2b104467c643edde40
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2017 BayLibre, SAS.</text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/spi-cc-2cs.dts
+SPDXID: SPDXRef-df480a67101f90ca7e902bc8b8428071
+FileChecksum: SHA1: 7a014f5e8a2f2108bee3f70279d295900d944c51
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2017 BayLibre, SAS.</text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/spi-cc-ce1-ads7846-irq-11.dts
+SPDXID: SPDXRef-d2052db440d9078aec4194453431c7c0
+FileChecksum: SHA1: 1207cbc2371ed9ef2cd90fde292bfcc7c3745236
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2022 Da Xue <da@libre.computer></text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/spi-cc-ce1-ads7846-irq-13.dts
+SPDXID: SPDXRef-c4542e6fbf767702496655fdb6bedb5a
+FileChecksum: SHA1: 4b0a2261dc2115c4208998135b23fbb5bfe9044e
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2022 Da Xue <da@libre.computer></text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/spi-cc-ce1-ads7846-irq-35.dts
+SPDXID: SPDXRef-ae8ffbdb883b38db7c164f058b266a4f
+FileChecksum: SHA1: 041397b6f750b7d0499ca76865564247478228eb
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2022 Da Xue <da@libre.computer></text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/spi-cc-ce1-ads7846-irq-7.dts
+SPDXID: SPDXRef-24253dbe06162ff486b2a6f71980a432
+FileChecksum: SHA1: 9b61e803dce02f2d711406de53fd5718573e5315
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2022 Da Xue <da@libre.computer></text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/spi-cc-ce1-ads7846-irq-8.dts
+SPDXID: SPDXRef-2944af7098edefaba92aa6a53aa1716e
+FileChecksum: SHA1: 27b0bd2d2ecebdb9c90f1745020ce72b25524b78
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2022 Da Xue <da@libre.computer></text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/spi-cc-cs1-ads7846-irq-22.dts
+SPDXID: SPDXRef-534ca6141e9e2a41b009b1a0e285d7aa
+FileChecksum: SHA1: 98265b374bcb4e2993fef96aee57d006638a17af
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2022 Da Xue <da@libre.computer></text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/spi-cc-cs1-waveshare35a.dts
+SPDXID: SPDXRef-5d7f969c523fb0249daea2757a8b425d
+FileChecksum: SHA1: 564e1b2a14b3a9a80cb8c474e69ff68caad66abc
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2022 Da Xue <da@libre.computer></text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/spi-cc-mosi-idle-low.dts
+SPDXID: SPDXRef-8fc6f367b48dc048f9dbe120ad69b9ba
+FileChecksum: SHA1: 6276cbdc6be82c48a59d6eeb6c61cd38f7194a7c
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2024 Da Xue</text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/spi-gpio-1cs-ili9486.dts
+SPDXID: SPDXRef-99081ee5cc77826cfc7f85646bd1a09d
+FileChecksum: SHA1: 4ee58c0adcdc6de26efe15639352af09bc286dec
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/spi-gpio-1cs-spidev.dts
+SPDXID: SPDXRef-1b0689da8a435dc38d650a7122d09eab
+FileChecksum: SHA1: 9d02cb36c780f777b4c94539ceb02e2e285c48c5
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/spi-gpio-1cs.dts
+SPDXID: SPDXRef-63e91ec564c8cdc058f3b2e805b9532c
+FileChecksum: SHA1: 2b410536e77e0893d8ce2c11eac32bad71d15a91
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2022 Da Xue</text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/spi-gpio-2cs-ili9486-xpt2046.dts
+SPDXID: SPDXRef-ae525e88f90b74c0e15c476b3881294e
+FileChecksum: SHA1: d1e6c1dfb42066eb4f9b744e530859ba6df783d0
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2022 Da Xue</text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/spi-gpio-2cs-spidev.dts
+SPDXID: SPDXRef-afad614bda121d914876b5b2d1c4c1e0
+FileChecksum: SHA1: d49183ca5a72c2725195c81179f5929da23234da
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2022 Da Xue</text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/spi-gpio-2cs.dts
+SPDXID: SPDXRef-e361dc126b3ecd7b182302a8e8ed9677
+FileChecksum: SHA1: 6b15520c06846ac4edb2f227f8a4edc3973a5ad0
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2022 Da Xue</text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/spicc-ce1-ads7846-irq-11.dts
+SPDXID: SPDXRef-228f3d73f2cff8e1f171ad26c27f3249
+FileChecksum: SHA1: 1207cbc2371ed9ef2cd90fde292bfcc7c3745236
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2022 Da Xue <da@libre.computer></text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/spicc-ce1-ads7846-irq-13.dts
+SPDXID: SPDXRef-7c69d686de17b4e6ccbc658278adaaaf
+FileChecksum: SHA1: 4b0a2261dc2115c4208998135b23fbb5bfe9044e
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2022 Da Xue <da@libre.computer></text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/spicc-ce1-ads7846-irq-35.dts
+SPDXID: SPDXRef-95ea9684dc8fa221fb5f714407246a5c
+FileChecksum: SHA1: 041397b6f750b7d0499ca76865564247478228eb
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2022 Da Xue <da@libre.computer></text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/spicc-ce1-ads7846-irq-7.dts
+SPDXID: SPDXRef-6c24f9347a80d602178fc6ee84a2e8e8
+FileChecksum: SHA1: 9b61e803dce02f2d711406de53fd5718573e5315
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2022 Da Xue <da@libre.computer></text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/spicc-ce1-ads7846-irq-8.dts
+SPDXID: SPDXRef-4ae6fc6fe37800222441fe161c16b1fb
+FileChecksum: SHA1: 27b0bd2d2ecebdb9c90f1745020ce72b25524b78
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2022 Da Xue <da@libre.computer></text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/spicc-cs1-ads7846-irq-22.dts
+SPDXID: SPDXRef-e58115056a9a471d13662ea538ab29d1
+FileChecksum: SHA1: 98265b374bcb4e2993fef96aee57d006638a17af
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2022 Da Xue <da@libre.computer></text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/spicc-cs1-waveshare35a.dts
+SPDXID: SPDXRef-d22e3835875a09590ac0e045af4b66bb
+FileChecksum: SHA1: 564e1b2a14b3a9a80cb8c474e69ff68caad66abc
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2022 Da Xue <da@libre.computer></text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/uart-a-clk81.dts
+SPDXID: SPDXRef-4d0b20f1d6124a81c788b20fa4bbeb93
+FileChecksum: SHA1: 11b559bbbfe38b452578ec1130b0d4f7e9d6800b
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2017 BayLibre, SAS.</text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/uart-a-rts-cts-clk81.dts
+SPDXID: SPDXRef-a94a4190707e7d8611ff841ca7e76b80
+FileChecksum: SHA1: 53704cf88a76736536f2f336b814e3d6b1b2a783
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2017 BayLibre, SAS.</text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/uart-a-rts-cts.dts
+SPDXID: SPDXRef-e9cadd20ee06b5158fc129be5f723d7b
+FileChecksum: SHA1: 5e427c9a11459b9c7e6f45f1bda613b7abf55fc3
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2017 BayLibre, SAS.</text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/uart-a.dts
+SPDXID: SPDXRef-9321928324942c03db634aee90b3a807
+FileChecksum: SHA1: d92480e782932d144c3728ebf89bf4a8660cb578
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2017 BayLibre, SAS.</text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/uart-ao-b.dts
+SPDXID: SPDXRef-13ff2741be3f4921e2294e430c43c89c
+FileChecksum: SHA1: 4cd44fbbbd3771894484865d763bc5efdfbeb8b0
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2022 Da Xue</text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/usb-device-mode.dts
+SPDXID: SPDXRef-8ed6908a29cfe0739c6445f5c8f1b7e0
+FileChecksum: SHA1: 22573ad2c8efc5814f44c3108395e595ff9d07ff
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2023 Da Xue</text>
+
+FileName: ./libre-computer/aml-s905x-cc/dt/w1-gpio-7j1-7.dts
+SPDXID: SPDXRef-9d1c8a55680dbd5ffdd4b4978eae7079
+FileChecksum: SHA1: aa55816043407cf949e25371ebdfd995996c7f30
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2022 Thomas McKahan <tonymckahan@gmail.com></text>
+
+FileName: ./libre-computer/aml-s905x-cc/gpio.config
+SPDXID: SPDXRef-20dddf7b9d632ac3149905aa4b480ea0
+FileChecksum: SHA1: ae5088a8259103eb0f8492d45cb7738000998486
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: MIT
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
+
+FileName: ./libre-computer/aml-s905x-cc/gpio.map
+SPDXID: SPDXRef-c93ee05e0a50a02a7eccee00911e28c9
+FileChecksum: SHA1: b5759d748fa8e579ba8f259dc03c34749a6f847a
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2021 Da Xue <da@libre.computer></text>
+
+FileName: ./libre-computer/roc-rk3328-cc-v2/dt.config
+SPDXID: SPDXRef-76ac4f085e4beb2a4ea24e21bf775e2d
+FileChecksum: SHA1: ac2b21c1033c72c132c733932aaad1a88602346c
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: MIT
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
+
+FileName: ./libre-computer/roc-rk3328-cc-v2/dt.deps
+SPDXID: SPDXRef-6e85662cf8b087c5a0fe152777eb35d6
+FileChecksum: SHA1: 7364384400ef2cb00477bd4c432986a4eacac613
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: MIT
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
+
+FileName: ./libre-computer/roc-rk3328-cc/dt.config
+SPDXID: SPDXRef-8a0dc4666df693ec7378222d98333778
+FileChecksum: SHA1: e1f6b2ae18c07bc0253f7f323969a33bbb5809c0
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: MIT
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
+
+FileName: ./libre-computer/roc-rk3328-cc/dt.deps
+SPDXID: SPDXRef-d32bb9384508d4d312f2b7602493b284
+FileChecksum: SHA1: 7364384400ef2cb00477bd4c432986a4eacac613
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: MIT
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
+
+FileName: ./libre-computer/roc-rk3328-cc/dt.map
+SPDXID: SPDXRef-cd226f234379ef7305b84d51b103396a
+FileChecksum: SHA1: b6be388dc021f25bf877043e084b602e90bec77b
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2024 Da Xue <da@libre.computer></text>
+
+FileName: ./libre-computer/roc-rk3328-cc/dt/i2c-0.dts
+SPDXID: SPDXRef-6a0c214d43a1f49628e5307561a09456
+FileChecksum: SHA1: 544c3bcb571ceb66327bbf451231eb60982aded5
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2024 Da Xue</text>
+
+FileName: ./libre-computer/roc-rk3328-cc/dt/pps-gpio-j1-28.dts
+SPDXID: SPDXRef-87c5da52e928ec2e153aea180314f552
+FileChecksum: SHA1: fbc5555582b11a3d4a4d591e56d77832df2da3fd
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2023 Jaime Jackson-Block</text>
+
+FileName: ./libre-computer/roc-rk3328-cc/dt/pwm-2-fan.dts
+SPDXID: SPDXRef-ca3752cc2c6911dbe4463b0944f8053c
+FileChecksum: SHA1: 1df3e66f336b68a9fc9ad2aebaced58d32eb166b
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2025 Matthew Chandler</text>
+
+FileName: ./libre-computer/roc-rk3328-cc/dt/pwm-2.dts
+SPDXID: SPDXRef-93a59a1b8cffe25e28222e117465b00d
+FileChecksum: SHA1: e56a3d47a210d4957efb494928bb3ac4dec1f781
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2024 Da Xue</text>
+
+FileName: ./libre-computer/roc-rk3328-cc/dt/saradc.dts
+SPDXID: SPDXRef-2de83bdfdf2cc28b02cfc517410c140e
+FileChecksum: SHA1: 616ccca7b7338c665d6fb3f6fe18964660ad3cd7
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2024 Da Xue</text>
+
+FileName: ./libre-computer/roc-rk3328-cc/dt/spi-0-1cs-spidev.dts
+SPDXID: SPDXRef-68dc79f368735522d30882b13d02db12
+FileChecksum: SHA1: 57f52625b8225cfeac30f022d694e7ba6c4f5b59
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2024 Da Xue</text>
+
+FileName: ./libre-computer/roc-rk3328-cc/dt/spi-0-1cs.dts
+SPDXID: SPDXRef-696c0b532e536b16bf38a15c28f0bfa1
+FileChecksum: SHA1: 14374c491644da906a9789f02fc7e9ae85d9ca58
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2024 Da Xue</text>
+
+FileName: ./libre-computer/roc-rk3328-cc/dt/spi-0-2cs-ili9486-xpt2046.dts
+SPDXID: SPDXRef-90d366fbab1d1028252d35583f88d917
+FileChecksum: SHA1: d72aa1238784f1126110eeb6d6e84c5933ce3fdd
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2024 Da Xue</text>
+
+FileName: ./libre-computer/roc-rk3328-cc/dt/spi-0-2cs-mhs3528.dts
+SPDXID: SPDXRef-1f0d8cd7c9e893ba802b1e9f3654816d
+FileChecksum: SHA1: c08f59efbf0f8aaaa2b6767d7854c91c3e26a444
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2024 Da Xue</text>
+
+FileName: ./libre-computer/roc-rk3328-cc/dt/spi-0-2cs-mpi3501.dts
+SPDXID: SPDXRef-5428088825eb23962f124ec051288c6e
+FileChecksum: SHA1: 43a0c1df7e5a725e45a676722e7bbd0303c161e5
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2024 Da Xue</text>
+
+FileName: ./libre-computer/roc-rk3328-cc/dt/spi-0-2cs-spidev.dts
+SPDXID: SPDXRef-f4094bf1994f4ef618cd1ee111c867d7
+FileChecksum: SHA1: 71a5c40482e69cdc3d9f2a8e7a81ef5c39fcf7b2
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2024 Da Xue</text>
+
+FileName: ./libre-computer/roc-rk3328-cc/dt/spi-0-2cs.dts
+SPDXID: SPDXRef-c6f2a902d6bfde7f932895048e656619
+FileChecksum: SHA1: b2ed5ebfc9fa9a0957bce4a4e92fed1e72ec8009
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2024 Da Xue</text>
+
+FileName: ./libre-computer/roc-rk3328-cc/dt/spi-0.dts
+SPDXID: SPDXRef-bd617b57c45ef4647ba964ddf8beade0
+FileChecksum: SHA1: 0aa671126d63dda2beaa37f12c7625b0ce1917ec
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2024 Da Xue</text>
+
+FileName: ./libre-computer/roc-rk3328-cc/dt/uart-1.dts
+SPDXID: SPDXRef-f6fd29bc8702bce9538b97cb267d6133
+FileChecksum: SHA1: 4301b78ddb697a2db52149f05adbb7536d300850
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2024 Da Xue</text>
+
+FileName: ./libre-computer/roc-rk3328-cc/dt/uart-2.dts
+SPDXID: SPDXRef-79d834af13cac14fe12c1fe79c5ef437
+FileChecksum: SHA1: 179228f494f09325b855022e03cc30b7bac227f1
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2024 Da Xue</text>
+
+FileName: ./libre-computer/roc-rk3328-cc/gpio.map
+SPDXID: SPDXRef-3d0b068fcd930db228aab8c952ef49f1
+FileChecksum: SHA1: 39c69c62fda30309e19f5a71c99dd7eada9554b6
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2022 Da Xue <da@libre.computer></text>
+
+FileName: ./libre-computer/roc-rk3399-pc/dt.config
+SPDXID: SPDXRef-0cde0c46124b69ab082a02756d824229
+FileChecksum: SHA1: f8a34bd8b0dd2209de82312f6af50920406ae05b
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: MIT
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
+
+FileName: ./libre-computer/roc-rk3399-pc/dt.deps
+SPDXID: SPDXRef-565d61bd41f8e2dcab679c133aa1c7af
+FileChecksum: SHA1: 1c8e04c4129fc41a4b8ece079cbb584eaac7dc53
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: MIT
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
+
+FileName: ./libre-computer/roc-rk3399-pc/dt/mezzanine.dts
+SPDXID: SPDXRef-7fefe7a79e1b054b6bbb8dc809b1ca5a
+FileChecksum: SHA1: 31a895b291b505fc54aabbdc19161cdff9d2ca0f
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: GPL-2.0-or-later
+LicenseInfoInFile: MIT
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
+
+FileName: ./mmc.sh
+SPDXID: SPDXRef-bb033a6f8fd3d4eebe9a8912db141a61
+FileChecksum: SHA1: 6fe6fb0e9d9a657528fd32d61ec9a46e0e4f69b9
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-only
+FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
+
+FileName: ./scripts/overlay-deps.py
+SPDXID: SPDXRef-c47dc8dba80be0dd1167e7307802905d
+FileChecksum: SHA1: ac22bab9e85b417e4bd43f0104cb4791008c4937
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-only
+LicenseInfoInFile: GPL-2.0-only
+FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
+
+FileName: ./test/dt_map_check.sh
+SPDXID: SPDXRef-b6fb5aeb74c5520da00d9b93f32fbe6d
+FileChecksum: SHA1: c6c741eff5c6eb23a33caa4ef69c19de28f65de1
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-only
+FileCopyrightText: <text>Copyright (C) 2021 Da Xue <da@libre.computer></text>
+
+FileName: ./test/gpio/pattern.sh
+SPDXID: SPDXRef-32a23d77bb4341703707693001a06a0e
+FileChecksum: SHA1: 1c74243153ceefbad220a467b18a5ff8bafb1b81
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-only
+FileCopyrightText: <text>Copyright (C) 2021 Da Xue <da@libre.computer></text>
+
+FileName: ./test/spi/bench-freq.sh
+SPDXID: SPDXRef-7f021ac1f765382369ffdb95b3844e3e
+FileChecksum: SHA1: 4911676476b004e524c75a790607b2db2a0fc193
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2025 Da Xue <da@libre.computer></text>
+
+FileName: ./test/spi/bench-xfer.sh
+SPDXID: SPDXRef-7c09f188d9b0efe4b051a6657a86433b
+FileChecksum: SHA1: 706b3dd3a09be0ff3b1fd0e7c4bab0a035c88b7e
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2025 Da Xue <da@libre.computer></text>
+
+FileName: ./test/spi/bench.c
+SPDXID: SPDXRef-ce12c8fd83b155153cba368d259adb3d
+FileChecksum: SHA1: d0fc64f3ef5a60e619c46656f29fb97ea83dfdac
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-only
+LicenseInfoInFile: GPL-2.0-only
+FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
+
+FileName: ./test/spi/bench.sh
+SPDXID: SPDXRef-1049742f9c2d1d0f046dfd5afe9c5a7b
+FileChecksum: SHA1: fcb2f20b912521d51e5416629492ef5c0e5e729e
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2025 Da Xue <da@libre.computer></text>
+
+FileName: ./test/spi/bench_include.sh
+SPDXID: SPDXRef-6c506b77bba6a0c3ba1ff0f0b295cd63
+FileChecksum: SHA1: 830a9b7462da8f35dcadd8819b7995be07f43ca3
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2025 Da Xue <da@libre.computer></text>
+
+FileName: ./test/spi/board_include.sh
+SPDXID: SPDXRef-a8afc22a82dc0846833b1c6f07d36344
+FileChecksum: SHA1: d89a12fa96e6e6c89ed056e59a6e17576236e2fe
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: MIT
+FileCopyrightText: <text>Copyright (C) 2025 Da Xue <da@libre.computer></text>
+
+FileName: ./test/spi/interactive.sh
+SPDXID: SPDXRef-5c79d864e8117596a60f802d162056c2
+FileChecksum: SHA1: 32eaa06c0155b3821a6ad537cad619a445f58bbf
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-only
+FileCopyrightText: <text>Copyright (C) 2021 Da Xue <da@libre.computer></text>
+
+FileName: ./vendor/aml/gxl/gpio_debug
+SPDXID: SPDXRef-3b0069b265fd6f34f66d854730981976
+FileChecksum: SHA1: 1e717defe114118fe561b7f6cf8da47a63986a27
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-only
+LicenseInfoInFile: GPL-2.0-only
+FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
+

@@ -1,3 +1,6 @@
+<!--
+SPDX-License-Identifier: MIT
+-->
 # Libre Computer Wiring Tool
 ## Objective
 
@@ -149,3 +152,18 @@ Please be aware that certain PWM controllers offer two outputs that use a differ
 ## Features Under Development
 - Support for additional device tree overlays
 - Device Tree Overlay service to read Raspbian config.txt and apply corresponding overlay on bootup
+
+## License / SBOM
+
+This project follows the [REUSE Specification](https://reuse.software/) for
+machine-readable licensing (SBOM source compliance):
+
+- Per-file `SPDX-License-Identifier` tags (or `REUSE.toml` annotations)
+- Full license texts under `LICENSES/`
+- Debian packaging: `debian/copyright` (DEP-5)
+
+```bash
+make reuse-lint          # requires: pipx install reuse
+make sbom                # writes sbom.spdx (SPDX tag-value SBOM)
+```
+

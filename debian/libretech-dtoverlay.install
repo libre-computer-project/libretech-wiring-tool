@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-2.0-only
 opt/librecomputer/libretech-wiring-tool/ldto
 opt/librecomputer/libretech-wiring-tool/scripts/overlay-deps.py
 opt/librecomputer/libretech-wiring-tool/libre-computer/*/dt.config

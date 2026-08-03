@@ -1,10 +1,8 @@
+// SPDX-License-Identifier: (GPL-2.0-or-later OR MIT)
 /*
  * Copyright (c) 2017 BayLibre, SAS.
  * Author: Neil Armstrong <narmstrong@baylibre.com>
- *
- * SPDX-License-Identifier: (GPL-2.0+ OR MIT)
  */
-
 /*
  * Overlay aimed to enable PWM E on Header 7J1 Pin 32
  */

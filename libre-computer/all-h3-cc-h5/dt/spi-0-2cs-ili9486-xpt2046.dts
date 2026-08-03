@@ -1,9 +1,8 @@
-// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+// SPDX-License-Identifier: (GPL-2.0-or-later OR MIT)
 /*
  * Copyright (c) 2022 Da Xue <da@libre.computer>
  * Author: Da Xue <da@libre.computer>
  */
-
 /*
  * Enables ILI9486 based 3.5" touchscreen on 40P header 7J1 without tuning parameters
  * Requires spi0-cs1 overlay

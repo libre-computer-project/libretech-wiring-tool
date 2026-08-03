@@ -1,9 +1,8 @@
-// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+// SPDX-License-Identifier: (GPL-2.0-or-later OR MIT)
 /*
  * Copyright (c) 2025 Da Xue
  * Author: Da Xue <da@libre.computer>
  */
-
 /*
  * Overlay aimed to enable PWM C on Header 7J1 Pin 38
  * pwm_c on GPIOX_8, pwm_d is potentially used by GPIOX_3 as LED

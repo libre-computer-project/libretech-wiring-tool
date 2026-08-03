@@ -1,10 +1,8 @@
+// SPDX-License-Identifier: (GPL-2.0-or-later OR MIT)
 /*
  * Copyright (c) 2022 Da Xue
  * Author: Da Xue <da@libre.computer>
- *
- * SPDX-License-Identifier: (GPL-2.0+ OR MIT)
  */
- 
 /*
  * Overlay aimed to create a gpio button on 7J1 pin 31 (GPIOX_18) linked to the power key
  */

@@ -1,10 +1,8 @@
+// SPDX-License-Identifier: (GPL-2.0-or-later OR MIT)
 /*
  * Copyright (c) 2025 Matthew Chandler
  * Author: Matthew Chandler
- *
- * SPDX-License-Identifier: (GPL-2.0+ OR MIT)
  */
- 
 /*
  * Overlay aimed to enable fan on PWM 2 on 40P header Pin 12 with tach on 40P header Pin 11
  */
@@ -14,7 +12,6 @@
 
 #include <dt-bindings/clock/gxbb-clkc.h>
 #include <dt-bindings/interrupt-controller/irq.h>
-
 /*
  * 11 TPIRQ GPIO2_C4
  */

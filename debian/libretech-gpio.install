@@ -1,2 +1,3 @@
+# SPDX-License-Identifier: GPL-2.0-only
 opt/librecomputer/libretech-wiring-tool/lgpio
 opt/librecomputer/libretech-wiring-tool/libre-computer/*/gpio.map

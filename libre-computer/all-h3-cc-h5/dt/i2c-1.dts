@@ -1,9 +1,8 @@
-// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+// SPDX-License-Identifier: (GPL-2.0-or-later OR MIT)
 /*
  * Copyright (c) 2022 Da Xue <da@libre.computer>
  * Author: Da Xue <da@libre.computer>
  */
-
 /* 40P GPIO
  * Pin 27 SDA
  * Pin 28 SCL

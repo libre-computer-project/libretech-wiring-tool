@@ -1,4 +1,5 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-2.0-only
 # Build .deb packages into the parent directory (dpkg-buildpackage default).
 set -euo pipefail
 

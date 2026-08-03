@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+// SPDX-License-Identifier: (GPL-2.0-or-later OR MIT)
 /*
  * Copyright (C) 2026 Libre Computer, Inc.
  * Enable OV5647 camera on camera connector (J1) for AML-S905D3-CC
@@ -47,7 +47,6 @@
 			};
 		};
 	};
-
 	/* OV5647 sensor on I2C3 */
 	fragment@2 {
 		target = <&i2c3>;
@@ -68,7 +67,6 @@
 			};
 		};
 	};
-
 	/* Wire CSI-2 host input to OV5647 */
 	fragment@3 {
 		target = <&csi>;

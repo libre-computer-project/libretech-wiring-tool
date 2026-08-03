@@ -1,10 +1,8 @@
+// SPDX-License-Identifier: (GPL-2.0-or-later OR MIT)
 /*
  * Copyright (c) 2022 Da Xue
  * Author: Da Xue <da@libre.computer>
- *
- * SPDX-License-Identifier: (GPL-2.0+ OR MIT)
  */
-
 /*
  * UART_AO_B on Header 7J1 up to 921600 baud with no flow control
  * Pin 3 Incoming (RX)

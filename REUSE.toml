@@ -1,0 +1,92 @@
+version = 1
+
+# REUSE annotations for files that cannot carry an in-band SPDX tag, OR that
+# have a license tag but no copyright line. Per-file tags remain authoritative
+# when present. Enables `reuse lint` and `reuse spdx` SBOM export.
+# Spec: https://reuse.software/spec/
+
+[[annotations]]
+path = [
+    ".gitignore",
+    "debian/changelog",
+    "debian/source/format",
+]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2021-2026 Libre Computer Project contributors"
+SPDX-License-Identifier = "GPL-2.0-only"
+
+[[annotations]]
+path = [
+    "LICENSE",
+    "debian/copyright",
+    "REUSE.toml",
+    "sbom.spdx",
+]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2021-2026 Libre Computer Project contributors"
+SPDX-License-Identifier = "CC0-1.0"
+
+# Build system / packaging / tools: license already in-file; supply copyright.
+[[annotations]]
+path = [
+    "Makefile",
+    "README.md",
+    "build.sh",
+    "install.sh",
+    "include/update.sh",
+    "debian/control",
+    "debian/rules",
+    "debian/not-installed",
+    "debian/libretech-dtoverlay.alternatives",
+    "debian/libretech-dtoverlay.install",
+    "debian/libretech-gpio.alternatives",
+    "debian/libretech-gpio.install",
+    "scripts/overlay-deps.py",
+    "test/spi/bench.c",
+    "vendor/aml/gxl/gpio_debug",
+]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2021-2026 Libre Computer Project contributors"
+SPDX-License-Identifier = "GPL-2.0-only"
+
+# Board data files (license already MIT in-file OR via generator).
+[[annotations]]
+path = [
+    "libre-computer/*/dt.deps",
+    "libre-computer/*/dt.config",
+    "libre-computer/*/gpio.config",
+]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2021-2026 Libre Computer Project contributors"
+SPDX-License-Identifier = "MIT"
+
+# Overlays that have SPDX but no Copyright line yet.
+[[annotations]]
+path = [
+    "libre-computer/all-h3-cc-h5/dt/spi-1-1cs-spidev.dts",
+    "libre-computer/aml-s905d3-cc/dt/emmc-hs400-es.dts",
+    "libre-computer/aml-s905d3-cc/dt/emmc-hs400.dts",
+    "libre-computer/aml-s905x-cc/dt/spi-cc-1cs-ili9486.dts",
+    "libre-computer/aml-s905x-cc/dt/spi-cc-1cs-mcp3008.dts",
+    "libre-computer/aml-s905x-cc/dt/spi-gpio-1cs-ili9486.dts",
+    "libre-computer/aml-s905x-cc/dt/spi-gpio-1cs-spidev.dts",
+    "libre-computer/roc-rk3399-pc/dt/mezzanine.dts",
+]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2021-2026 Libre Computer Project contributors"
+SPDX-License-Identifier = "GPL-2.0-or-later OR MIT"
+
+# Vendored Linux UAPI headers missing a Copyright line (license tag present).
+[[annotations]]
+path = [
+    "include/dt-bindings/clock/gxbb-clkc.h",
+    "include/dt-bindings/clock/gxbb-aoclkc.h",
+    "include/dt-bindings/gpio/gpio.h",
+    "include/dt-bindings/interrupt-controller/irq.h",
+    "include/dt-bindings/sound/meson-aiu.h",
+    "include/dt-bindings/sound/meson-g12a-toacodec.h",
+    "include/dt-bindings/sound/meson-g12a-tohdmitx.h",
+]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "Linux kernel contributors"
+SPDX-License-Identifier = "GPL-2.0-only"

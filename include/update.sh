@@ -1,4 +1,5 @@
 #!/bin/bash
+# SPDX-License-Identifier: GPL-2.0-only
 
 if [ -z "$1" ]; then
 	echo "$0 LINUX_DIR"

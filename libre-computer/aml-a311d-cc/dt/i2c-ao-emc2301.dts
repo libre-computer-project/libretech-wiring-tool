@@ -1,9 +1,8 @@
-// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+// SPDX-License-Identifier: (GPL-2.0-or-later OR MIT)
 /*
  * Copyright (C) 2025 Da Xue
  * Author: Da Xue <da@libre.computer>
  */
-
 /*
  * Overlay to enable EMC2301 fan controller on I2C_AO (Header J72 Pin 3: SDA, Pin 5: SCL)
  * This controller is present on the LoveRPi PoE+ HAT

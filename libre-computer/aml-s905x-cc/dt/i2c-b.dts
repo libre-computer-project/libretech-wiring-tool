@@ -1,10 +1,8 @@
+// SPDX-License-Identifier: (GPL-2.0-or-later OR MIT)
 /*
  * Copyright (c) 2017 BayLibre, SAS.
  * Author: Neil Armstrong <narmstrong@baylibre.com>
- *
- * SPDX-License-Identifier: (GPL-2.0+ OR MIT)
  */
-
 /*
  * Overlay aimed to enable I2C_B on Header 7J1 :
  * Pins 27 (SDA), 28 (SCL)

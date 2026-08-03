@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+// SPDX-License-Identifier: (GPL-2.0-or-later OR MIT)
 /*
  * eMMC HS400 (200 MHz DDR, ~400 MB/s) for AML-S905D3-CC.
  *

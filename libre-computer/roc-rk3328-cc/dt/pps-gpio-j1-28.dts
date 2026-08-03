@@ -1,9 +1,8 @@
-// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+// SPDX-License-Identifier: (GPL-2.0-or-later OR MIT)
 /*
  * Copyright (c) 2023 Jaime Jackson-Block
  * Author: Jaime Jackson-Block
  */
-
 /*
  * Enables soft PPS on 40P header J1 pin 28
  */
@@ -13,7 +12,6 @@
 
 #include <dt-bindings/gpio/gpio.h>
 #include <dt-bindings/pinctrl/rockchip.h>
-
 /*
  * 7 1-28 CLKOUT GPIO1_D4
  */

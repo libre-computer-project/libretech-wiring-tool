@@ -1,9 +1,8 @@
-// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+// SPDX-License-Identifier: (GPL-2.0-or-later OR MIT)
 /*
  * Copyright (C) 2024 Libre Computer, Inc.
  * Author: Luke Lu <luke.lu@libre.computer>
  */
-
 /* enable 40 Header J72 - Pin 3 (SDA), 5 (SCL) */
 
 /dts-v1/;

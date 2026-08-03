@@ -1,10 +1,8 @@
+// SPDX-License-Identifier: (GPL-2.0-or-later OR MIT)
 /*
  * Copyright (c) 2024 Peter Rippe
  * Author: Peter Rippe
- *
- * SPDX-License-Identifier: (GPL-2.0+ OR MIT)
  */
- 
 /*
  * Overlay aimed to create pps-gpio on 7J1 pin 12 (GPIOH_7)
  * This requires an GPIO to IRQ enabled kernel and will not work without one.

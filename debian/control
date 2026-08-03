@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-2.0-only
 Source: libretech-wiring-tool
 Section: utils
 Priority: optional

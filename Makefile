@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-2.0-only
 DTC	?= dtc
 DTC_OPTIONS	?= -@ -q
 PREFIX ?= $(DESTDIR)/opt/librecomputer/libretech-wiring-tool
@@ -145,3 +146,17 @@ install-ldto: boarddirs $(DESTDTOCFG) $(DESTDTMAPS) $(DESTDTBOS) $(DEPS_FILES)
 	@for f in $(DEPS_FILES); do 		if [ -f "$$f" ]; then 			install -p -m 644 "$$f" $(PREFIX)/$$f; 		fi; 	done
 
 install: install-lgpio install-ldto
+
+# --- SBOM / REUSE (optional; needs `reuse` from https://reuse.software/) ---
+# Install: pipx install reuse   OR   python3 -m venv .venv && .venv/bin/pip install reuse
+REUSE ?= reuse
+
+.PHONY: reuse-lint sbom
+
+reuse-lint:
+	$(REUSE) lint
+
+sbom:
+	$(REUSE) spdx -o sbom.spdx
+	@echo "Wrote sbom.spdx (SPDX SBOM). Re-run after license changes."
+

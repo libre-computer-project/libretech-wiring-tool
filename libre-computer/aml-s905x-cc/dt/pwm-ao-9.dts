@@ -1,10 +1,8 @@
+// SPDX-License-Identifier: (GPL-2.0-or-later OR MIT)
 /*
  * Copyright (c) 2022 Da Xue
  * Author: Da Xue <da@libre.computer>
- *
- * SPDX-License-Identifier: (GPL-2.0+ OR MIT)
  */
-
 /*
  * Overlay aimed to enable PWM AO A and B on Header 7J1 Pin 11 and Pin 13
  */

@@ -1,9 +1,8 @@
-// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+// SPDX-License-Identifier: (GPL-2.0-or-later OR MIT)
 /*
  * Copyright (c) 2024 Da Xue
  * Author: Da Xue <da@libre.computer>
  */
-
 /*
  * Enables UART_A on 40P header 7J1 pins 8 (TX) and 10 (RX) with CLK81 for additional baud rates
  */

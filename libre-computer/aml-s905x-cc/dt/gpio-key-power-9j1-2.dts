@@ -1,10 +1,8 @@
+// SPDX-License-Identifier: (GPL-2.0-or-later OR MIT)
 /*
  * Copyright (c) 2024 Da Xue
  * Author: Da Xue <da@libre.computer>
- *
- * SPDX-License-Identifier: (GPL-2.0+ OR MIT)
  */
- 
 /*
  * Create a GPIO button on 9J1 pin 2 (GPIOH_4) linked to the power key
  */

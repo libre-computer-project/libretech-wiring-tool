@@ -1,9 +1,8 @@
-// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+// SPDX-License-Identifier: (GPL-2.0-or-later OR MIT)
 /*
  * Copyright (c) 2024 Da Xue
  * Author: Da Xue <da@libre.computer>
  */
-
 /*
  * Enables PWM on 40P header J1 pin 12
  */

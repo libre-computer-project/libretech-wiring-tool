@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-2.0-only
 # Install stages the full PREFIX tree; packages take subsets via .install.
 # Anything left here is intentional (board gpio data belongs to libretech-gpio).
 opt/librecomputer/libretech-wiring-tool/lgpio
