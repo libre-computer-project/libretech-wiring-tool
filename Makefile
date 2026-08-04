@@ -44,9 +44,25 @@ else
   DEPS_FILES := $(addprefix libre-computer/,$(addsuffix /dt.deps,$(DEPS_BOARDS)))
 endif
 
-.PHONY : clean install-lgpio install-ldto install deps
+.PHONY : clean install-lgpio install-ldto install deps check check-strict
+
+# Integrity + gpio.map accuracy (lgpio pinout). Warnings only — does not fail the build.
+# Use `make check-strict` or `scripts/check-lwt.py --strict` in CI if desired.
+CHECK_LWT := python3 scripts/check-lwt.py
+ifneq ($(BOARD_FILTER),)
+  CHECK_LWT_ARGS := --board $(BOARD_FILTER)
+else
+  CHECK_LWT_ARGS :=
+endif
 
 all: $(DTOS_REAL) $(DTOS_SYM) $(DEPS_FILES)
+	@$(CHECK_LWT) $(CHECK_LWT_ARGS) || true
+
+check:
+	$(CHECK_LWT) $(CHECK_LWT_ARGS) || true
+
+check-strict:
+	$(CHECK_LWT) $(CHECK_LWT_ARGS) --strict
 
 deps: $(DEPS_FILES)
 
