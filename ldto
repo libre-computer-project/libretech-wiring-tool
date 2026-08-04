@@ -923,54 +923,8 @@ LDTO_findEFIDTBPath()
 	return 1
 }
 
-# Base DTB for merge: existing EFI override if present, else running firmware FDT.
-# Prints path on stdout. Requires LDTO_importDTConfig + PATH_OF_EFI_DTB set when
-# override should be preferred.
-LDTO_mergeBase()
-{
-	local target_dtb="${PATH_OF_EFI_DTB:+$PATH_OF_EFI_DTB/$DT_OVERRIDE}"
-	if [ -n "$target_dtb" ] && [ -f "$target_dtb" ]; then
-		echo "$target_dtb"
-	elif [ -e "$PATH_OF_DT" ]; then
-		echo "$PATH_OF_DT"
-	else
-		return 1
-	fi
-}
-
-# Single .dtbo path → ESP override via temp (no partial write on failure).
-LDTO_apply()
-{
-	local dtbo_path="$1"
-	if [ ! -f "$dtbo_path" ]; then
-		echo "$FUNCNAME: not a file: $dtbo_path" >&2
-		return 1
-	fi
-	LDTO_findEFIDTBPath RW
-	local base_dtb target_dtb target_dtb_path out
-	base_dtb=$(LDTO_mergeBase) || {
-		echo "$FUNCNAME: no base DTB" >&2
-		return 1
-	}
-	target_dtb="$PATH_OF_EFI_DTB/$DT_OVERRIDE"
-	target_dtb_path="${target_dtb%/*}"
-	if [ ! -d "$target_dtb_path" ]; then
-		mkdir -p "$target_dtb_path"
-	fi
-	out=$(mktemp /tmp/ldto-apply.XXXXXX.dtb)
-	if ! err=$(fdtoverlay -i "$base_dtb" -o "$out" "$dtbo_path" 2>&1); then
-		echo "WARNING: apply not clean for $dtbo_path" >&2
-		echo "WARNING: fdtoverlay: ${err:-failed}" >&2
-		rm -f "$out"
-		return 1
-	fi
-	if ! install -m 644 "$out" "$target_dtb"; then
-		echo "WARNING: apply not clean — failed installing $target_dtb" >&2
-		rm -f "$out"
-		return 1
-	fi
-	rm -f "$out"
-}
+# ESP single-overlay apply used to live here as LDTO_apply + LDTO_mergeBase;
+# both were uncalled after the chain-merge rewrite (R13). Use: ldto merge …
 
 LDTO_merge()
 {
@@ -1619,7 +1573,14 @@ LDTO_conflicts()
 	)
 
 	if [ -z "$pins_blob" ]; then
+		# R15: pin gate is silent on pinless overlays (cvbs-disable, usb dr_mode,
+		# gpu-turbo, …). Not a hard fail — exclusivity for those needs resource
+		# tokens (lc,provides / lc,revokes), not header pins. Be honest.
 		echo "No header pins resolved from overlays (need .dts + gpio.map)."
+		if [ ${#seq[@]} -gt 1 ]; then
+			echo "WARNING: pin conflict gate cannot check exclusivity among ${#seq[@]} pinless/unmapped overlays" >&2
+			echo "WARNING: use fdtoverlay preflight for structural clashes; resource-set metadata for semantic exclusivity" >&2
+		fi
 		return 0
 	fi
 
