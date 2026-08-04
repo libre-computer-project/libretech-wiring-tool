@@ -130,19 +130,47 @@ LDTO_getDTBO()
 	fi
 }
 
+LDTO_getSummary()
+{
+	# One-line Summary: from .dts header (empty if none)
+	local dts="$1"
+	[ -f "$dts" ] || return 0
+	LDTO_extractHeaderComments "$dts" 2>/dev/null | awk '
+		BEGIN { IGNORECASE = 1 }
+		/^Summary:[[:space:]]*/ {
+			sub(/^Summary:[[:space:]]*/, "")
+			print
+			exit
+		}
+	'
+}
+
 LDTO_list()
 {
-	local dtbos="$PATH_DTBO"/*.dtbo
-	if [ -z "$(ls $dtbos 2> /dev/null)" ]; then
-		echo "No overlays detected. Did you run make?" >&2
-		return 1
+	local dtbos
+	dtbos=$(ls "$PATH_DTBO"/*.dtbo 2>/dev/null || true)
+	if [ -z "$dtbos" ]; then
+		# Allow host-side list from .dts alone
+		dtbos=$(ls "$PATH_DTBO"/*.dts 2>/dev/null || true)
+		if [ -z "$dtbos" ]; then
+			echo "No overlays detected. Did you run make?" >&2
+			return 1
+		fi
 	fi
 	LDTO_loadMap
-	echo "#Overlays available" >&2
-	for i in $dtbos
-	do
-		local dto=$(basename $i .dtbo)
-		echo "$dto	$(LDTO_getDTAlias $dto)"
+	printf '#%-28s %-24s %s\n' "OVERLAY" "ALIAS" "SUMMARY" >&2
+	local i dto alias summary dts
+	for i in $dtbos; do
+		dto=$(basename "$i")
+		dto=${dto%.dtbo}
+		dto=${dto%.dts}
+		alias=$(LDTO_getDTAlias "$dto")
+		dts=$(LDTO_getDTS "$dto")
+		summary=""
+		if [ -n "$dts" ]; then
+			summary=$(LDTO_getSummary "$dts")
+		fi
+		printf '%-30s %-24s %s\n' "$dto" "${alias:--}" "${summary:--}"
 	done
 }
 
@@ -161,23 +189,170 @@ LDTO_checkOFConfig()
 	fi
 }
 
+# Collect header pins claimed by an overlay (Header\tPin\tName\tSource)
+# Source is "header" (Pins: table / pin notes) or "dts" (body pad → gpio.map).
+LDTO_collectOverlayPins()
+{
+	local dto="$1"
+	local dts
+	dts=$(LDTO_getDTS "$dto")
+	[ -n "$dts" ] || return 0
+	LDTO_loadGpioMap
+	[ -n "$GPIO_MAP_FILE" ] || return 0
+
+	local comments def_hdr
+	comments=$(LDTO_extractHeaderComments "$dts")
+	def_hdr=$(grep -v '^#' "$GPIO_MAP_FILE" | head -n1 | cut -f1)
+
+	# Structured Pins: 7J1.19  GPIOX_8 ...
+	printf '%s\n' "$comments" | awk -v o="$dto" '
+		{
+			line = $0
+			# strip leading "* " from comment extract if present
+			sub(/^[[:space:]]+/, "", line)
+			if (match(line, /[0-9]+[Jj][0-9]+\.[0-9]+[[:space:]]+[A-Za-z0-9_*]+/)) {
+				tok = substr(line, RSTART, RLENGTH)
+				split(tok, a, /[\.[:space:]]+/)
+				# a[1]=7J1 a[2]=19 a[3]=GPIOX_8
+				if (a[1] != "" && a[2] != "" && a[3] != "")
+					print a[1] "\t" a[2] "\t" a[3] "\t" o "\theader"
+			}
+		}
+	'
+
+	# Body pad names → gpio.map
+	local name row
+	while IFS= read -r name; do
+		[ -z "$name" ] && continue
+		if row=$(LDTO_gpioLookupName "$name"); then
+			while IFS= read -r r; do
+				[ -z "$r" ] && continue
+				local header pin chip line sysfs gname pad ref desc
+				IFS=$'\t' read -r header pin chip line sysfs gname pad ref desc <<<"$r"
+				case "$gname" in GND|5V|3.3V) continue ;; esac
+				printf '%s\t%s\t%s\t%s\tdts\n' "$header" "$pin" "$gname" "$dto"
+			done <<<"$row"
+		fi
+	done < <(LDTO_extractGpioNames "$dts")
+}
+
+LDTO_printPlan()
+{
+	# $@ = overlay names (already expanded or not)
+	LDTO_loadMap
+	LDTO_loadGpioMap
+	local -a seq
+	mapfile -t seq < <(LDTO_expandDeps "$@")
+	echo "Plan (dependency order):"
+	local dto n=0
+	for dto in "${seq[@]}"; do
+		local dto_real dtbo summary dts
+		dto_real=$(LDTO_getAliasDT "$dto")
+		[ -n "$dto_real" ] && dto=$dto_real
+		n=$((n + 1))
+		dtbo=$(LDTO_getDTBO "$dto")
+		dts=$(LDTO_getDTS "$dto")
+		summary=""
+		[ -n "$dts" ] && summary=$(LDTO_getSummary "$dts")
+		local state="apply"
+		if [ -d "$PATH_OF_CONFIG" ] && [ -e "$PATH_OF_CONFIG/$dto" ]; then
+			state="already-active"
+		elif [ -z "$dtbo" ]; then
+			state="MISSING-dtbo"
+		fi
+		printf '  %2d. %-28s [%s] %s\n' "$n" "$dto" "$state" "${summary:--}"
+	done
+
+	echo
+	echo "Header pins that would be claimed:"
+	printf '  %-6s %-4s %-14s %s\n' "Header" "Pin" "Name" "Overlay"
+	local pins_all
+	pins_all=$(
+		for dto in "${seq[@]}"; do
+			dto_real=$(LDTO_getAliasDT "$dto")
+			[ -n "$dto_real" ] && dto=$dto_real
+			LDTO_collectOverlayPins "$dto"
+		done | sort -u
+	)
+	if [ -z "$pins_all" ]; then
+		echo "  (none resolved — bus-only pinctrl or missing .dts/gpio.map)"
+	else
+		# collapse multi-source rows: Header Pin Name -> overlays
+		printf '%s\n' "$pins_all" | awk -F '\t' '
+			{
+				key = $1 "\t" $2 "\t" $3
+				if (!s[key, $4]++) {
+					if (o[key] == "") o[key] = $4
+					else o[key] = o[key] "," $4
+				}
+			}
+			END {
+				for (k in o) {
+					split(k, a, "\t")
+					printf "%s\t%02d\t%s\t%s\t%s\n", a[1], a[2]+0, a[2], a[3], o[k]
+				}
+			}
+		' | sort -t$'\t' -k1,1 -k2,2n | awk -F '\t' '{
+			printf "  %-6s %-4s %-14s %s\n", $1, $3, $4, $5
+		}'
+	fi
+}
+
 LDTO_enable()
 {
-	if [ -z "$1" ]; then
+	local dry_run=0
+	local -a args=()
+	while [ $# -gt 0 ]; do
+		case "$1" in
+			--dry-run|-n)
+				dry_run=1
+				shift
+				;;
+			--help|-h)
+				echo "$0 enable [--dry-run|-n] OVERLAY [OVERLAY...]" >&2
+				echo "  Auto-applies providers from dt.deps. --dry-run prints plan only." >&2
+				return 0
+				;;
+			--)
+				shift
+				args+=("$@")
+				break
+				;;
+			-*)
+				echo "$FUNCNAME: unknown option $1" >&2
+				return 1
+				;;
+			*)
+				args+=("$1")
+				shift
+				;;
+		esac
+	done
+
+	if [ ${#args[@]} -eq 0 ]; then
 		LDTO_list
 		return 1
 	fi
+
+	if [ "$dry_run" -eq 1 ]; then
+		echo "DRY-RUN: no configfs changes" >&2
+		LDTO_printPlan "${args[@]}"
+		return 0
+	fi
+
 	LDTO_checkOFConfig RW
 	LDTO_loadMap
 	local -a seq
-	mapfile -t seq < <(LDTO_expandDeps "$@")
+	mapfile -t seq < <(LDTO_expandDeps "${args[@]}")
 	local dto
 	for dto in "${seq[@]}"; do
-		local dto_real=$(LDTO_getAliasDT "$dto")
-		if [ ! -z "$dto_real" ]; then
+		local dto_real
+		dto_real=$(LDTO_getAliasDT "$dto")
+		if [ -n "$dto_real" ]; then
 			dto=$dto_real
 		fi
-		local dtbo_file=$(LDTO_getDTBO "$dto")
+		local dtbo_file
+		dtbo_file=$(LDTO_getDTBO "$dto")
 		if [ -z "$dtbo_file" ]; then
 			echo "$FUNCNAME: $dto does not exist and cannot be added" >&2
 			return 1
@@ -188,7 +363,7 @@ LDTO_enable()
 		fi
 		mkdir "$PATH_OF_CONFIG/$dto"
 		cat "$dtbo_file" > "$PATH_OF_CONFIG/$dto/dtbo"
-		echo "Overlay $dto: `cat $PATH_OF_CONFIG/$dto/status`" >&2
+		echo "Overlay $dto: $(cat "$PATH_OF_CONFIG/$dto/status")" >&2
 	done
 }
 
@@ -782,13 +957,172 @@ LDTO_info()
 	done
 }
 
+
+LDTO_conflictsHelp()
+{
+	echo "$0 conflicts [OVERLAY|ALIAS]..." >&2
+	echo "  Report header pin collisions among the named overlays (with deps)" >&2
+	echo "  and any currently active overlays. No args = active only." >&2
+}
+
+LDTO_conflicts()
+{
+	if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
+		LDTO_conflictsHelp
+		return 0
+	fi
+	LDTO_loadMap
+	LDTO_loadGpioMap
+	LDTO_loadDeps
+
+	local -a names=()
+	local a
+	for a in "$@"; do
+		names+=("$a")
+	done
+
+	# Include active overlays when configfs is present
+	if [ -d "$PATH_OF_CONFIG" ]; then
+		local act
+		for act in "$PATH_OF_CONFIG"/*; do
+			[ -e "$act" ] || continue
+			names+=("$(basename "$act")")
+		done
+	fi
+
+	if [ ${#names[@]} -eq 0 ]; then
+		echo "$FUNCNAME: no overlays given and none active." >&2
+		LDTO_conflictsHelp
+		return 1
+	fi
+
+	local -a seq
+	mapfile -t seq < <(LDTO_expandDeps "${names[@]}")
+
+	echo "Overlays considered (deps expanded): ${seq[*]}"
+	echo
+
+	# pin_key -> list of overlays
+	local pins_blob
+	pins_blob=$(
+		for dto in "${seq[@]}"; do
+			dto_real=$(LDTO_getAliasDT "$dto")
+			[ -n "$dto_real" ] && dto=$dto_real
+			LDTO_collectOverlayPins "$dto"
+		done
+	)
+
+	if [ -z "$pins_blob" ]; then
+		echo "No header pins resolved from overlays (need .dts + gpio.map)."
+		return 0
+	fi
+
+	# Occupancy table
+	echo "Pin occupancy:"
+	printf '  %-6s %-4s %-14s %s\n' "Header" "Pin" "Name" "Overlays"
+	printf '%s\n' "$pins_blob" | awk -F '\t' '
+		{
+			key = $1 SUBSEP $2
+			nm[key] = $3
+			h[key] = $1
+			p[key] = $2
+			if (!seen[key, $4]++) {
+				if (own[key] == "")
+					own[key] = $4
+				else
+					own[key] = own[key] " " $4
+			}
+		}
+		END {
+			for (k in own)
+				printf "%s\t%02d\t%s\t%s\t%s\n", h[k], p[k]+0, p[k], nm[k], own[k]
+		}
+	' | sort -t$'\t' -k1,1 -k2,2n | awk -F '\t' '{
+		printf "  %-6s %-4s %-14s %s\n", $1, $3, $4, $5
+	}'
+
+
+	echo
+	# True conflicts: same Header.Pin claimed by overlays that are NOT
+	# in a provider→consumer relationship (bus+device sharing SPI pins is OK).
+	LDTO_loadDeps
+	local pin_groups
+	pin_groups=$(
+		printf '%s\n' "$pins_blob" | awk -F '\t' '
+			{
+				key = $1 "\t" $2 "\t" $3
+				if (!seen[key, $4]++) {
+					if (list[key] == "") list[key] = $4
+					else list[key] = list[key] " " $4
+					cnt[key]++
+				}
+			}
+			END {
+				for (k in cnt)
+					if (cnt[k] > 1)
+						print k "\t" list[k]
+			}
+		'
+	)
+
+	_ldto_is_related() {
+		local a="$1" b="$2" x
+		local -a exp
+		mapfile -t exp < <(LDTO_expandDeps "$a")
+		for x in "${exp[@]}"; do
+			[ "$x" = "$b" ] && return 0
+		done
+		mapfile -t exp < <(LDTO_expandDeps "$b")
+		for x in "${exp[@]}"; do
+			[ "$x" = "$a" ] && return 0
+		done
+		return 1
+	}
+
+	local conf_tmp
+	conf_tmp=$(mktemp)
+	if [ -n "$pin_groups" ]; then
+		while IFS=$'\t' read -r h p name owners; do
+			[ -z "$owners" ] && continue
+			local -a oarr=($owners)
+			local i j related_all=1
+			for ((i=0; i<${#oarr[@]}; i++)); do
+				for ((j=i+1; j<${#oarr[@]}; j++)); do
+					if ! _ldto_is_related "${oarr[i]}" "${oarr[j]}"; then
+						related_all=0
+						break 2
+					fi
+				done
+			done
+			if [ "$related_all" -eq 0 ]; then
+				printf '%s\t%s\t%s\t%s\n' "$h" "$p" "$name" "$owners" >> "$conf_tmp"
+			fi
+		done <<<"$pin_groups"
+	fi
+
+	if [ ! -s "$conf_tmp" ]; then
+		rm -f "$conf_tmp"
+		echo "Conflicts: none (shared bus→device pins are OK)"
+		return 0
+	fi
+	echo "Conflicts (unrelated overlays share a pin):"
+	printf '  %-6s %-4s %-14s %s\n' "Header" "Pin" "Name" "Overlays"
+	sort -t$'\t' -k1,1 -k2,2n "$conf_tmp" | awk -F '\t' '{
+		printf "  %-6s %-4s %-14s %s\n", $1, $2, $3, $4
+	}'
+	rm -f "$conf_tmp"
+	return 2
+}
+
+
 LDTO_help(){
 	echo "$0 list"
 	echo "$0 status"
 	echo "$0 active [DTBO]"
-	echo "$0 enable [DTBO]   # auto-applies providers from dt.deps"
+	echo "$0 enable [--dry-run|-n] [DTBO]   # auto-applies providers from dt.deps"
 	echo "$0 disable [DTBO]"
 	echo "$0 info [DTBO]     # description, deps, gpio.map pinout"
+	echo "$0 conflicts [DTBO]...  # pin occupancy / collisions (deps + active)"
 	echo "$0 current"
 	echo "$0 merge [DTBO]    # auto-merges providers from dt.deps"
 	echo "$0 show"
@@ -811,7 +1145,17 @@ if [ ! -z "$1" ]; then
 fi
 cmd_lc=${cmd,,}
 case "$cmd_lc" in
-	help|list|info)
+	help|list|info|conflicts)
+		;;
+	enable)
+		# enable --dry-run does not need configfs
+		dry=0
+		for a in "$@"; do
+			case "$a" in --dry-run|-n) dry=1 ;; esac
+		done
+		if [ "$dry" -eq 0 ]; then
+			LDTO_requireConfigFS || exit 1
+		fi
 		;;
 	*)
 		LDTO_requireConfigFS || exit 1

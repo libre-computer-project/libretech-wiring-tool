@@ -34,6 +34,78 @@ fi
 MAP_FILE="$VENDOR/$BOARD/gpio.map"
 TAB_CHAR='	'
 
+# --- libgpiod v1 vs v2 detection ---
+LGPIO_gpiodMajor(){
+	# 2 if gpioset uses <line=value>, else 1 (legacy chip offset)
+	if gpioset --help 2>&1 | grep -q 'line=value'; then
+		echo 2
+	else
+		echo 1
+	fi
+}
+
+# Run gpioget chip line  (chip and line numeric)
+LGPIO_gpioget(){
+	local chip="$1" line="$2"
+	shift 2
+	local ver
+	ver=$(LGPIO_gpiodMajor)
+	if [ "$ver" = 2 ]; then
+		gpioget -c "$chip" "$@" "$line"
+	else
+		gpioget "$@" "$chip" "$line"
+	fi
+}
+
+# Run gpioset chip line=value with optional global opts already in "$@"
+# Usage: LGPIO_gpioset [gpioset-opts...] chip line value
+LGPIO_gpioset(){
+	local -a opts=()
+	while [ $# -gt 3 ]; do
+		opts+=("$1")
+		shift
+	done
+	local chip="$1" line="$2" value="$3"
+	local ver
+	ver=$(LGPIO_gpiodMajor)
+	if [ "$ver" = 2 ]; then
+		# v2 holds lines until exit; use short hold then exit via toggle 0
+		# -p 10ms keeps value briefly; -t 0 exits immediately after set is wrong.
+		# Prefer -z daemonize? Users often want sticky set. Document that
+		# process must stay alive; use --hold-period 100ms then exit for one-shot.
+		gpioset -c "$chip" "${opts[@]}" -p 100ms -t 0 "$line=$value"
+	else
+		gpioset "${opts[@]}" "$chip" "$line=$value"
+	fi
+}
+
+# Run gpiomon chip line with opts
+LGPIO_gpiomon(){
+	local -a opts=()
+	while [ $# -gt 2 ]; do
+		# stop at last two numeric? Better: -- separates
+		case "$1" in
+			--) shift; break ;;
+		esac
+		# if only 2 args left, break
+		if [ $# -eq 2 ]; then
+			break
+		fi
+		opts+=("$1")
+		shift
+	done
+	local chip="$1" line="$2"
+	local ver
+	ver=$(LGPIO_gpiodMajor)
+	if [ "$ver" = 2 ]; then
+		gpiomon -c "$chip" "${opts[@]}" "$line"
+	else
+		# v1: gpiomon [OPTIONS] <chip> <offset>
+		gpiomon "${opts[@]}" "$chip" "$line"
+	fi
+}
+
+
 LGPIO_getColumn(){
 	local cols=$(grep -iE "^#\s*header" "$MAP_FILE" | grep -Eio "^.*$1($TAB_CHAR|$)")
 	if [ -z "$cols" ]; then
@@ -161,9 +233,12 @@ LGPIO_get(){
 		echo "$FUNCNAME: pin must be numeric." >&2
 		return 1
 	fi
-	local gpiod=$(LGPIO_info $header $pin gpiod)
-	if [ -z "${gpiod//[0-9$TAB_CHAR]}" ]; then
-		gpioget $gpiod
+	local gpiod chip line
+	gpiod=$(LGPIO_info $header $pin gpiod)
+	chip=$(printf '%s' "$gpiod" | cut -f1)
+	line=$(printf '%s' "$gpiod" | cut -f2)
+	if [ -n "$chip" ] && [ -z "${chip//[0-9]}" ] && [ -n "$line" ] && [ -z "${line//[0-9]}" ]; then
+		LGPIO_gpioget "$chip" "$line"
 	else
 		echo "$FUNCNAME: header $header pin $pin not a GPIO." >&2
 		return 1
@@ -171,67 +246,122 @@ LGPIO_get(){
 }
 
 LGPIO_setHelp(){
-	echo "$0 set [HEADER_][PIN]={0,1} [HEADER_][PIN]={0,1}" >&2
+	echo "$0 set [options] [HEADER_]PIN={0,1} [[HEADER_]PIN={0,1}...]" >&2
+	echo "  Options (libgpiod):" >&2
+	echo "    -l, --active-low" >&2
+	echo "    -b, --bias <pull-up|pull-down|disabled|as-is>" >&2
+	echo "    -d, --drive <push-pull|open-drain|open-source>" >&2
+	echo "  Example: $0 set -b pull-up 7J1_11=1" >&2
 }
 
 LGPIO_set(){
-	if [ $# -lt 1 -o -z "$1" ]; then
+	if [ $# -lt 1 ] || [ -z "$1" ]; then
 		LGPIO_setHelp
 		return 1
 	fi
-	while [ ! -z "$1" ]; do
-		if [ -z "${1//*_*=*}" ]; then
-			local header="${1//_*}"
-			if [ -z "$header" ]; then
-				echo "$FUNCNAME: unable to determine header parameter." >&2
+	local -a gs_opts=()
+	local -a pinargs=()
+	while [ $# -gt 0 ]; do
+		case "$1" in
+			-l|--active-low)
+				gs_opts+=("-l")
+				shift
+				;;
+			-b|--bias)
+				if [ -z "$2" ]; then
+					echo "$FUNCNAME: --bias needs a value" >&2
+					return 1
+				fi
+				# map as-is -> omit (v2 has no as-is)
+				if [ "$2" != "as-is" ]; then
+					# v1 used --bias=; v2 uses -b
+					if [ "$(LGPIO_gpiodMajor)" = 2 ]; then
+						case "$2" in
+							pull-up|pull-down) gs_opts+=("-b" "$2") ;;
+							disabled|disable) gs_opts+=("-b" "disabled") ;;
+							*) echo "$FUNCNAME: invalid bias $2" >&2; return 1 ;;
+						esac
+					else
+						gs_opts+=("-B" "$2")
+					fi
+				fi
+				shift 2
+				;;
+			-d|--drive)
+				if [ -z "$2" ]; then
+					echo "$FUNCNAME: --drive needs a value" >&2
+					return 1
+				fi
+				if [ "$(LGPIO_gpiodMajor)" = 2 ]; then
+					gs_opts+=("-d" "$2")
+				else
+					gs_opts+=("-D" "$2")
+				fi
+				shift 2
+				;;
+			-h|--help)
+				LGPIO_setHelp
+				return 0
+				;;
+			-*)
+				echo "$FUNCNAME: unknown option $1" >&2
 				return 1
-			fi
-			local pin="${1//*_}"
-			local pin="${pin//=*}"
-		elif [ -z "${1//*=*}" ]; then
-			local header=$(LGPIO_getDefaultHeader)
-			local pin="${1//=*}"
+				;;
+			*)
+				pinargs+=("$1")
+				shift
+				;;
+		esac
+	done
+	if [ ${#pinargs[@]} -eq 0 ]; then
+		LGPIO_setHelp
+		return 1
+	fi
+	local arg
+	for arg in "${pinargs[@]}"; do
+		local header pin value
+		if [[ "$arg" == *_*=* ]]; then
+			header="${arg%%_*}"
+			local rest="${arg#*_}"
+			pin="${rest%%=*}"
+			value="${rest#*=}"
+		elif [[ "$arg" == *=* ]]; then
+			header=$(LGPIO_getDefaultHeader)
+			pin="${arg%%=*}"
+			value="${arg#*=}"
 		else
-			echo "$FUNCNAME: unable to determine header or pin from parameter." >&2
+			echo "$FUNCNAME: unable to determine header or pin from parameter $arg" >&2
 			return 1
 		fi
-		if [ -z "$pin" ]; then
-			echo "$FUNCNAME: unable to determine header parameter." >&2
-			return 1
-		elif [ ! -z "${pin//[0-9]}" ]; then
-			echo "$FUNCNAME: pin must be numeric." >&2
+		if [ -z "$pin" ] || [ -n "${pin//[0-9]}" ]; then
+			echo "$FUNCNAME: pin must be numeric (got '$pin')." >&2
 			return 1
 		fi
-		local value="${1//*=}"
-		if [ ! -z "${value/[01]}" ]; then
+		if [ -n "${value//[01]}" ]; then
 			echo "$FUNCNAME: invalid GPIO value $value." >&2
 			return 1
 		fi
-		if [ -z "$pin" ]; then
-			echo "$FUNCNAME: unable to determine pin value parameter." >&2
-			return 1
-		fi
-		local gpiod=$(LGPIO_info $header $pin gpiod)
-		if [ -z "${gpiod//[0-9$TAB_CHAR]}" ]; then
-			gpioset $gpiod=$value
-		else
+		local gpiod chip line
+		gpiod=$(LGPIO_info $header $pin gpiod)
+		chip=$(printf '%s' "$gpiod" | cut -f1)
+		line=$(printf '%s' "$gpiod" | cut -f2)
+		if [ -z "$chip" ] || [ -n "${chip//[0-9]}" ] || [ -z "$line" ] || [ -n "${line//[0-9]}" ]; then
 			echo "$FUNCNAME: header $header pin $pin is not a GPIO." >&2
 			return 1
 		fi
-		shift
+		LGPIO_gpioset "${gs_opts[@]}" "$chip" "$line" "$value"
 	done
 }
 
 LGPIO_bcmHelp(){
 	echo "$0 bcm [PIN] [TYPE={all,gpiod,chip,line,sysfs,name,pad,ref,desc}]" >&2
+	echo "$0 bcm check   # list all BCM# → header pin coverage for this board" >&2
 }
 
-LGPIO_bcm(){
-	if [ $# -lt 1 ]; then
-		LGPIO_bcmHelp
-		return 1
-	fi
-	declare -A BCM_GPIO2PIN
+# Populate BCM_GPIO2PIN associative array (RPi BCM → 40-pin physical pin).
+LGPIO_bcmLoadMap(){
+	declare -gA BCM_GPIO2PIN
+	BCM_GPIO2PIN=()
 	BCM_GPIO2PIN[2]=3
 	BCM_GPIO2PIN[3]=5
 	BCM_GPIO2PIN[4]=7
@@ -262,13 +392,95 @@ LGPIO_bcm(){
 	BCM_GPIO2PIN[26]=37
 	BCM_GPIO2PIN[20]=38
 	BCM_GPIO2PIN[21]=40
+}
+
+LGPIO_bcmCheck(){
+	LGPIO_bcmLoadMap
+	local header
+	header=$(LGPIO_getDefaultHeader)
+	echo "# BCM completeness vs $header on $BOARD" >&2
+	printf '%-8s %-6s %-10s %s\n' "BCM" "PIN" "STATUS" "NAME"
+	local bcm pin status name chip line row missing=0
+	# Numeric BCM lines only for the table (aliases checked separately)
+	local nums=(2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27)
+	for bcm in "${nums[@]}"; do
+		pin=${BCM_GPIO2PIN[$bcm]}
+		if [ -z "$pin" ]; then
+			printf '%-8s %-6s %-10s %s\n' "$bcm" "-" "NO-MAP" "(not in BCM table)"
+			missing=$((missing + 1))
+			continue
+		fi
+		if ! grep -qi "^$header$TAB_CHAR$pin$TAB_CHAR" "$MAP_FILE"; then
+			printf '%-8s %-6s %-10s %s\n' "$bcm" "$pin" "MISSING" "(no $header.$pin in gpio.map)"
+			missing=$((missing + 1))
+			continue
+		fi
+		row=$(grep -i "^$header$TAB_CHAR$pin$TAB_CHAR" "$MAP_FILE")
+		chip=$(printf '%s' "$row" | cut -f3)
+		name=$(printf '%s' "$row" | cut -f6)
+		case "$chip" in
+			GND|5V|3.3V|ADC)
+				status="POWER"
+				;;
+			*)
+				if [ -z "${chip//[0-9]}" ]; then
+					status="OK"
+				else
+					status="NON-GPIO"
+					missing=$((missing + 1))
+				fi
+				;;
+		esac
+		printf '%-8s %-6s %-10s %s\n' "$bcm" "$pin" "$status" "$name"
+	done
+	# Aliases
+	for bcm in SDA0 SCL0 ID_SD ID_SC; do
+		pin=${BCM_GPIO2PIN[$bcm]}
+		if ! grep -qi "^$header$TAB_CHAR$pin$TAB_CHAR" "$MAP_FILE"; then
+			echo "WARNING: BCM alias $bcm → pin $pin not in gpio.map" >&2
+			missing=$((missing + 1))
+		fi
+	done
+	if [ "$missing" -gt 0 ]; then
+		echo "WARNING: $missing BCM mapping issue(s) for $BOARD $header" >&2
+		return 1
+	fi
+	echo "BCM map complete for $BOARD $header" >&2
+	return 0
+}
+
+LGPIO_bcm(){
+	if [ $# -lt 1 ]; then
+		LGPIO_bcmHelp
+		return 1
+	fi
+	if [ "$1" = "check" ]; then
+		LGPIO_bcmCheck
+		return $?
+	fi
+	LGPIO_bcmLoadMap
 	local bcm_gpio=$1
 	shift
 	if [[ ! -v BCM_GPIO2PIN[$bcm_gpio] ]]; then
-		echo "$FUNCNAME: bcm gpio does not exist." >&2
-		exit 1
+		echo "$FUNCNAME: bcm gpio $bcm_gpio does not exist in BCM table." >&2
+		echo "  Hint: $0 bcm check" >&2
+		return 1
 	fi
-	LGPIO_info ${BCM_GPIO2PIN[$bcm_gpio]} $@
+	local pin=${BCM_GPIO2PIN[$bcm_gpio]}
+	local header
+	header=$(LGPIO_getDefaultHeader)
+	if ! grep -qi "^$header$TAB_CHAR$pin$TAB_CHAR" "$MAP_FILE"; then
+		echo "WARNING: BCM $bcm_gpio → $header pin $pin has no row in gpio.map" >&2
+		return 1
+	fi
+	local chip
+	chip=$(grep -i "^$header$TAB_CHAR$pin$TAB_CHAR" "$MAP_FILE" | cut -f3)
+	case "$chip" in
+		GND|5V|3.3V|ADC)
+			echo "WARNING: BCM $bcm_gpio → $header pin $pin is $chip (not a GPIO line)" >&2
+			;;
+	esac
+	LGPIO_info "$header" "$pin" "$@"
 }
 
 LGPIO_MD_getBit(){
@@ -351,12 +563,151 @@ LGPIO_debug(){
 	done
 }
 
+
+LGPIO_pinmuxHelp(){
+	echo "$0 pinmux [HEADER] [PIN]" >&2
+	echo "  Show SoC pad + alternate functions (Ref / Desc) from gpio.map." >&2
+	echo "  No PIN: list all pins on HEADER (default header if omitted)." >&2
+}
+
+LGPIO_pinmux(){
+	local header pin
+	if [ $# -eq 0 ]; then
+		header=$(LGPIO_getDefaultHeader)
+		pin=""
+	elif [ "$1" -eq "$1" ] 2>/dev/null; then
+		header=$(LGPIO_getDefaultHeader)
+		pin="$1"
+	else
+		header="$1"
+		shift
+		pin="${1:-}"
+	fi
+	if ! grep -qi "^$header$TAB_CHAR" "$MAP_FILE"; then
+		echo "$FUNCNAME: header $header does not exist." >&2
+		return 1
+	fi
+	if [ -n "$pin" ]; then
+		if [ -n "${pin//[0-9]}" ]; then
+			echo "$FUNCNAME: pin must be numeric" >&2
+			return 1
+		fi
+		if ! grep -qi "^$header$TAB_CHAR$pin$TAB_CHAR" "$MAP_FILE"; then
+			echo "$FUNCNAME: pin $pin not on $header" >&2
+			return 1
+		fi
+	fi
+	printf '%-6s %-4s %-14s %-8s %-14s %s\n' "Header" "Pin" "Name" "Pad" "Ref" "Functions (Desc)"
+	local filter="^$header$TAB_CHAR"
+	[ -n "$pin" ] && filter="^$header$TAB_CHAR$pin$TAB_CHAR"
+	grep -i "$filter" "$MAP_FILE" | while IFS=$'\t' read -r h p chip line sysfs name pad ref desc; do
+		# Desc often space-separated alt functions; show with " | "
+		local funcs
+		funcs=$(printf '%s' "$desc" | sed 's/[[:space:]]\{1,\}/ | /g')
+		printf '%-6s %-4s %-14s %-8s %-14s %s\n' "$h" "$p" "$name" "$pad" "$ref" "${funcs:-$desc}"
+	done
+}
+
+LGPIO_watchHelp(){
+	echo "$0 watch [options] [HEADER] PIN" >&2
+	echo "  Monitor edge events (gpiomon). Options:" >&2
+	echo "    -e, --edges <rising|falling|both>  (default both)" >&2
+	echo "    -b, --bias <pull-up|pull-down|disabled>" >&2
+	echo "    -l, --active-low" >&2
+	echo "    -n, --num-events <N>   exit after N events" >&2
+}
+
+LGPIO_watch(){
+	if [ $# -lt 1 ]; then
+		LGPIO_watchHelp
+		return 1
+	fi
+	if ! command -v gpiomon >/dev/null 2>&1; then
+		echo "$FUNCNAME: gpiomon not found (install gpiod package)" >&2
+		return 1
+	fi
+	local -a opts=()
+	local edges="both"
+	while [ $# -gt 0 ]; do
+		case "$1" in
+			-e|--edges)
+				edges="$2"
+				if [ "$(LGPIO_gpiodMajor)" = 2 ]; then
+					opts+=("-e" "$2")
+				else
+					case "$2" in
+						rising) opts+=("--rising-edge") ;;
+						falling) opts+=("--falling-edge") ;;
+						both) opts+=("--rising-edge" "--falling-edge") ;;
+					esac
+				fi
+				shift 2
+				;;
+			-b|--bias)
+				if [ "$(LGPIO_gpiodMajor)" = 2 ]; then
+					opts+=("-b" "$2")
+				else
+					opts+=("-B" "$2")
+				fi
+				shift 2
+				;;
+			-l|--active-low)
+				opts+=("-l")
+				shift
+				;;
+			-n|--num-events)
+				if [ "$(LGPIO_gpiodMajor)" = 2 ]; then
+					opts+=("-n" "$2")
+				else
+					opts+=("-n" "$2")
+				fi
+				shift 2
+				;;
+			-h|--help)
+				LGPIO_watchHelp
+				return 0
+				;;
+			-*)
+				echo "$FUNCNAME: unknown option $1" >&2
+				return 1
+				;;
+			*)
+				break
+				;;
+		esac
+	done
+	local header pin
+	if [ "$1" -eq "$1" ] 2>/dev/null; then
+		header=$(LGPIO_getDefaultHeader)
+		pin="$1"
+	else
+		header="$1"
+		pin="$2"
+	fi
+	if [ -z "$pin" ] || [ -n "${pin//[0-9]}" ]; then
+		echo "$FUNCNAME: pin must be numeric" >&2
+		return 1
+	fi
+	local gpiod chip line
+	gpiod=$(LGPIO_info $header $pin gpiod)
+	chip=$(printf '%s' "$gpiod" | cut -f1)
+	line=$(printf '%s' "$gpiod" | cut -f2)
+	if [ -z "$chip" ] || [ -n "${chip//[0-9]}" ]; then
+		echo "$FUNCNAME: $header pin $pin is not a GPIO" >&2
+		return 1
+	fi
+	echo "Watching $header pin $pin (chip $chip line $line) edges=$edges — Ctrl-C to stop" >&2
+	LGPIO_gpiomon "${opts[@]}" "$chip" "$line"
+}
+
 LGPIO_help(){
 	LGPIO_headersHelp
 	LGPIO_headerHelp
 	LGPIO_infoHelp
 	LGPIO_getHelp
 	LGPIO_setHelp
+	LGPIO_pinmuxHelp
+	LGPIO_watchHelp
 	LGPIO_bcmHelp
 	LGPIO_debugHelp
 	exit 1
