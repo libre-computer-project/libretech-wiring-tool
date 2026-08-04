@@ -405,6 +405,143 @@ LDTO_rollbackConfigFS()
 	done
 }
 
+# Basenames of configfs overlays with status "applied" (one per line).
+LDTO_listAppliedOverlays()
+{
+	local d st
+	[ -d "$PATH_OF_CONFIG" ] || return 0
+	for d in "$PATH_OF_CONFIG"/*; do
+		[ -e "$d" ] || continue
+		st=$(tr -d '\n' < "$d/status" 2>/dev/null || echo unknown)
+		[ "$st" = "applied" ] || continue
+		basename "$d"
+	done
+}
+
+# Plan steps that still need configfs apply (not already status=applied).
+# Prints one basename per line.
+LDTO_planToApply()
+{
+	local dto st
+	for dto in "$@"; do
+		if [ -d "$PATH_OF_CONFIG" ] && [ -e "$PATH_OF_CONFIG/$dto" ]; then
+			st=$(tr -d '\n' < "$PATH_OF_CONFIG/$dto/status" 2>/dev/null || echo unknown)
+			if [ "$st" = "applied" ]; then
+				continue
+			fi
+		fi
+		printf '%s\n' "$dto"
+	done
+}
+
+# Write live-ish base DTB to $1: stock firmware FDT + currently applied
+# overlays that have a local .dtbo (readdir order — best-effort).
+# Returns 0 on success; 1 if firmware unreadable or active re-apply fails.
+LDTO_buildLiveBase()
+{
+	local out="$1"
+	local name dtbo
+	local -a applied=() chain=()
+
+	if [ ! -r "$PATH_OF_DT" ]; then
+		return 1
+	fi
+
+	mapfile -t applied < <(LDTO_listAppliedOverlays)
+	for name in "${applied[@]}"; do
+		[ -n "$name" ] || continue
+		dtbo=$(LDTO_getDTBO "$name")
+		if [ -n "$dtbo" ] && [ -f "$dtbo" ]; then
+			chain+=("$name")
+		else
+			echo "WARNING: live preflight: active overlay '$name' has no local .dtbo; live base may be incomplete" >&2
+		fi
+	done
+
+	if [ ${#chain[@]} -eq 0 ]; then
+		cp -f "$PATH_OF_DT" "$out"
+		return 0
+	fi
+	# Re-apply actives onto stock firmware; failure means we cannot model live OF.
+	if ! LDTO_chainPreflight "$PATH_OF_DT" "$out" "${chain[@]}"; then
+		echo "WARNING: live preflight: cannot reconstruct base from actives: ${chain[*]}" >&2
+		return 1
+	fi
+	return 0
+}
+
+# R2(c): hard-fail enable when plan collides on pins with actives / itself.
+# Uses LDTO_conflicts (deps + configfs actives). Output only on failure.
+LDTO_enableGateConflicts()
+{
+	local out rc=0
+	out=$(mktemp /tmp/ldto-conflicts.XXXXXX) || return 1
+	LDTO_conflicts "$@" >"$out" 2>&1 || rc=$?
+	if [ "$rc" -eq 2 ]; then
+		echo "WARNING: enable aborted — pin conflicts between plan and/or active overlays" >&2
+		cat "$out" >&2
+		rm -f "$out"
+		return 1
+	fi
+	if [ "$rc" -ne 0 ]; then
+		echo "WARNING: enable aborted — conflict check failed (exit $rc)" >&2
+		cat "$out" >&2
+		rm -f "$out"
+		return 1
+	fi
+	rm -f "$out"
+	return 0
+}
+
+# R2(b): fdtoverlay plan steps that are not already applied, against
+# firmware FDT + re-applied current actives (not stock FDT alone).
+# Usage: LDTO_enableLivePreflight name1 [name2...]   (canonical plan seq)
+LDTO_enableLivePreflight()
+{
+	local -a seq=("$@")
+	local -a to_apply=()
+	local live out
+
+	if [ ! -r "$PATH_OF_DT" ]; then
+		# Host-side dry-run / no firmware node: pin gate still ran; chain check N/A.
+		echo "WARNING: cannot live-preflight enable (no readable $PATH_OF_DT); skipping chain check" >&2
+		return 0
+	fi
+
+	mapfile -t to_apply < <(LDTO_planToApply "${seq[@]}")
+	# Drop empty last line from mapfile on empty input
+	if [ ${#to_apply[@]} -eq 1 ] && [ -z "${to_apply[0]}" ]; then
+		to_apply=()
+	fi
+
+	live=$(mktemp /tmp/ldto-live.XXXXXX.dtb) || return 1
+	out=$(mktemp /tmp/ldto-enable.XXXXXX.dtb) || {
+		rm -f "$live"
+		return 1
+	}
+
+	if ! LDTO_buildLiveBase "$live"; then
+		rm -f "$live" "$out"
+		echo "WARNING: enable aborted — cannot build live preflight base (firmware + actives)" >&2
+		return 1
+	fi
+
+	if [ ${#to_apply[@]} -eq 0 ]; then
+		echo "Preflight: all planned overlays already applied (live base OK)" >&2
+		rm -f "$live" "$out"
+		return 0
+	fi
+
+	if ! LDTO_chainPreflight "$live" "$out" "${to_apply[@]}"; then
+		rm -f "$live" "$out"
+		echo "WARNING: enable aborted — chain does not apply cleanly to live tree (firmware + actives)" >&2
+		echo "WARNING: new steps: ${to_apply[*]}" >&2
+		return 1
+	fi
+	rm -f "$live" "$out"
+	return 0
+}
+
 LDTO_enable()
 {
 	local dry_run=0
@@ -423,9 +560,10 @@ LDTO_enable()
 			--help|-h)
 				echo "$0 enable [--dry-run|-n] [--no-preflight] OVERLAY [OVERLAY...]" >&2
 				echo "  Auto-applies providers from dt.deps (autoload chain)." >&2
-				echo "  Preflights the full chain with fdtoverlay before configfs;" >&2
-				echo "  on intermediate failure prints WARNING and applies nothing." >&2
-				echo "  --dry-run: plan only. --no-preflight: skip fdtoverlay check." >&2
+				echo "  Before configfs: (1) pin conflicts vs actives, (2) fdtoverlay of" >&2
+				echo "  new steps on live base = firmware FDT + currently applied overlays." >&2
+				echo "  Intermediate failure → WARNING, applies nothing." >&2
+				echo "  --dry-run: plan + same gates, no configfs. --no-preflight: skip both gates." >&2
 				return 0
 				;;
 			--)
@@ -452,19 +590,18 @@ LDTO_enable()
 	if [ "$dry_run" -eq 1 ]; then
 		echo "DRY-RUN: no configfs changes" >&2
 		LDTO_printPlan "${args[@]}"
-		# Optional fdtoverlay preflight when firmware DTB is readable
-		if [ "$skip_preflight" -eq 0 ] && [ -r "$PATH_OF_DT" ]; then
+		if [ "$skip_preflight" -eq 0 ]; then
+			LDTO_loadMap
 			local -a seq
 			mapfile -t seq < <(LDTO_planSequence "${args[@]}")
-			local out
-			out=$(mktemp /tmp/ldto-enable-dry.XXXXXX.dtb)
-			if LDTO_chainPreflight "$PATH_OF_DT" "$out" "${seq[@]}"; then
-				echo "DRY-RUN: fdtoverlay chain OK (${#seq[@]} overlay(s))" >&2
-				rm -f "$out"
-			else
-				rm -f "$out"
+			if ! LDTO_enableGateConflicts "${args[@]}"; then
 				return 1
 			fi
+			echo "DRY-RUN: pin conflicts OK" >&2
+			if ! LDTO_enableLivePreflight "${seq[@]}"; then
+				return 1
+			fi
+			echo "DRY-RUN: live fdtoverlay preflight OK" >&2
 		fi
 		return 0
 	fi
@@ -485,20 +622,13 @@ LDTO_enable()
 		fi
 	done
 
-	# Full-chain preflight against running firmware DTB (autoload order).
-	# Intermediate fdtoverlay failure → WARNING, zero configfs changes.
+	# R2: conflicts (c) then live-base chain preflight (b). Zero configfs on fail.
 	if [ "$skip_preflight" -eq 0 ]; then
-		if [ -r "$PATH_OF_DT" ]; then
-			local out
-			out=$(mktemp /tmp/ldto-enable.XXXXXX.dtb)
-			if ! LDTO_chainPreflight "$PATH_OF_DT" "$out" "${seq[@]}"; then
-				rm -f "$out"
-				echo "WARNING: enable aborted — chain does not apply cleanly to running DTB" >&2
-				return 1
-			fi
-			rm -f "$out"
-		else
-			echo "WARNING: cannot preflight enable (no readable $PATH_OF_DT); applying without chain check" >&2
+		if ! LDTO_enableGateConflicts "${args[@]}"; then
+			return 1
+		fi
+		if ! LDTO_enableLivePreflight "${seq[@]}"; then
+			return 1
 		fi
 	fi
 
@@ -1459,7 +1589,7 @@ LDTO_help(){
 	echo "$0 list"
 	echo "$0 status"
 	echo "$0 active [DTBO]"
-	echo "$0 enable [--dry-run|-n] [--no-preflight] [DTBO]  # dt.deps autoload + chain preflight"
+	echo "$0 enable [--dry-run|-n] [--no-preflight] [DTBO]  # deps + conflicts + live preflight"
 	echo "$0 disable [DTBO]"
 	echo "$0 info [DTBO]     # description, deps, gpio.map pinout"
 	echo "$0 conflicts [DTBO]...  # pin occupancy / collisions (deps + active)"
