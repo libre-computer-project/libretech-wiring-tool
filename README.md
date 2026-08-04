@@ -2,168 +2,99 @@
 SPDX-License-Identifier: MIT
 -->
 # Libre Computer Wiring Tool
-## Objective
 
-These utilities were designed to work with Libre Computer OS images to control GPIO and various buses such as I2C, SPI, UART, and SDIO.
+Utilities for Libre Computer OS images: header GPIO (`lgpio`) and device-tree
+overlays (`ldto`). Board pinout tables and overlay sources live under
+`libre-computer/<board>/`.
+
+## Install
+
+On a Libre Computer image (or any Debian system with the packages):
+
+```bash
+# GPIO tool + gpio.map data
+sudo apt install libretech-gpio
+
+# Overlay tool + .dtbo / dt.map / dt.deps
+sudo apt install libretech-dtoverlay
+```
+
+From this tree:
+
+```bash
+make BOARD_NAME=aml-s905x-cc    # build overlays for one board
+make check                      # integrity + gpio.map accuracy (warnings)
+sudo make install               # → /opt/librecomputer/libretech-wiring-tool/
+```
+
+Installed tools are typically linked as `lgpio` / `ldto` via alternatives, or
+run from `/opt/librecomputer/libretech-wiring-tool/`.
 
 ## Prerequisites
-- Libre Computer board
-- Libre Computer [OS image](http://distro.libre.computer/ci/) or Raspbian adapted using [Raspbian Portability tool](https://github.com/libre-computer-project/libretech-raspbian-portability.git)
-- Android, Armbian, CoreELEC, LibreELEC, Lakka are not supported!
 
-## Supported GPIO Features
-- Translation from pin# or BCM (RPI) GPIO# to multiple output formats includeing sysfs, gpiod (chip+line), SoC ref, SoC ball, schematic ref, mux functions
-- Getting and setting of GPIO pins that is not to be used as an API since performance cost of lookup is non-trivial
-- GPIO LED sweep test to turn on and off header in sequence repeatedly
-- [YouTube Guide](https://youtu.be/MDji4Yn_i8Q?t=720)
+- Libre Computer board (DMI `board_vendor` / `board_name`)
+- Libre Computer [OS image](http://distro.libre.computer/ci/) or Raspbian
+  adapted with [libretech-raspbian-portability](https://github.com/libre-computer-project/libretech-raspbian-portability.git)
+- Android, Armbian, CoreELEC, LibreELEC, Lakka are not supported
 
-## Unsupported GPIO Features
-- Drive modes, strength, biases
-- gpioset modes
-- active state
+Host-side `ldto list` / `info` / `conflicts` / `enable --dry-run` work with:
 
-## GPIO Usage
 ```bash
+export VENDOR=libre-computer BOARD=aml-s905x-cc
+```
+
+## Which tool?
+
+| Need | Tool | Doc |
+|------|------|-----|
+| Header pin → chip/line, pad, mux | `lgpio` | [docs/lgpio.md](docs/lgpio.md) |
+| Enable SPI/I2C/display overlays | `ldto` | [docs/ldto.md](docs/ldto.md) |
+| Pinout table format / accuracy | `gpio.map` | [docs/gpio-map.md](docs/gpio-map.md) |
+| Overlay naming, deps, headers | sources | [docs/overlays.md](docs/overlays.md) |
+| Debian packages, install paths | packaging | [docs/packaging.md](docs/packaging.md) |
+
+## Quick start
+
+```bash
+# Pinout
 lgpio headers
-lgpio header [HEADER]
-lgpio info [HEADER] PIN [type=all,gpiod,chip,line,sysfs,name,pad,ref,desc]
-lgpio get [HEADER] PIN
-lgpio set [HEADER_][PIN]={0,1} [HEADER_][PIN]={0,1}
-lgpio bcm [PIN] [TYPE={all,gpiod,chip,line,sysfs,name,pad,ref,desc}]
+lgpio pinmux 7J1 19          # MOSI pad + alt functions
+lgpio info 24 name           # CE0 / SPI_SS0 on many boards
+lgpio bcm check              # BCM (RPi) coverage vs gpio.map
 
-> lgpio headers
-7J1
-2J3
-2J1
-9J1
-
-> lgpio header 7J1
-Pin	Chip	Line	sysfs	Name	Pad	Ref	Desc
-1	3.3V	3.3V	3.3V	3.3V	3.3V	VCC3.3V	3.3V
-2	5V	5V	5V	5V	5V	VCC5V	5V
-3	0	5	506	GPIOAO_5	D13	I2C_SDA_AO	I2C_SDA_AO // I2C_SLAVE_SDA_AO // UART_RX_AO_B
-4	5V	5V	5V	5V	5V	VCC5V	5V
-5	0	4	505	GPIOAO_4	A10	I2C_SCK_AO	I2C_SCK_AO // I2C_SLAVE_SCK_AO // UART_TX_AO_B
-6	GND	GND	GND	GND	GND	GND	GND
-7	1	98	499	GPIOCLK_0	E9	GPIOCLK_0	CLK24 // CLK12 // CLKOUT
-8	1	91	492	GPIOX_12	A6	UART_A_TX	UART_TX_A (long fifo) // SLIP_UART_TX
-9	GND	GND	GND	GND	GND	GND	GND
-10	1	92	493	GPIOX_13	B6	UART_A_RX	UART_RX_A // SLIP_UART_RX
-11	0	8	509	GPIOAO_8*	F17	I2SOUT-CH23	2J1 SELECT // AO_CEC // EE_CEC // I2SOUT_CH23 // PWM_AO_A
-12	0	6	507	GPIOAO_6	C11	PWM_F	CLK_32K_IN // I2S_IN_01 // SPDIF_OUT // PWM_AO_B
-13	0	9	510	GPIOAO_9	C12	I2SOUT-CH45	REMOTE_OUTPUT // PWM_AO_B // I2SOUT_CH45 // SPDIF_OUT
-14	GND	GND	GND	GND	GND	GND	GND
-15	0	10	511	TEST_N**	B12	I2SOUT-CH67	**PULL LOW RESET** // WATCHDOG // GPOAO_14 // I2SOUT_CH67
-16	1	93	494	GPIOX_14	C6	UART_A_CTS_N	UART_CTS_A // SLIP_UART_CTS
-17	3.3V	3.3V	3.3V	3.3V	3.3V	VCC3.3V	3.3V
-18	1	94	495	GPIOX_15	C7	UART_A_RTS_N	UART_RTS_A // SLIP_UART_RTS 
-19	1	87	488	GPIOX_8	B4	BTPCM_DOUT	PCM_OUT_A // UART_TX_C // SPI_MOSI // TSin_SOP_A
-20	GND	GND	GND	GND	GND	GND	GND
-21	1	88	489	GPIOX_9	B3	BTPCM_DIN	PCM_IN_A // UART_RX_C // SPI_MISO // Tsin_D_VALID_A
-22	1	79	480	GPIOX_0	A2	WIFI_SD_D0	SDIO_D0
-23	1	90	491	GPIOX_11	C4	BTPCM_CLK	PCM_CLK_A // UART_RTS_C // SPI_SCLK // TSin_CLK_A
-24	1	89	490	GPIOX_10	C5	BTPCM_SYNC	PCM_FS_A // UART_CTS_C // SPI_SS0 // TSin_D0_A
-25	GND	GND	GND	GND	GND	GND	GND
-26	1	80	481	GPIOX_1	C3	WIFI_SD_D1	SDIO_D1
-27	1	75	476	GPIODV_26	E2	I2C_SDA_A	UART_CTS_B // I2C_SDA_B
-28	1	76	477	GPIODV_27	F3	I2C_SCK_A	UART_RTS_B // I2C_SCK_B
-29	1	96	497	GPIOX_17	B5	BT_EN	BT_EN
-30	GND	GND	GND	GND	GND	GND	GND
-31	1	97	498	GPIOX_18	B7	BT_WAKE_HOST	BT_WAKE_HOST
-32	1	95	496	GPIOX_16	A3	WIFI_32K	PWM_E 
-33	1	85	486	GPIOX_6	D2	WIFI_PWREN	PWM_A
-34	GND	GND	GND	GND	GND	GND	GND
-35	1	86	487	GPIOX_7	C1	WIFI_WAKE_HOST	SDIO_IRQ // PWM_F
-36	1	81	482	GPIOX_2	C2	WIFI_SD_D2	SDIO_D2
-37	1	84	485	GPIOX_5	D3	WIFI_SD_CMD	SDIO_CMD
-38	1	82	483	GPIOX_3	B1	WIFI_SD_D3	SDIO_D3
-39	GND	GND	GND	GND	GND	GND	GND
-40	1	83	484	GPIOX_4	B2	WIFI_SD_CLK	SDIO_CLK
-
-> lgpio info 7J1 3
-Chip	Line	sysfs	Name	Pad	Ref	Desc
-0	5	506	GPIOAO_5	D13	I2C_SDA_AO	I2C_SDA_AO // I2C_SLAVE_SDA_AO // UART_RX_AO_B
-
-> lgpio info 3
-Chip	Line	sysfs	Name	Pad	Ref	Desc
-0	5	506	GPIOAO_5	D13	I2C_SDA_AO	I2C_SDA_AO // I2C_SLAVE_SDA_AO // UART_RX_AO_B
-
-> lgpio get 7J1 3 # Do not use this as an API call. The overhead of lookup is non-trivial.
-1
-
-> lgpio get 3 # Do not use this as an API call. The overhead of lookup is non-trivial.
-1
-
-> lgpio set 7J1_3=1 7J1_5=1 # Do not use this as an API call. The overhead of lookup is non-trivial.
-
-> lgpio set 3=1 5=1 # Do not use this as an API call. The overhead of lookup is non-trivial.
-
-> lgpio bcm 2 # Translate from BCM (RPI) GPIO# instead of pin #
-Chip	Line	sysfs	Name	Pad	Ref	Desc
-0	5	506	GPIOAO_5	D13	I2C_SDA_AO	I2C_SDA_AO // I2C_SLAVE_SDA_AO // UART_RX_AO_B
-
-> lgpio bcm 2 sysfs # Get the deprecated sysfs interface number from BCM (RPI) GPIO# for use with /sys/class/gpio/export
-506
+# Overlays (runtime — needs configfs)
+ldto list
+ldto info spi-cc-1cs
+ldto enable --dry-run spi-cc-1cs-ili9341
+sudo ldto enable spi-cc-1cs-ili9341    # auto-applies bus deps
+ldto conflicts spi-cc-1cs-enc28j60 spi-cc-1cs-ili9341
 ```
 
-## Supported Device Tree Overlay Features
-- I2C
-- SPI
-- UART
-- PWM
-- SDIO
-- SPI frequency and mode test
-- [YouTube Guide](https://youtu.be/MDji4Yn_i8Q?t=600)
+## Documentation
 
-## Device Tree Overlay Usage
-```bash
-./ldto list # lists overlays
-./ldto status # returns list of active overlays
-./ldto active [OVERLAY] # returns list of active overlays, if OVERLAY is specified: returns 0 if active, 1 if inactive
-sudo ./ldto enable OVERLAY # apply overlay temporarily, effective until reboot
-sudo ./ldto disable OVERLAY # remove temporary overlay, can crash system if overlay is hardware based
+| Document | Contents |
+|----------|----------|
+| [docs/lgpio.md](docs/lgpio.md) | GPIO lookup, pinmux, get/set/watch, BCM |
+| [docs/ldto.md](docs/ldto.md) | Overlay list/info/enable/conflicts/merge |
+| [docs/gpio-map.md](docs/gpio-map.md) | `gpio.map` columns and checks |
+| [docs/overlays.md](docs/overlays.md) | Overlay sources, naming, deps, headers |
+| [docs/packaging.md](docs/packaging.md) | Packages, paths, build/install |
 
-sudo ./ldto current # show current system device tree
-sudo ./ldto merge OVERLAY # apply overlay permanently, effective after reboot
-./ldto show # show new system device tree effective after reboot
-sudo ./ldto diff # show difference between running device tree and new device tree effective after reboot
-sudo ./ldto reset # remove all overlays, effective after reboot
-```
+## Support
 
-## DTO Alias Stability
-Board-agnostic alias maps allow for programs to enable hardware without detecting the board and/or specifying overlay names.
-The 40-pin header found on many of our boards have similar hardware functions on specific pins and a few are described below.
-```
-H40P_I2C_0 - I2C bus on pin 3 and pin 5
-H40P_I2C_1 - I2C bus on pin 27 and pin 28
-H40P_SPI_0_1CS - SPI bus on pins 19, 21, 23 with chip enable on pin 24
-H40P_SPI_0_1CS_DEV - SPI bus on pins 19, 21, 23 with chip enable on pin 24 userspace spidev node
-H40P_SPI_0_2CS - SPI bus on pins 19, 21, 23 with chip enables on pins 24, 26
-H40P_SPI_0_2CS_DEV - SPI bus on pins 19, 21, 23 with chip enables on pins 24, 26 userspace spidev node
-H40P_UART0 - UART on pins 8, 10
-H40P_PWM_Px - PWM on pin X*
-```
-Please be aware that certain PWM controllers offer two outputs that use a different overlays. Only use one PWM alias if you did not check the overlays for a specific board.
-
-## Help and Support
 - [Libre Computer Hub](https://hub.libre.computer/t/libre-computer-wiring-tool/40)
 - [Libera Chat IRC #librecomputer](https://web.libera.chat/#librecomputer)
-
-## Features Under Development
-- Support for additional device tree overlays
-- Device Tree Overlay service to read Raspbian config.txt and apply corresponding overlay on bootup
+- Guides: [GPIO](https://youtu.be/MDji4Yn_i8Q?t=720), [overlays](https://youtu.be/MDji4Yn_i8Q?t=600)
 
 ## License / SBOM
 
-This project follows the [REUSE Specification](https://reuse.software/) for
-machine-readable licensing (SBOM source compliance):
+This project follows the [REUSE Specification](https://reuse.software/):
 
-- Per-file `SPDX-License-Identifier` tags (or `REUSE.toml` annotations)
-- Full license texts under `LICENSES/`
-- Debian packaging: `debian/copyright` (DEP-5)
+- Per-file `SPDX-License-Identifier` (or `REUSE.toml` annotations)
+- Full texts under `LICENSES/`
+- Debian: `debian/copyright` (DEP-5)
 
 ```bash
 make reuse-lint          # requires: pipx install reuse
-make sbom                # writes sbom.spdx (SPDX tag-value SBOM)
+make sbom                # writes sbom.spdx
 ```
-
