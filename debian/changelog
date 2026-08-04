@@ -1,3 +1,15 @@
+libretech-wiring-tool (2026.08.04) unstable; urgency=medium
+
+  * ldto: info, list Summary, enable --dry-run, conflicts; show overlay param.
+  * lgpio: pinmux, set bias/drive, watch, bcm check.
+  * Overlay policy: SPI cs naming, root compatible, headers, dt.map rewrite.
+  * make check: gpio.map / overlay integrity warnings.
+  * docs: README spine + per-tool docs under docs/.
+  * PoE EMC2301 overlays (potato + cottonwood) + dt.deps fan chain.
+  * Remove obsolete LWT npu overlays (enabled in base SoC DT).
+
+ -- Da Xue <da@libre.computer>  Mon, 04 Aug 2026 01:30:00 +0000
+
 libretech-wiring-tool (2026.08.03) unstable; urgency=medium
 
   * Packaging cleanup: dh compat 13, proper install of dt.map / gpio maps,
