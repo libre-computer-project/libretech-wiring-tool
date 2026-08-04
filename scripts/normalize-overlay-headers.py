@@ -226,8 +226,10 @@ def detect_header_in_prose(prose: list[str], rows: list[dict]) -> str:
     return "7J1"
 
 
-def build_summary(prose: list[str], stem: str) -> tuple[str, list[str]]:
-    """Return (summary, remaining notes lines)."""
+def build_summary(
+    prose: list[str], stem: str
+) -> tuple[str, list[str], list[str]]:
+    """Return (summary, remaining notes lines, resource-token lines)."""
     dual = []
     other = []
     for ln in prose:
@@ -244,8 +246,10 @@ def build_summary(prose: list[str], stem: str) -> tuple[str, list[str]]:
         r"^\d+[Jj]\d+\.\d+\s+\S+"  # 7J1.19  GPIOX_8 ...
     )
     skip_prefix = re.compile(
-        r"^(Summary|Pins|Requires|Notes)\s*:", re.I
+        r"^(Summary|Pins|Requires|Notes|Resource-provides|Resource-requires|Resource-revokes)\s*:",
+        re.I,
     )
+    resource_lines: list[str] = []
     for i, ln in enumerate(other):
         s = ln.strip()
         if not s:
@@ -271,6 +275,10 @@ def build_summary(prose: list[str], stem: str) -> tuple[str, list[str]]:
             if s.lower().startswith("notes:"):
                 continue
             if s.lower().startswith("pins:"):
+                continue
+            # Preserve Resource-* exclusivity tokens (R15) — not DT props
+            if re.match(r"^Resource-(provides|requires|revokes)\s*:", s, re.I):
+                resource_lines.append(s)
                 continue
         if not summary:
             s2 = re.sub(
@@ -300,8 +308,11 @@ def build_summary(prose: list[str], stem: str) -> tuple[str, list[str]]:
             continue
         if re.match(r"^(Summary|Requires|Notes)\s*:", s, re.I):
             continue
+        if re.match(r"^Resource-(provides|requires|revokes)\s*:", s, re.I):
+            resource_lines.append(s)
+            continue
         notes.append(ln)
-    return summary, notes
+    return summary, notes, resource_lines
 
 
 def format_header(
@@ -311,6 +322,7 @@ def format_header(
     pin_rows: list[dict],
     requires: str,
     notes: list[str],
+    resource_lines: list[str] | None = None,
 ) -> str:
     lines = [f"// SPDX-License-Identifier: {spdx}", "/*"]
     if copyright:
@@ -337,6 +349,14 @@ def format_header(
     if requires:
         lines.append(" *")
         lines.append(f" * Requires: {requires}")
+
+    # Resource exclusivity tokens (host tooling; not applied to FDT)
+    if resource_lines:
+        lines.append(" *")
+        for rl in resource_lines:
+            # normalize to single-space "* Field: value"
+            rl = re.sub(r"^\s*\*?\s*", "", rl).strip()
+            lines.append(f" * {rl}")
 
     if notes:
         lines.append(" *")
@@ -376,7 +396,7 @@ def process_file(
     # resolve symlink target stem for deps? use this stem
     requires = deps.get(stem, "")
 
-    summary, notes = build_summary(prose, stem)
+    summary, notes, resource_lines = build_summary(prose, stem)
 
     # Collect pins from DTS pads + comment pin numbers
     pin_rows: list[dict] = []
@@ -441,7 +461,13 @@ def process_file(
     pin_rows_sorted += [r for r in pin_rows if r.get("header") == "?"]
 
     new_header = format_header(
-        spdx, copyright, summary, pin_rows_sorted, requires, notes
+        spdx,
+        copyright,
+        summary,
+        pin_rows_sorted,
+        requires,
+        notes,
+        resource_lines=resource_lines,
     )
     new_text = new_header + body
     if new_text == text:

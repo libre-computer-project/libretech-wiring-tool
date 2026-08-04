@@ -625,10 +625,23 @@ LDTO_enable()
 	if [ "$dry_run" -eq 1 ]; then
 		echo "DRY-RUN: no configfs changes" >&2
 		LDTO_printPlan "${args[@]}"
+		LDTO_loadMap
+		local -a seq
+		mapfile -t seq < <(LDTO_planSequence "${args[@]}")
+		# Fail dry-run if any plan step lacks a .dtbo (same as real enable)
+		local dto dtbo_file missing=0
+		for dto in "${seq[@]}"; do
+			dtbo_file=$(LDTO_getDTBO "$dto")
+			if [ -z "$dtbo_file" ]; then
+				echo "WARNING: dry-run: missing .dtbo for '$dto'" >&2
+				missing=1
+			fi
+		done
+		if [ "$missing" -eq 1 ]; then
+			echo "WARNING: dry-run aborted — plan has missing .dtbo" >&2
+			return 1
+		fi
 		if [ "$skip_preflight" -eq 0 ]; then
-			LDTO_loadMap
-			local -a seq
-			mapfile -t seq < <(LDTO_planSequence "${args[@]}")
 			if ! LDTO_enableGateConflicts "${args[@]}"; then
 				return 1
 			fi
