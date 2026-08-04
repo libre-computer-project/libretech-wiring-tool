@@ -33,6 +33,9 @@
 		     "amlogic,s905d3",
 		     "amlogic,sm1";
 
+	/* overlay-deps: thermal maps need device + fan0 from i2c-ao-emc2301 */
+	lc,requires = "emc2301-fan";
+
 	fragment@0 {
 		target-path = "/thermal-zones/cpu-thermal/trips";
 

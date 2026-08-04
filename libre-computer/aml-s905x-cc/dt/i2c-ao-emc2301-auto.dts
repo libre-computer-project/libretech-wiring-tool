@@ -1,12 +1,20 @@
-// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+// SPDX-License-Identifier: (GPL-2.0-or-later OR MIT)
 /*
  * Copyright (C) 2025 Da Xue
  * Author: Da Xue <da@libre.computer>
  */
-
 /*
- * Overlay to enable temperature-based fan control for EMC2301 on I2C_AO
- * This controller is present on the LoveRPi PoE HAT for Sweet Potato
+ * Summary: Temperature-based fan control for EMC2301 on I2C_AO (LoveRPi PoE HAT)
+ *
+ * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
+ *   7J1.3    GPIOAO_5      D13     I2C_SDA_AO
+ *   7J1.5    GPIOAO_4      A10     I2C_SCK_AO
+ *
+ * Requires: i2c-ao-emc2301
+ *
+ * Notes:
+ *   Maps cpu-thermal trips to fan0 from i2c-ao-emc2301. Enable bus + device
+ *   first (i2c-ao, i2c-ao-emc2301) or let ldto expand dt.deps.
  */
 
 /dts-v1/;
@@ -15,7 +23,15 @@
 #include <dt-bindings/thermal/thermal.h>
 
 / {
-	compatible = "libretech,aml-s905x-cc-v2", "amlogic,s905x", "amlogic,meson-gxl";
+	compatible = "libre-computer,aml-s905x-cc",
+		     "libretech,aml-s905x-cc",
+		     "libre-computer,aml-s905x-cc-v2",
+		     "libretech,aml-s905x-cc-v2",
+		     "amlogic,s905x",
+		     "amlogic,meson-gxl";
+
+	/* overlay-deps: thermal maps need device + fan0 from i2c-ao-emc2301 */
+	lc,requires = "emc2301-fan";
 
 	fragment@0 {
 		target-path = "/thermal-zones/cpu-thermal/trips";

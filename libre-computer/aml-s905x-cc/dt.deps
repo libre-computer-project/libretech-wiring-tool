@@ -7,6 +7,8 @@
 enc28j60-overlay	spi-cc-1cs
 i2c-ao-at24c32	i2c-ao
 i2c-ao-ds3231	i2c-ao
+i2c-ao-emc2301	i2c-ao
+i2c-ao-emc2301-auto	i2c-ao-emc2301
 i2c-ao-pcf8523	i2c-ao
 i2c-ao-rv3028	i2c-ao
 i2c-ao-ssd1306-128x64	i2c-ao

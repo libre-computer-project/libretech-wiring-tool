@@ -34,6 +34,10 @@
 		     "amlogic,s905d3",
 		     "amlogic,sm1";
 
+	/* overlay-deps: device provides fan capability; still needs I2C bus */
+	lc,provides = "emc2301-fan";
+	lc,requires = "bus:i2c_AO";
+
 	fragment@0 {
 		target = <&i2c_AO>;
 

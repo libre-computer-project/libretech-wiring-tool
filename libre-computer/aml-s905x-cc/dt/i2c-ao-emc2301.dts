@@ -1,12 +1,20 @@
-// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
+// SPDX-License-Identifier: (GPL-2.0-or-later OR MIT)
 /*
  * Copyright (C) 2025 Da Xue
  * Author: Da Xue <da@libre.computer>
  */
-
 /*
- * Overlay to enable EMC2301 fan controller on I2C_AO (Header 7J1 Pin 3: SDA, Pin 5: SCL)
- * This controller is present on the LoveRPi PoE HAT for Sweet Potato
+ * Summary: EMC2301 fan controller on I2C_AO (LoveRPi PoE HAT for Sweet Potato)
+ *
+ * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
+ *   7J1.3    GPIOAO_5      D13     I2C_SDA_AO
+ *   7J1.5    GPIOAO_4      A10     I2C_SCK_AO
+ *
+ * Requires: i2c-ao
+ *
+ * Notes:
+ *   Device node for LoveRPi PoE HAT; pair with i2c-ao-emc2301-auto for
+ *   cpu-thermal → fan0 cooling maps.
  */
 
 /dts-v1/;
@@ -15,7 +23,16 @@
 #include <dt-bindings/thermal/thermal.h>
 
 / {
-	compatible = "libretech,aml-s905x-cc-v2", "amlogic,s905x", "amlogic,meson-gxl";
+	compatible = "libre-computer,aml-s905x-cc",
+		     "libretech,aml-s905x-cc",
+		     "libre-computer,aml-s905x-cc-v2",
+		     "libretech,aml-s905x-cc-v2",
+		     "amlogic,s905x",
+		     "amlogic,meson-gxl";
+
+	/* overlay-deps: device provides fan capability; still needs I2C bus */
+	lc,provides = "emc2301-fan";
+	lc,requires = "bus:i2c_AO";
 
 	fragment@0 {
 		target = <&i2c_AO>;
