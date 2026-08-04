@@ -23,8 +23,6 @@
 
 	/* resource-set tokens for deps/conflicts (see overlay-dependencies.md) */
 	lc,provides = "bus:uart_AO_B";
-
-
 	fragment@0 {
 		target-path = "/aliases";
 

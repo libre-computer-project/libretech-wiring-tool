@@ -24,8 +24,6 @@
 
 	/* resource-set tokens for deps/conflicts (see overlay-dependencies.md) */
 	lc,provides = "pwm_ab.ch0@7J1-33";
-
-
 	fragment@0 {
 		target = <&pwm_ab>;
 		

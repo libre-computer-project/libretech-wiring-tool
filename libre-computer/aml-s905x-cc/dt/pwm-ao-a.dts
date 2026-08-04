@@ -26,7 +26,6 @@
 	lc,provides = "pwm_AO_ab.ch0@7J1-11";
 	lc,revokes = "cec_AO";
 
-
 	fragment@0 {
 		target = <&cec_AO>;
 		

@@ -19,8 +19,6 @@
 
 	/* resource-set tokens for deps/conflicts (see overlay-dependencies.md) */
 	lc,provides = "excl:usb.dr_mode";
-
-
 	fragment@0 {
 		target = <&usb>;
 		

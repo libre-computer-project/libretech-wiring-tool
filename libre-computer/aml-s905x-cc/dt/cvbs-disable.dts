@@ -21,7 +21,6 @@
 	lc,provides = "excl:display.cvbs";
 	lc,revokes = "display:cvbs";
 
-
 	fragment@0 {
 		target-path = "/cvbs-connector";
 		

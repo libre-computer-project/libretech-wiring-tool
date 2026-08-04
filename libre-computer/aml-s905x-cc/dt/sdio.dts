@@ -28,9 +28,7 @@
 		"amlogic,meson-gxl";
 
 	/* resource-set tokens for deps/conflicts (see overlay-dependencies.md) */
-	lc,provides = "alias:serial1", "bus:uart_C", "pwm_ef.ch0@7J1-32";
-
-
+	lc,provides = "bus:uart_C";
 	fragment@0 {
 		target = <&pwm_ef>;
 

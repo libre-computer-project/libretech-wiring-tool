@@ -135,21 +135,23 @@ BOARD_ANNOTATIONS: dict[str, dict[str, dict[str, list[str]]]] = {
             "revokes": ["display:cvbs"],
             "provides": ["excl:display.cvbs"],
         },
+        # alias:<key> is NOT hand-coded — ldto derives from target-path="/aliases"
         "uart-a": {
-            "provides": ["alias:serial1", "bus:uart_A"],
+            "provides": ["bus:uart_A"],
         },
         "uart-a-clk81": {
-            "provides": ["alias:serial1", "bus:uart_A"],
+            "provides": ["bus:uart_A"],
         },
         "uart-a-rts-cts": {
-            "provides": ["alias:serial1", "bus:uart_A"],
+            "provides": ["bus:uart_A"],
         },
         "uart-a-rts-cts-clk81": {
-            "provides": ["alias:serial1", "bus:uart_A"],
+            "provides": ["bus:uart_A"],
         },
         "sdio": {
-            # writes serial1 to uart_C path — exclusive with uart-a*
-            "provides": ["alias:serial1", "bus:uart_C", "pwm_ef.ch0@7J1-32"],
+            # serial1 exclusivity: derived from /aliases fragment (not hand-coded).
+            # Do NOT claim pwm_ef.ch0 here — false-conflicts with pwm-e.
+            "provides": ["bus:uart_C"],
         },
         "spdif": {
             # fans claim 9J1.2 (GPIOH_4) for tach; spdif uses same pad family
@@ -166,17 +168,12 @@ BOARD_ANNOTATIONS: dict[str, dict[str, dict[str, list[str]]]] = {
             "provides": ["excl:usb.dr_mode"],
         },
         "uart-a": {
-            "provides": ["alias:serial1", "bus:uart_A"],
+            "provides": ["bus:uart_A"],
         },
         "uart-a-clk81": {
-            "provides": ["alias:serial1", "bus:uart_A"],
+            "provides": ["bus:uart_A"],
         },
-        "sdio": {
-            "provides": ["alias:serial1"],
-        },
-        "sdio-rtl8822cs": {
-            "provides": ["alias:serial1"],
-        },
+        # sdio / sdio-rtl8822cs: no hand lc,provides — alias keys derived in ldto
     },
 }
 

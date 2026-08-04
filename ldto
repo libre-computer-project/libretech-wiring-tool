@@ -1523,7 +1523,8 @@ LDTO_conflictsHelp()
 	echo "$0 conflicts [OVERLAY|ALIAS]..." >&2
 	echo "  Report header pin collisions and resource-token exclusivity among" >&2
 	echo "  the named overlays (with deps) and any currently active overlays." >&2
-	echo "  Resource tokens: lc,provides / lc,requires / lc,revokes in overlay .dts." >&2
+	echo "  Resource tokens: lc,provides / lc,requires / lc,revokes in overlay .dts;" >&2
+	echo "  plus alias:<key> derived from target-path=\"/aliases\" fragments (not hand-coded)." >&2
 	echo "  No args = active only." >&2
 }
 
@@ -1539,9 +1540,74 @@ LDTO_lcStrings()
 		grep -oE '"[^"]+"' | tr -d '"'
 }
 
+# Derive exclusive alias claims from fragment target-path = "/aliases".
+# Do NOT hand-hardcode alias:* in lc,provides — keys come from the real
+# property names written under /aliases (avoids drift / invented tokens).
+# Prints one "alias:<key>" per line. Requires python3.
+LDTO_derivedAliasClaims()
+{
+	local file="$1"
+	[ -f "$file" ] || return 0
+	command -v python3 >/dev/null 2>&1 || return 0
+	python3 - "$file" <<'PY'
+import re
+import sys
+from pathlib import Path
+
+text = Path(sys.argv[1]).read_text(errors="replace")
+
+def extract_braced(s: str, open_idx: int) -> tuple[str, int]:
+    depth = 0
+    i = open_idx
+    while i < len(s):
+        if s[i] == "{":
+            depth += 1
+        elif s[i] == "}":
+            depth -= 1
+            if depth == 0:
+                return s[open_idx + 1 : i], i + 1
+        i += 1
+    return s[open_idx + 1 :], len(s)
+
+# Not alias keys (noise inside __overlay__)
+_SKIP = {
+    "status",
+    "compatible",
+    "phandle",
+    "name",
+    "pinctrl-names",
+    "clock-names",
+    "sound-name-prefix",
+}
+
+seen: set[str] = set()
+for m in re.finditer(r"fragment@\d+\s*\{", text):
+    body, _ = extract_braced(text, m.end() - 1)
+    if not re.search(r'target-path\s*=\s*"/aliases"', body):
+        continue
+    om = re.search(r"__overlay__\s*\{", body)
+    if not om:
+        continue
+    ob, _ = extract_braced(body, om.end() - 1)
+    for km in re.finditer(
+        r'([A-Za-z_][A-Za-z0-9_]*)\s*=\s*"([^"]*)"\s*;', ob
+    ):
+        key = km.group(1)
+        if key in _SKIP:
+            continue
+        tok = f"alias:{key}"
+        if tok not in seen:
+            seen.add(tok)
+            print(tok)
+PY
+}
+
 # Exclusive claim tokens for conflict detection (R15).
-# = lc,provides ∪ lc,revokes ∪ (lc,requires that are pin:|alias:|i2c:|excl:)
+# = (lc,provides minus hand-coded alias:*) ∪ lc,revokes
+#   ∪ (lc,requires that are pin:|i2c:|excl:)
+#   ∪ derived alias:<key> from /aliases fragments
 # bus: requires stay out so provider+consumer do not false-conflict.
+# Hand-coded alias:* in lc,provides is ignored (derive from DTS instead).
 LDTO_exclusiveClaims()
 {
 	local dto="$1"
@@ -1549,7 +1615,11 @@ LDTO_exclusiveClaims()
 	dts=$(LDTO_getDTS "$dto")
 	[ -n "$dts" ] && [ -f "$dts" ] || return 0
 	while IFS= read -r t; do
-		[ -n "$t" ] && printf '%s\n' "$t"
+		[ -z "$t" ] && continue
+		case "$t" in
+			alias:*) ;; # prefer LDTO_derivedAliasClaims
+			*) printf '%s\n' "$t" ;;
+		esac
 	done < <(LDTO_lcStrings "$dts" provides)
 	while IFS= read -r t; do
 		[ -n "$t" ] && printf '%s\n' "$t"
@@ -1557,11 +1627,12 @@ LDTO_exclusiveClaims()
 	while IFS= read -r t; do
 		[ -z "$t" ] && continue
 		case "$t" in
-			pin:*|alias:*|i2c:*|excl:*)
+			pin:*|i2c:*|excl:*)
 				printf '%s\n' "$t"
 				;;
 		esac
 	done < <(LDTO_lcStrings "$dts" requires)
+	LDTO_derivedAliasClaims "$dts"
 }
 
 LDTO_conflicts()

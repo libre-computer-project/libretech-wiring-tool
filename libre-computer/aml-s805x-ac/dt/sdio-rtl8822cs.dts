@@ -28,9 +28,6 @@
 		"amlogic,s805x",
 		"amlogic,meson-gxl";
 
-	/* resource-set tokens for deps/conflicts (see overlay-dependencies.md) */
-	lc,provides = "alias:serial1";
-
 	fragment@0 {
 		target = <&uart_C>;
 

@@ -28,7 +28,6 @@
 	lc,provides = "i2c:i2c_AO@0x46";
 	lc,requires = "bus:i2c_AO";
 
-
 	fragment@0 {
 		target = <&i2c_AO>;
 

@@ -23,8 +23,6 @@
 
 	/* resource-set tokens for deps/conflicts (see overlay-dependencies.md) */
 	lc,provides = "bus:i2c_AO";
-
-
 	fragment@0 {
 		target-path = "/aliases";
 
@@ -32,7 +30,6 @@
 			i2c1 = "/soc/aobus@c8100000/i2c@500";
 		};
 	};
-
 
 	fragment@1 {
 		target = <&i2c_AO>;
