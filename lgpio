@@ -163,7 +163,7 @@ LGPIO_info(){
 		shift
 	fi
 	if ! grep -i "^$header$TAB_CHAR" "$MAP_FILE" > /dev/null; then
-		echo "FUNCNAME: header does not exist." >&2
+		echo "$FUNCNAME: header does not exist." >&2
 		exit 1
 	fi
 	
@@ -175,7 +175,7 @@ LGPIO_info(){
 	pin="$1"
 	shift
 	if ! grep -i "^$header$TAB_CHAR$pin$TAB_CHAR" "$MAP_FILE"> /dev/null; then
-		echo "FUNCNAME: pin does not exist." >&2
+		echo "$FUNCNAME: pin does not exist." >&2
 		exit 1
 	fi
 	
@@ -715,7 +715,8 @@ LGPIO_help(){
 
 cmd=help
 if [ ! -z "$1" ]; then
-	cmd=$1
+	# Case-fold so `Info` / `SET` dispatch like `info` / `set`.
+	cmd=${1,,}
 	shift
 fi
-LGPIO_$cmd $@
+LGPIO_$cmd "$@"

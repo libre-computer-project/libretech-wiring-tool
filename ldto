@@ -600,12 +600,19 @@ LDTO_active()
 	if [ -z "$1" ]; then
 		LDTO_status
 	else
-		if [ -z "$1" ]; then
-			return 1
+		# Configfs node names are canonical basenames; resolve dt.map aliases
+		# so `active H40P_…` matches the applied overlay name.
+		LDTO_loadMap
+		local query="$1"
+		local dto_real
+		dto_real=$(LDTO_getAliasDT "$query")
+		if [ -n "$dto_real" ]; then
+			query="$dto_real"
 		fi
-		for i in `ls $PATH_OF_CONFIG`;
-		do
-			if [ "$1" = $(basename $i) ]; then
+		local i
+		for i in "$PATH_OF_CONFIG"/*; do
+			[ -e "$i" ] || continue
+			if [ "$query" = "$(basename "$i")" ]; then
 				return 0
 			fi
 		done
