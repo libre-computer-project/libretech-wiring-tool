@@ -719,4 +719,10 @@ if [ ! -z "$1" ]; then
 	cmd=${1,,}
 	shift
 fi
+# R11: unknown subcommand → help, not bash "command not found"
+if ! declare -F "LGPIO_$cmd" >/dev/null 2>&1; then
+	echo "$0: unknown command '$cmd'" >&2
+	LGPIO_help
+	exit 1
+fi
 LGPIO_$cmd "$@"

@@ -254,9 +254,15 @@ LDTO_printPlan()
 		dts=$(LDTO_getDTS "$dto")
 		summary=""
 		[ -n "$dts" ] && summary=$(LDTO_getSummary "$dts")
-		local state="apply"
+		local state="apply" st
 		if [ -d "$PATH_OF_CONFIG" ] && [ -e "$PATH_OF_CONFIG/$dto" ]; then
-			state="already-active"
+			# R9: existence ≠ applied (same rule as enable R1)
+			st=$(tr -d '\n' < "$PATH_OF_CONFIG/$dto/status" 2>/dev/null || echo unknown)
+			if [ "$st" = "applied" ]; then
+				state="already-active"
+			else
+				state="configfs-$st"
+			fi
 		elif [ -z "$dtbo" ]; then
 			state="MISSING-dtbo"
 		fi
@@ -308,6 +314,31 @@ LDTO_canonName()
 	else
 		echo "$name"
 	fi
+}
+
+# Reject path metacharacters before joining configfs / dt paths (R16).
+LDTO_validOverlayName()
+{
+	local n="$1"
+	case "$n" in
+		""|*/*|*\\*|*".."*|.*)
+			return 1
+			;;
+	esac
+	return 0
+}
+
+# Validate one or more user overlay args; print WARNING and return 1 on bad name.
+LDTO_requireValidNames()
+{
+	local a
+	for a in "$@"; do
+		if ! LDTO_validOverlayName "$a"; then
+			echo "WARNING: invalid overlay name '$a' (no path components or empty)" >&2
+			return 1
+		fi
+	done
+	return 0
 }
 
 # Dep-expand + canonicalize. Prints one basename per line (providers first).
@@ -478,13 +509,13 @@ LDTO_enableGateConflicts()
 	out=$(mktemp /tmp/ldto-conflicts.XXXXXX) || return 1
 	LDTO_conflicts "$@" >"$out" 2>&1 || rc=$?
 	if [ "$rc" -eq 2 ]; then
-		echo "WARNING: enable aborted — pin conflicts between plan and/or active overlays" >&2
+		echo "WARNING: pin conflicts between plan and/or active overlays" >&2
 		cat "$out" >&2
 		rm -f "$out"
 		return 1
 	fi
 	if [ "$rc" -ne 0 ]; then
-		echo "WARNING: enable aborted — conflict check failed (exit $rc)" >&2
+		echo "WARNING: conflict check failed (exit $rc)" >&2
 		cat "$out" >&2
 		rm -f "$out"
 		return 1
@@ -587,6 +618,10 @@ LDTO_enable()
 		return 1
 	fi
 
+	if ! LDTO_requireValidNames "${args[@]}"; then
+		return 1
+	fi
+
 	if [ "$dry_run" -eq 1 ]; then
 		echo "DRY-RUN: no configfs changes" >&2
 		LDTO_printPlan "${args[@]}"
@@ -598,10 +633,14 @@ LDTO_enable()
 				return 1
 			fi
 			echo "DRY-RUN: pin conflicts OK" >&2
-			if ! LDTO_enableLivePreflight "${seq[@]}"; then
+			# R10: do not claim OK when firmware FDT is missing (soft-skip).
+			if [ ! -r "$PATH_OF_DT" ]; then
+				echo "DRY-RUN: live fdtoverlay preflight SKIPPED (no readable $PATH_OF_DT)" >&2
+			elif ! LDTO_enableLivePreflight "${seq[@]}"; then
 				return 1
+			else
+				echo "DRY-RUN: live fdtoverlay preflight OK" >&2
 			fi
-			echo "DRY-RUN: live fdtoverlay preflight OK" >&2
 		fi
 		return 0
 	fi
@@ -699,28 +738,73 @@ LDTO_disable()
 		LDTO_active
 		return 1
 	fi
+	if ! LDTO_requireValidNames "$@"; then
+		return 1
+	fi
 	LDTO_checkOFConfig RW
 	LDTO_loadMap
+
+	# Resolve aliases, then remove in reverse plan order (consumers before
+	# providers) so bus is not yanked under an active device (R8 / R3 mirror).
+	local -a resolved=()
+	local dto dto_real
 	for dto in "$@"; do
-		local dto_real=$(LDTO_getAliasDT "$dto")
-		if [ ! -z "$dto_real" ]; then
-			local dto=$dto_real
+		dto_real=$(LDTO_getAliasDT "$dto")
+		if [ -n "$dto_real" ]; then
+			resolved+=("$dto_real")
+		else
+			resolved+=("$dto")
 		fi
+	done
+
+	local -a seq=()
+	local -a to_remove=()
+	local i s
+	mapfile -t seq < <(LDTO_planSequence "${resolved[@]}")
+	# Reverse of providers-first plan ⇒ consumers first
+	for ((i=${#seq[@]}-1; i>=0; i--)); do
+		s="${seq[i]}"
+		# Only remove names the user asked for (or their aliases), not pure deps
+		for dto in "${resolved[@]}"; do
+			if [ "$dto" = "$s" ]; then
+				to_remove+=("$s")
+				break
+			fi
+		done
+	done
+	# Fallback: if planSequence filtered oddly, reverse resolved as-is
+	if [ ${#to_remove[@]} -eq 0 ]; then
+		for ((i=${#resolved[@]}-1; i>=0; i--)); do
+			to_remove+=("${resolved[i]}")
+		done
+	fi
+
+	for dto in "${to_remove[@]}"; do
 		if [ ! -e "$PATH_OF_CONFIG/$dto" ]; then
 			echo "Overlay $dto: does not exist and cannot be removed" >&2
 			return 1
 		fi
-		rmdir $PATH_OF_CONFIG/$dto
+		if ! rmdir "$PATH_OF_CONFIG/$dto" 2>/dev/null; then
+			echo "WARNING: Overlay $dto: remove failed (still in use or kernel rejected rmdir?)" >&2
+			return 1
+		fi
 		echo "Overlay $dto: removed" >&2
 	done
 }
 
 LDTO_status()
 {
-	echo "#Overlays active:" >&2
-	for i in `ls $PATH_OF_CONFIG`;
-	do
-		basename $i
+	# R9: only status=applied (not leftover unapplied dirs)
+	echo "#Overlays active (status=applied):" >&2
+	local i st
+	if [ ! -d "$PATH_OF_CONFIG" ]; then
+		return 0
+	fi
+	for i in "$PATH_OF_CONFIG"/*; do
+		[ -e "$i" ] || continue
+		st=$(tr -d '\n' < "$i/status" 2>/dev/null || echo unknown)
+		[ "$st" = "applied" ] || continue
+		basename "$i"
 	done
 }
 
@@ -731,22 +815,34 @@ LDTO_active()
 		LDTO_status
 	else
 		# Configfs node names are canonical basenames; resolve dt.map aliases
-		# so `active H40P_…` matches the applied overlay name.
-		LDTO_loadMap
-		local query="$1"
-		local dto_real
-		dto_real=$(LDTO_getAliasDT "$query")
-		if [ -n "$dto_real" ]; then
-			query="$dto_real"
+		# so `active H40P_…` matches the applied overlay name. All args must
+		# be applied (R14 multi-query).
+		if ! LDTO_requireValidNames "$@"; then
+			return 1
 		fi
-		local i
-		for i in "$PATH_OF_CONFIG"/*; do
-			[ -e "$i" ] || continue
-			if [ "$query" = "$(basename "$i")" ]; then
-				return 0
+		LDTO_loadMap
+		local query dto_real i found st
+		for query in "$@"; do
+			dto_real=$(LDTO_getAliasDT "$query")
+			if [ -n "$dto_real" ]; then
+				query="$dto_real"
+			fi
+			found=0
+			for i in "$PATH_OF_CONFIG"/*; do
+				[ -e "$i" ] || continue
+				if [ "$query" = "$(basename "$i")" ]; then
+					st=$(tr -d '\n' < "$i/status" 2>/dev/null || echo unknown)
+					if [ "$st" = "applied" ]; then
+						found=1
+						break
+					fi
+				fi
+			done
+			if [ "$found" -eq 0 ]; then
+				return 1
 			fi
 		done
-		return 1
+		return 0
 	fi
 }
 
@@ -889,7 +985,7 @@ LDTO_merge()
 			--help|-h)
 				echo "$0 merge [--dry-run|-n] OVERLAY [OVERLAY...]" >&2
 				echo "  Auto-merges providers from dt.deps (autoload chain)." >&2
-				echo "  Preflights the full chain (detects intermediate failures);" >&2
+				echo "  Pin-conflict gate (plan + actives), then full-chain fdtoverlay;" >&2
 				echo "  writes the EFI override only if every step is clean." >&2
 				return 0
 				;;
@@ -914,7 +1010,10 @@ LDTO_merge()
 		return 1
 	fi
 
-	LDTO_checkFirmwareDT
+	if ! LDTO_requireValidNames "${args[@]}"; then
+		return 1
+	fi
+
 	LDTO_importDTConfig
 	LDTO_loadMap
 
@@ -926,6 +1025,15 @@ LDTO_merge()
 	fi
 
 	echo "Merge plan (autoload order, ${#seq[@]} step(s)): ${seq[*]}" >&2
+
+	# R7: same pin-conflict gate as enable (plan + any configfs actives).
+	# Runs before firmware DTB check so host dry-run still catches pin fights.
+	if ! LDTO_enableGateConflicts "${args[@]}"; then
+		echo "WARNING: merge aborted — pin conflicts; ESP override not modified" >&2
+		return 1
+	fi
+
+	LDTO_checkFirmwareDT || return 1
 
 	# Need EFI path for real merge; dry-run can preflight against firmware only.
 	if [ "$dry_run" -eq 0 ]; then
@@ -1023,13 +1131,41 @@ LDTO_show()
 	fi
 }
 
-LDTO_edit(){
-	LDTO_checkOverrideDT
-	dts=$(mktemp)
-	dtc -I dtb -O dts "$PATH_OF_DTB_OVERRIDE" -o $dts 2> /dev/null
-	vim $dts
-	dtc -I dts -O dtb $dts -o "$PATH_OF_DTB_OVERRIDE"
-	rm $dts
+LDTO_edit()
+{
+	# R12: fail-closed — never write override if dtc decompile/recompile fails.
+	LDTO_checkOverrideDT RW
+	local dts staged err
+	dts=$(mktemp /tmp/ldto-edit.XXXXXX.dts) || return 1
+	if ! err=$(dtc -I dtb -O dts "$PATH_OF_DTB_OVERRIDE" -o "$dts" 2>&1); then
+		echo "WARNING: edit aborted — dtc decompile failed; override unchanged" >&2
+		[ -n "$err" ] && echo "WARNING: dtc: $err" >&2
+		rm -f "$dts"
+		return 1
+	fi
+	"${EDITOR:-vim}" "$dts" || {
+		echo "WARNING: edit aborted — editor failed; override unchanged" >&2
+		rm -f "$dts"
+		return 1
+	}
+	staged=$(mktemp "${PATH_OF_DTB_OVERRIDE%/*}/.ldto-edit.XXXXXX" 2>/dev/null) || \
+		staged=$(mktemp /tmp/ldto-edit.XXXXXX.dtb) || {
+			rm -f "$dts"
+			return 1
+		}
+	if ! err=$(dtc -I dts -O dtb "$dts" -o "$staged" 2>&1); then
+		echo "WARNING: edit aborted — dtc recompile failed; override unchanged" >&2
+		[ -n "$err" ] && echo "WARNING: dtc: $err" >&2
+		rm -f "$dts" "$staged"
+		return 1
+	fi
+	if ! mv -f "$staged" "$PATH_OF_DTB_OVERRIDE"; then
+		echo "WARNING: edit aborted — failed installing override; left at $staged" >&2
+		rm -f "$dts"
+		return 1
+	fi
+	rm -f "$dts"
+	echo "Overlay: edited override written to $PATH_OF_DTB_OVERRIDE" >&2
 }
 
 LDTO_current()
@@ -1594,9 +1730,10 @@ LDTO_help(){
 	echo "$0 info [DTBO]     # description, deps, gpio.map pinout"
 	echo "$0 conflicts [DTBO]...  # pin occupancy / collisions (deps + active)"
 	echo "$0 current"
-	echo "$0 merge [--dry-run|-n] [DTBO]  # dt.deps autoload; atomic ESP write if chain clean"
+	echo "$0 merge [--dry-run|-n] [DTBO]  # conflicts + chain preflight; atomic ESP write"
 	echo "$0 show"
 	echo "$0 diff"
+	echo "$0 edit            # edit ESP override (dtc fail-closed)"
 	echo "$0 reset"
 }
 
@@ -1614,6 +1751,12 @@ if [ ! -z "$1" ]; then
 	shift
 fi
 cmd_lc=${cmd,,}
+# R11: unknown subcommand → help, not bash "command not found"
+if ! declare -F "LDTO_${cmd_lc}" >/dev/null 2>&1; then
+	echo "$0: unknown command '$cmd'" >&2
+	LDTO_help
+	exit 1
+fi
 case "$cmd_lc" in
 	help|list|info|conflicts)
 		# host-side OK (no configfs / firmware)
@@ -1628,7 +1771,7 @@ case "$cmd_lc" in
 			LDTO_requireConfigFS || exit 1
 		fi
 		;;
-	merge|show|diff|reset|current)
+	merge|show|diff|reset|current|edit)
 		# EFI / firmware DTB path — not configfs
 		;;
 	*)
