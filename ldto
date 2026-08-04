@@ -298,9 +298,114 @@ LDTO_printPlan()
 	fi
 }
 
+# Resolve alias → canonical overlay basename.
+LDTO_canonName()
+{
+	local name="$1" real
+	real=$(LDTO_getAliasDT "$name")
+	if [ -n "$real" ]; then
+		echo "$real"
+	else
+		echo "$name"
+	fi
+}
+
+# Dep-expand + canonicalize. Prints one basename per line (providers first).
+LDTO_planSequence()
+{
+	LDTO_loadMap
+	local -a seq
+	mapfile -t seq < <(LDTO_expandDeps "$@")
+	local dto
+	for dto in "${seq[@]}"; do
+		LDTO_canonName "$dto"
+	done
+}
+
+# Apply overlay chain to a private temp tree; never touches ESP/configfs.
+# On intermediate failure: WARNING naming the failing step, plan, and prior
+# steps that would have applied (autoload chain). ESP left unchanged.
+# Usage: LDTO_chainPreflight <base.dtb> <out.dtb> name1 [name2...]
+# Returns 0 and writes out.dtb on full success; 1 on failure (out removed).
+LDTO_chainPreflight()
+{
+	local base_dtb="$1"
+	local out_dtb="$2"
+	shift 2
+	local -a chain=("$@")
+
+	if [ ! -f "$base_dtb" ]; then
+		echo "WARNING: chain preflight: base DTB not found: $base_dtb" >&2
+		return 1
+	fi
+	if [ ${#chain[@]} -eq 0 ]; then
+		cp -f "$base_dtb" "$out_dtb"
+		return 0
+	fi
+	if ! command -v fdtoverlay >/dev/null 2>&1; then
+		echo "WARNING: fdtoverlay not found (install device-tree-compiler)" >&2
+		return 1
+	fi
+
+	local tmpdir current next i dto dtbo_file err
+	local -a applied=()
+	tmpdir=$(mktemp -d /tmp/ldto-preflight.XXXXXX) || return 1
+	current="$base_dtb"
+	i=0
+
+	for dto in "${chain[@]}"; do
+		dtbo_file=$(LDTO_getDTBO "$dto")
+		if [ -z "$dtbo_file" ] || [ ! -f "$dtbo_file" ]; then
+			echo "WARNING: apply not clean — missing .dtbo for '$dto' (step $((i + 1))/${#chain[@]})" >&2
+			echo "WARNING: autoload plan: ${chain[*]}" >&2
+			if [ ${#applied[@]} -gt 0 ]; then
+				echo "WARNING: would have applied before failure: ${applied[*]}" >&2
+			fi
+			echo "WARNING: run: make BOARD_NAME=$BOARD" >&2
+			rm -rf "$tmpdir"
+			rm -f "$out_dtb"
+			return 1
+		fi
+		next="$tmpdir/step-$i.dtb"
+		err=$(fdtoverlay -i "$current" -o "$next" "$dtbo_file" 2>&1) || {
+			echo "WARNING: apply not clean at overlay '$dto' (step $((i + 1))/${#chain[@]})" >&2
+			echo "WARNING: autoload plan: ${chain[*]}" >&2
+			if [ ${#applied[@]} -gt 0 ]; then
+				echo "WARNING: intermediaries OK before failure: ${applied[*]}" >&2
+			else
+				echo "WARNING: failed on first overlay in chain (no intermediaries applied)" >&2
+			fi
+			echo "WARNING: fdtoverlay: ${err:-exit $?}" >&2
+			rm -rf "$tmpdir"
+			rm -f "$out_dtb"
+			return 1
+		}
+		applied+=("$dto")
+		current="$next"
+		i=$((i + 1))
+	done
+
+	cp -f "$current" "$out_dtb"
+	rm -rf "$tmpdir"
+	return 0
+}
+
+# Rollback configfs overlays created in this enable invocation (best-effort).
+LDTO_rollbackConfigFS()
+{
+	local dto
+	for dto in "$@"; do
+		if [ -e "$PATH_OF_CONFIG/$dto" ]; then
+			rmdir "$PATH_OF_CONFIG/$dto" 2>/dev/null || true
+			echo "Overlay $dto: rolled back" >&2
+		fi
+	done
+}
+
 LDTO_enable()
 {
 	local dry_run=0
+	local skip_preflight=0
 	local -a args=()
 	while [ $# -gt 0 ]; do
 		case "$1" in
@@ -308,9 +413,16 @@ LDTO_enable()
 				dry_run=1
 				shift
 				;;
+			--no-preflight)
+				skip_preflight=1
+				shift
+				;;
 			--help|-h)
-				echo "$0 enable [--dry-run|-n] OVERLAY [OVERLAY...]" >&2
-				echo "  Auto-applies providers from dt.deps. --dry-run prints plan only." >&2
+				echo "$0 enable [--dry-run|-n] [--no-preflight] OVERLAY [OVERLAY...]" >&2
+				echo "  Auto-applies providers from dt.deps (autoload chain)." >&2
+				echo "  Preflights the full chain with fdtoverlay before configfs;" >&2
+				echo "  on intermediate failure prints WARNING and applies nothing." >&2
+				echo "  --dry-run: plan only. --no-preflight: skip fdtoverlay check." >&2
 				return 0
 				;;
 			--)
@@ -337,33 +449,101 @@ LDTO_enable()
 	if [ "$dry_run" -eq 1 ]; then
 		echo "DRY-RUN: no configfs changes" >&2
 		LDTO_printPlan "${args[@]}"
+		# Optional fdtoverlay preflight when firmware DTB is readable
+		if [ "$skip_preflight" -eq 0 ] && [ -r "$PATH_OF_DT" ]; then
+			local -a seq
+			mapfile -t seq < <(LDTO_planSequence "${args[@]}")
+			local out
+			out=$(mktemp /tmp/ldto-enable-dry.XXXXXX.dtb)
+			if LDTO_chainPreflight "$PATH_OF_DT" "$out" "${seq[@]}"; then
+				echo "DRY-RUN: fdtoverlay chain OK (${#seq[@]} overlay(s))" >&2
+				rm -f "$out"
+			else
+				rm -f "$out"
+				return 1
+			fi
+		fi
 		return 0
 	fi
 
 	LDTO_checkOFConfig RW
 	LDTO_loadMap
 	local -a seq
-	mapfile -t seq < <(LDTO_expandDeps "${args[@]}")
-	local dto
+	mapfile -t seq < <(LDTO_planSequence "${args[@]}")
+
+	# Resolve .dtbo for every step before touching configfs
+	local dto dtbo_file
 	for dto in "${seq[@]}"; do
-		local dto_real
-		dto_real=$(LDTO_getAliasDT "$dto")
-		if [ -n "$dto_real" ]; then
-			dto=$dto_real
-		fi
-		local dtbo_file
 		dtbo_file=$(LDTO_getDTBO "$dto")
 		if [ -z "$dtbo_file" ]; then
-			echo "$FUNCNAME: $dto does not exist and cannot be added" >&2
+			echo "WARNING: apply not clean — missing .dtbo for '$dto'" >&2
+			echo "WARNING: autoload plan: ${seq[*]}" >&2
 			return 1
 		fi
+	done
+
+	# Full-chain preflight against running firmware DTB (autoload order).
+	# Intermediate fdtoverlay failure → WARNING, zero configfs changes.
+	if [ "$skip_preflight" -eq 0 ]; then
+		if [ -r "$PATH_OF_DT" ]; then
+			local out
+			out=$(mktemp /tmp/ldto-enable.XXXXXX.dtb)
+			if ! LDTO_chainPreflight "$PATH_OF_DT" "$out" "${seq[@]}"; then
+				rm -f "$out"
+				echo "WARNING: enable aborted — chain does not apply cleanly to running DTB" >&2
+				return 1
+			fi
+			rm -f "$out"
+		else
+			echo "WARNING: cannot preflight enable (no readable $PATH_OF_DT); applying without chain check" >&2
+		fi
+	fi
+
+	local -a applied_now=()
+	local status
+	for dto in "${seq[@]}"; do
+		dtbo_file=$(LDTO_getDTBO "$dto")
 		if [ -e "$PATH_OF_CONFIG/$dto" ]; then
 			echo "Overlay $dto: already active" >&2
 			continue
 		fi
-		mkdir "$PATH_OF_CONFIG/$dto"
-		cat "$dtbo_file" > "$PATH_OF_CONFIG/$dto/dtbo"
-		echo "Overlay $dto: $(cat "$PATH_OF_CONFIG/$dto/status")" >&2
+		if ! mkdir "$PATH_OF_CONFIG/$dto" 2>/dev/null; then
+			echo "WARNING: apply not clean — cannot create configfs node for '$dto'" >&2
+			echo "WARNING: autoload plan: ${seq[*]}" >&2
+			if [ ${#applied_now[@]} -gt 0 ]; then
+				echo "WARNING: rolling back overlays applied in this command: ${applied_now[*]}" >&2
+				LDTO_rollbackConfigFS "${applied_now[@]}"
+			fi
+			return 1
+		fi
+		if ! cat "$dtbo_file" > "$PATH_OF_CONFIG/$dto/dtbo" 2>/dev/null; then
+			echo "WARNING: apply not clean — failed writing dtbo for '$dto'" >&2
+			rmdir "$PATH_OF_CONFIG/$dto" 2>/dev/null || true
+			if [ ${#applied_now[@]} -gt 0 ]; then
+				echo "WARNING: rolling back: ${applied_now[*]}" >&2
+				LDTO_rollbackConfigFS "${applied_now[@]}"
+			fi
+			return 1
+		fi
+		status=$(cat "$PATH_OF_CONFIG/$dto/status" 2>/dev/null || echo unknown)
+		echo "Overlay $dto: $status" >&2
+		# Kernel reports applied / applied with errors / unapplied / …
+		case "$status" in
+			applied*)
+				applied_now+=("$dto")
+				;;
+			*)
+				echo "WARNING: apply not clean — configfs status for '$dto' is '$status'" >&2
+				echo "WARNING: autoload plan: ${seq[*]}" >&2
+				if [ ${#applied_now[@]} -gt 0 ]; then
+					echo "WARNING: intermediaries applied before failure: ${applied_now[*]}" >&2
+					echo "WARNING: rolling back this command's overlays (not pre-existing ones)" >&2
+					LDTO_rollbackConfigFS "${applied_now[@]}"
+				fi
+				rmdir "$PATH_OF_CONFIG/$dto" 2>/dev/null || true
+				return 1
+				;;
+		esac
 	done
 }
 
@@ -480,46 +660,169 @@ LDTO_findEFIDTBPath()
 	return 1
 }
 
+# Base DTB for merge: existing EFI override if present, else running firmware FDT.
+# Prints path on stdout. Requires LDTO_importDTConfig + PATH_OF_EFI_DTB set when
+# override should be preferred.
+LDTO_mergeBase()
+{
+	local target_dtb="${PATH_OF_EFI_DTB:+$PATH_OF_EFI_DTB/$DT_OVERRIDE}"
+	if [ -n "$target_dtb" ] && [ -f "$target_dtb" ]; then
+		echo "$target_dtb"
+	elif [ -e "$PATH_OF_DT" ]; then
+		echo "$PATH_OF_DT"
+	else
+		return 1
+	fi
+}
+
+# Single .dtbo path → ESP override via temp (no partial write on failure).
 LDTO_apply()
 {
+	local dtbo_path="$1"
+	if [ ! -f "$dtbo_path" ]; then
+		echo "$FUNCNAME: not a file: $dtbo_path" >&2
+		return 1
+	fi
 	LDTO_findEFIDTBPath RW
-	local base_dtb="$PATH_OF_DT"
-	local target_dtb="$PATH_OF_EFI_DTB/$DT_OVERRIDE"
-	local target_dtb_path="${target_dtb%/*}"
+	local base_dtb target_dtb target_dtb_path out
+	base_dtb=$(LDTO_mergeBase) || {
+		echo "$FUNCNAME: no base DTB" >&2
+		return 1
+	}
+	target_dtb="$PATH_OF_EFI_DTB/$DT_OVERRIDE"
+	target_dtb_path="${target_dtb%/*}"
 	if [ ! -d "$target_dtb_path" ]; then
-		mkdir "$target_dtb_path"
+		mkdir -p "$target_dtb_path"
 	fi
-	if [ -f "$target_dtb" ]; then
-		local base_dtb="$target_dtb"
+	out=$(mktemp /tmp/ldto-apply.XXXXXX.dtb)
+	if ! err=$(fdtoverlay -i "$base_dtb" -o "$out" "$dtbo_path" 2>&1); then
+		echo "WARNING: apply not clean for $dtbo_path" >&2
+		echo "WARNING: fdtoverlay: ${err:-failed}" >&2
+		rm -f "$out"
+		return 1
 	fi
-	fdtoverlay -i "$base_dtb" -o "$target_dtb" "$1"
+	if ! install -m 644 "$out" "$target_dtb"; then
+		echo "WARNING: apply not clean — failed installing $target_dtb" >&2
+		rm -f "$out"
+		return 1
+	fi
+	rm -f "$out"
 }
 
 LDTO_merge()
 {
-	LDTO_checkFirmwareDT
-	LDTO_importDTConfig
-	if [ -z "$1" ]; then
+	local dry_run=0
+	local -a args=()
+	while [ $# -gt 0 ]; do
+		case "$1" in
+			--dry-run|-n)
+				dry_run=1
+				shift
+				;;
+			--help|-h)
+				echo "$0 merge [--dry-run|-n] OVERLAY [OVERLAY...]" >&2
+				echo "  Auto-merges providers from dt.deps (autoload chain)." >&2
+				echo "  Preflights the full chain (detects intermediate failures);" >&2
+				echo "  writes the EFI override only if every step is clean." >&2
+				return 0
+				;;
+			--)
+				shift
+				args+=("$@")
+				break
+				;;
+			-*)
+				echo "$FUNCNAME: unknown option $1" >&2
+				return 1
+				;;
+			*)
+				args+=("$1")
+				shift
+				;;
+		esac
+	done
+
+	if [ ${#args[@]} -eq 0 ]; then
 		LDTO_list
 		return 1
 	fi
+
+	LDTO_checkFirmwareDT
+	LDTO_importDTConfig
 	LDTO_loadMap
+
 	local -a seq
-	mapfile -t seq < <(LDTO_expandDeps "$@")
-	local dto
-	for dto in "${seq[@]}"; do
-		local dto_real=$(LDTO_getAliasDT "$dto")
-		if [ ! -z "$dto_real" ]; then
-			dto=$dto_real
-		fi
-		local dtbo_file=$(LDTO_getDTBO "$dto")
-		if [ -z "$dtbo_file" ]; then
-			echo "$FUNCNAME: $dto does not exist and cannot be added." >&2
+	mapfile -t seq < <(LDTO_planSequence "${args[@]}")
+	if [ ${#seq[@]} -eq 0 ]; then
+		echo "WARNING: merge not clean — empty plan" >&2
+		return 1
+	fi
+
+	echo "Merge plan (autoload order, ${#seq[@]} step(s)): ${seq[*]}" >&2
+
+	# Need EFI path for real merge; dry-run can preflight against firmware only.
+	if [ "$dry_run" -eq 0 ]; then
+		LDTO_findEFIDTBPath RW || return 1
+	else
+		# Prefer override path if mounts allow (read-only OK for base choice)
+		LDTO_findEFIDTBPath 2>/dev/null || true
+	fi
+
+	local base_dtb target_dtb out
+	if [ -n "${PATH_OF_EFI_DTB:-}" ] && [ -f "$PATH_OF_EFI_DTB/$DT_OVERRIDE" ]; then
+		base_dtb="$PATH_OF_EFI_DTB/$DT_OVERRIDE"
+		echo "Merge base: existing override $base_dtb" >&2
+	else
+		base_dtb="$PATH_OF_DT"
+		echo "Merge base: running firmware DTB" >&2
+	fi
+
+	out=$(mktemp /tmp/ldto-merge.XXXXXX.dtb)
+	if ! LDTO_chainPreflight "$base_dtb" "$out" "${seq[@]}"; then
+		rm -f "$out"
+		echo "WARNING: merge aborted — ESP override not modified" >&2
+		return 1
+	fi
+
+	if [ "$dry_run" -eq 1 ]; then
+		echo "DRY-RUN: chain applies cleanly (${#seq[@]} overlay(s)); no ESP write" >&2
+		rm -f "$out"
+		return 0
+	fi
+
+	target_dtb="$PATH_OF_EFI_DTB/$DT_OVERRIDE"
+	local target_dtb_path="${target_dtb%/*}"
+	if [ ! -d "$target_dtb_path" ]; then
+		mkdir -p "$target_dtb_path" || {
+			echo "WARNING: merge not clean — cannot create $target_dtb_path" >&2
+			rm -f "$out"
+			return 1
+		}
+	fi
+	# Atomic-ish replace: write temp next to target when possible, then mv.
+	local staged
+	staged=$(mktemp "${target_dtb_path}/.ldto-merge.XXXXXX") || staged=""
+	if [ -n "$staged" ]; then
+		if ! cp -f "$out" "$staged" || ! mv -f "$staged" "$target_dtb"; then
+			echo "WARNING: merge not clean — failed installing override to $target_dtb" >&2
+			rm -f "$out" "$staged"
 			return 1
 		fi
-		LDTO_apply "$dtbo_file"
+	else
+		if ! install -m 644 "$out" "$target_dtb"; then
+			echo "WARNING: merge not clean — failed installing override to $target_dtb" >&2
+			rm -f "$out"
+			return 1
+		fi
+	fi
+	rm -f "$out"
+	sync 2>/dev/null || true
+
+	local dto
+	for dto in "${seq[@]}"; do
 		echo "Overlay $dto: merged for next boot" >&2
 	done
+	echo "Merge clean: ${#seq[@]} overlay(s) → $target_dtb" >&2
 }
 
 LDTO_checkOverrideDT()
@@ -1119,12 +1422,12 @@ LDTO_help(){
 	echo "$0 list"
 	echo "$0 status"
 	echo "$0 active [DTBO]"
-	echo "$0 enable [--dry-run|-n] [DTBO]   # auto-applies providers from dt.deps"
+	echo "$0 enable [--dry-run|-n] [--no-preflight] [DTBO]  # dt.deps autoload + chain preflight"
 	echo "$0 disable [DTBO]"
 	echo "$0 info [DTBO]     # description, deps, gpio.map pinout"
 	echo "$0 conflicts [DTBO]...  # pin occupancy / collisions (deps + active)"
 	echo "$0 current"
-	echo "$0 merge [DTBO]    # auto-merges providers from dt.deps"
+	echo "$0 merge [--dry-run|-n] [DTBO]  # dt.deps autoload; atomic ESP write if chain clean"
 	echo "$0 show"
 	echo "$0 diff"
 	echo "$0 reset"
@@ -1146,6 +1449,7 @@ fi
 cmd_lc=${cmd,,}
 case "$cmd_lc" in
 	help|list|info|conflicts)
+		# host-side OK (no configfs / firmware)
 		;;
 	enable)
 		# enable --dry-run does not need configfs
@@ -1156,6 +1460,9 @@ case "$cmd_lc" in
 		if [ "$dry" -eq 0 ]; then
 			LDTO_requireConfigFS || exit 1
 		fi
+		;;
+	merge|show|diff|reset|current)
+		# EFI / firmware DTB path — not configfs
 		;;
 	*)
 		LDTO_requireConfigFS || exit 1

@@ -23,9 +23,12 @@ export VENDOR=libre-computer BOARD=aml-s905x-cc
 ```
 
 Commands that **do not** require configfs: `help`, `list`, `info`,
-`conflicts`, `enable --dry-run`.  
-Commands that **do**: `enable` (apply), `disable`, `status`, `active`,
-`merge`, `show`, `diff`, `reset`, `current`.
+`conflicts`, `enable --dry-run`, `merge` / `merge --dry-run` (needs
+firmware DTB / EFI for real merge).  
+Commands that **need configfs**: `enable` (apply), `disable`, `status`,
+`active`.  
+Commands that need firmware/EFI DTB (not configfs): `merge`, `show`,
+`diff`, `reset`, `current`.
 
 ## Commands
 
@@ -73,11 +76,19 @@ ldto info H40P_SPI_0_1CS
 sudo ldto enable spi-cc-1cs-ili9341
 # Providers from dt.deps applied first (e.g. spi-cc-1cs)
 
-ldto enable --dry-run spi-cc-1cs-ili9341   # plan + pins only
+ldto enable --dry-run spi-cc-1cs-ili9341   # plan + pins + optional fdtoverlay chain check
 ldto enable -n H40P_SPI_0_2CS_LCD_35
+sudo ldto enable --no-preflight …          # skip fdtoverlay (not recommended)
 
 sudo ldto disable spi-cc-1cs-ili9341
 ```
+
+**Autoload + clean apply:** `enable` expands `dt.deps`, then **preflights the
+entire chain** with `fdtoverlay` against `/sys/firmware/fdt`. If any
+**intermediary** step fails, it prints `WARNING: apply not clean at overlay
+'…'` (plan + steps that would have succeeded) and **applies nothing** to
+configfs. If configfs fails mid-chain after preflight, overlays applied in
+*this* command are rolled back.
 
 Hardware overlays can wedge the system if removed while in use — disable
 carefully.
@@ -106,11 +117,20 @@ Permanent path: merge overlays into the EFI DTB override (see board
 
 ```bash
 sudo ldto merge spi-cc-1cs-ili9341
+ldto merge --dry-run spi-cc-1cs-ili9341   # chain preflight only (no ESP write)
 ldto show          # next-boot DTB as DTS
 sudo ldto diff     # running vs next-boot
 sudo ldto reset    # remove override DTB
 sudo ldto current  # running firmware DTB as DTS
 ```
+
+**Autoload + atomic merge:** expands `dt.deps` (providers first), then applies
+the full chain to a **temp** DTB starting from the existing override (if any)
+or the running firmware DTB. Only if **every** step succeeds is the result
+installed to the ESP. An intermediate `fdtoverlay` failure prints
+`WARNING: apply not clean at overlay '…'` / `WARNING: merge aborted — ESP
+override not modified` and leaves the previous override untouched (no
+half-merged next-boot DTB).
 
 A kernel package upgrade may overwrite the ESP DTB — re-merge after
 upgrades if you rely on permanent overlays.
