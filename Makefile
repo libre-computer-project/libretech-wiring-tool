@@ -44,25 +44,37 @@ else
   DEPS_FILES := $(addprefix libre-computer/,$(addsuffix /dt.deps,$(DEPS_BOARDS)))
 endif
 
-.PHONY : clean install-lgpio install-ldto install deps check check-strict
+.PHONY : clean install-lgpio install-ldto install deps check check-strict check-fdtoverlay
 
 # Integrity + gpio.map accuracy (lgpio pinout). Warnings only — does not fail the build.
-# Use `make check-strict` or `scripts/check-lwt.py --strict` in CI if desired.
+# Use `make check-strict` or scripts/* --strict in CI if desired.
+# fdtoverlay smoke needs base DTBs: set LWT_DTB_DIR or rely on auto-search
+# (e.g. ~/build/lc618/x86_64-arm64/arch/arm64/boot/dts). Missing bases SKIP.
 CHECK_LWT := python3 scripts/check-lwt.py
+CHECK_FDT := python3 scripts/check-fdtoverlay.py
 ifneq ($(BOARD_FILTER),)
   CHECK_LWT_ARGS := --board $(BOARD_FILTER)
+  CHECK_FDT_ARGS := --board $(BOARD_FILTER)
 else
   CHECK_LWT_ARGS :=
+  CHECK_FDT_ARGS :=
 endif
 
 all: $(DTOS_REAL) $(DTOS_SYM) $(DEPS_FILES)
 	@$(CHECK_LWT) $(CHECK_LWT_ARGS) || true
+	@$(CHECK_FDT) $(CHECK_FDT_ARGS) || true
 
-check:
+check: check-maps check-fdtoverlay
+
+check-maps:
 	$(CHECK_LWT) $(CHECK_LWT_ARGS) || true
+
+check-fdtoverlay:
+	$(CHECK_FDT) $(CHECK_FDT_ARGS) || true
 
 check-strict:
 	$(CHECK_LWT) $(CHECK_LWT_ARGS) --strict
+	$(CHECK_FDT) $(CHECK_FDT_ARGS) --strict
 
 deps: $(DEPS_FILES)
 

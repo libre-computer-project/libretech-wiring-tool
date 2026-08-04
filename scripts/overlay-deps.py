@@ -135,10 +135,19 @@ def is_bus_label(label: str) -> bool:
     l = label.lower()
     return bool(
         re.match(r"^(spicc\d*|spi\d*|i2c[_\w]*|i2c\d*)$", l)
+        or re.match(r"^spigpio\d*$", l)  # bitbang SPI host created by LWT
+        or re.match(r"^fan\d*$", l)  # pwm-fan node (fan-auto consumers)
         or l.startswith("spicc")
-        or l.startswith("spi")
-        and "gpio" not in l
+        or (l.startswith("spi") and "gpio" not in l)
         or l.startswith("i2c")
+    )
+
+
+def labels_defined(overlay_body: str) -> list[str]:
+    """Labels introduced as `label: node@unit {` or `label: node {`."""
+    return re.findall(
+        r"(?m)^\s*([A-Za-z_][A-Za-z0-9_]*)\s*:\s*[A-Za-z0-9_,.@+-]+\s*\{",
+        overlay_body,
     )
 
 
@@ -166,13 +175,28 @@ def analyze_source(name: str, text: str) -> dict:
 
     # Structural inference
     for target, ob in fragment_bodies(text):
+        # New nodes under root (spi-gpio host, pwm-fan, …) provide their labels.
+        if target == "/" or target == "":
+            n = cs_count_from_name(name) or 1
+            csg = re.search(r"cs-gpios\s*=\s*<([^>]+)>", ob)
+            if csg:
+                n = max(n, len(re.findall(r"&", csg.group(1))) or n)
+            for lab in labels_defined(ob):
+                if is_bus_label(lab):
+                    provides.append((f"bus:{lab}", n))
+            continue
+
         if not target or target.startswith("/"):
+            # other target-path (e.g. thermal trips) — not a bus provider
             continue
         if not is_bus_label(target):
             continue
         cap = f"bus:{target}"
         root_ok = overlay_root_status_okay(ob)
         kids = has_device_children(ob)
+        # Property-only consumers (fan-auto on &fan0) have neither status=okay
+        # nor device children — still require the provider label.
+        prop_only = not root_ok and not kids
         if root_ok and not kids:
             n = cs_count_from_name(name) or 1
             # count cs-gpios cells roughly
@@ -188,6 +212,9 @@ def analyze_source(name: str, text: str) -> dict:
             # combo bus+device: provides the bus, no external require
             n = max(max_reg(ob) + 1, cs_count_from_name(name) or 1)
             provides.append((cap, n))
+        elif prop_only:
+            n = cs_count_from_name(name) or 1
+            requires.append((cap, n))
 
     return {"provides": provides, "requires": requires}
 

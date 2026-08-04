@@ -6,6 +6,7 @@
 
 i2c-ao-emc2301	i2c-ao
 i2c-ao-emc2301-auto	i2c-ao-emc2301
+pwm-c-x5-fan-auto	pwm-c-x5-fan
 spi-cc0-1cs-spidev	spi-cc0-1cs
 spi-cc1-1cs-spidev	spi-cc1-1cs
 spi-cc1-2cs-ili9486-xpt2046	spi-cc1-2cs

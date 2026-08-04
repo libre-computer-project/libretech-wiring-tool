@@ -9,5 +9,5 @@ SPDX-License-Identifier: MIT
 | [lgpio.md](lgpio.md) | Header GPIO tool |
 | [ldto.md](ldto.md) | Device-tree overlay tool |
 | [gpio-map.md](gpio-map.md) | Pinout table format |
-| [overlays.md](overlays.md) | Overlay sources and policy |
+| [overlays.md](overlays.md) | Overlay sources, policy, fdtoverlay smoke |
 | [packaging.md](packaging.md) | Debian packages and paths |

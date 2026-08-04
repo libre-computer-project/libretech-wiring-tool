@@ -21,7 +21,9 @@ make BOARD_NAME=aml-s905x-cc
 make BOARD_NAME=aml-s905d3-cc
 make                    # all boards
 make deps               # regenerate dt.deps only
-make check              # integrity warnings (headers, maps, deps)
+make check              # maps/headers + fdtoverlay smoke (warnings)
+make check-fdtoverlay   # only apply smoke
+make check-strict       # same checks; exit 1 on WARNING
 ```
 
 Build rule: `cpp` preprocess → `dtc -@ -q` → `.dtbo`. Same-dir `.dts`
@@ -29,6 +31,29 @@ symlinks produce matching `.dtbo` symlinks (legacy aliases).
 
 Whole-dir `dt/` symlinks (e.g. `aml-s905x-cc-v2/dt` → `../aml-s905x-cc/dt`)
 compile the real tree.
+
+### fdtoverlay smoke (`scripts/check-fdtoverlay.py`)
+
+Applies each unique overlay **with `dt.deps` providers first** onto the
+board base DTB named by `dt.config` `DT_OVERRIDE`:
+
+```bash
+# base DTBs from a kernel O= tree (fleet default auto-search also tries this)
+export LWT_DTB_DIR=$HOME/build/lc618/x86_64-arm64/arch/arm64/boot/dts
+make check-fdtoverlay
+# or
+python3 scripts/check-fdtoverlay.py --board aml-s905x-cc -v
+python3 scripts/check-fdtoverlay.py --strict --require-base   # CI
+```
+
+| Result | Meaning |
+|--------|---------|
+| **OK** | `fdtoverlay -i base … providers consumer` succeeded |
+| **WARNING** | apply failed, missing `.dtbo`, or base lacks `__symbols__` |
+| **SKIP** | no base DTB found for this board (not a failure unless `--require-base`) |
+
+Base DTB must include `/__symbols__` (kernel `DTC_FLAGS=-@`). Without a
+DTB tree, smoke is skipped so map-only hosts stay green.
 
 ## Overlay header policy
 

@@ -23,7 +23,8 @@ From this tree:
 
 ```bash
 make BOARD_NAME=aml-s905x-cc    # build overlays for one board
-make check                      # integrity + gpio.map accuracy (warnings)
+make check                      # maps/headers + fdtoverlay smoke (warnings)
+# Base DTBs for smoke: LWT_DTB_DIR=~/build/lc618/x86_64-arm64/arch/arm64/boot/dts
 sudo make install               # → /opt/librecomputer/libretech-wiring-tool/
 ```
 
