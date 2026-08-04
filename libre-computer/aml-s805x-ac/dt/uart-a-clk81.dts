@@ -9,6 +9,7 @@
  * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
  *   7J1.8    GPIOX_12      B4      BT_EN
  *   7J1.10   GPIOX_13      A6      BT_WAKE_HOST
+ * Resource-provides: bus:uart_A
  */
 /dts-v1/;
 /plugin/;
@@ -22,10 +23,7 @@
 		"libretech,aml-s805x-ac-v2",
 		"amlogic,s805x",
 		"amlogic,meson-gxl";
-
-	/* resource-set tokens for deps/conflicts (see overlay-dependencies.md) */
-	lc,provides = "bus:uart_A";
-	fragment@0 {
+fragment@0 {
 		target-path = "/aliases";
 
 		__overlay__ {

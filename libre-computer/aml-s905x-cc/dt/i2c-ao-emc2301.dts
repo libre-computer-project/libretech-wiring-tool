@@ -11,6 +11,8 @@
  *   7J1.5    GPIOAO_4      A10     I2C_SCK_AO
  *
  * Requires: i2c-ao
+ * Resource-provides: emc2301-fan
+ * Resource-requires: bus:i2c_AO
  *
  * Notes:
  *   Device node for LoveRPi PoE HAT; pair with i2c-ao-emc2301-auto for
@@ -29,12 +31,7 @@
 		     "libretech,aml-s905x-cc-v2",
 		     "amlogic,s905x",
 		     "amlogic,meson-gxl";
-
-	/* overlay-deps: device provides fan capability; still needs I2C bus */
-	lc,provides = "emc2301-fan";
-	lc,requires = "bus:i2c_AO";
-
-	fragment@0 {
+fragment@0 {
 		target = <&i2c_AO>;
 
 		__overlay__ {

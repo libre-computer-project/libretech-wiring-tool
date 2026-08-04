@@ -11,6 +11,8 @@
  *   7J1.5    GPIOAO_2      AU40    I2C_AO_M0_SCL
  *
  * Requires: i2c-ao
+ * Resource-provides: emc2301-fan
+ * Resource-requires: bus:i2c_AO
  *
  * Notes:
  * This controller is present on the LoveRPi PoE+ HAT
@@ -33,12 +35,7 @@
 		     "amlogic,g12b",
 		     "amlogic,s905d3",
 		     "amlogic,sm1";
-
-	/* overlay-deps: device provides fan capability; still needs I2C bus */
-	lc,provides = "emc2301-fan";
-	lc,requires = "bus:i2c_AO";
-
-	fragment@0 {
+fragment@0 {
 		target = <&i2c_AO>;
 
 		__overlay__ {

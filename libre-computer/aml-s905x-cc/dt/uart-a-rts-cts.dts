@@ -11,6 +11,7 @@
  *   7J1.10   GPIOX_13      B6      UART_A_RX
  *   7J1.16   GPIOX_14      C6      UART_A_CTS_N
  *   7J1.18   GPIOX_15      C7      UART_A_RTS_N
+ * Resource-provides: bus:uart_A
  */
 /dts-v1/;
 /plugin/;
@@ -22,10 +23,7 @@
 		"libretech,aml-s905x-cc-v2",
 		"amlogic,s905x",
 		"amlogic,meson-gxl";
-
-	/* resource-set tokens for deps/conflicts (see overlay-dependencies.md) */
-	lc,provides = "bus:uart_A";
-	fragment@0 {
+fragment@0 {
 		target-path = "/aliases";
 
 		__overlay__ {

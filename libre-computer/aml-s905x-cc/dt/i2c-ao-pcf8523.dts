@@ -9,6 +9,8 @@
  * Summary: Add an PCF823 RTC module on I2C_AO bus, address 0x68.
  *
  * Requires: i2c-ao
+ * Resource-provides: i2c:i2c_AO@0x68
+ * Resource-requires: bus:i2c_AO
  *
  * Notes:
  * Modified from DS3231 overlay.
@@ -23,12 +25,7 @@
 		"libretech,aml-s905x-cc-v2",
 		"amlogic,s905x",
 		"amlogic,meson-gxl";
-
-	/* resource-set tokens for deps/conflicts (see overlay-dependencies.md) */
-	lc,provides = "i2c:i2c_AO@0x68";
-	lc,requires = "bus:i2c_AO";
-
-	fragment@1 {
+fragment@1 {
 		target = <&i2c_AO>;
 		
 		__overlay__ {

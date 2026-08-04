@@ -8,6 +8,7 @@
  *
  * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
  *   7J1.12   GPIOAO_6      C11     PWM_F
+ * Resource-provides: pwm_AO_ab.ch1@7J1-12
  */
 /dts-v1/;
 /plugin/;
@@ -21,10 +22,7 @@
 		"libretech,aml-s905x-cc-v2",
 		"amlogic,s905x",
 		"amlogic,meson-gxl";
-
-	/* resource-set tokens for deps/conflicts (see overlay-dependencies.md) */
-	lc,provides = "pwm_AO_ab.ch1@7J1-12";
-	fragment@0 {
+fragment@0 {
 		target = <&pwm_AO_ab>;
 		
 		__overlay__ {

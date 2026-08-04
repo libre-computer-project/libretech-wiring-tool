@@ -9,6 +9,7 @@
  * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
  *   7J1.27   GPIODV_26     E2      I2C_SDA_A
  *   7J1.28   GPIODV_27     F3      I2C_SCK_A
+ * Resource-provides: bus:i2c_B
  */
 /dts-v1/;
 /plugin/;
@@ -20,10 +21,7 @@
 		"libretech,aml-s905x-cc-v2",
 		"amlogic,s905x",
 		"amlogic,meson-gxl";
-
-	/* resource-set tokens for deps/conflicts (see overlay-dependencies.md) */
-	lc,provides = "bus:i2c_B";
-	fragment@0 {
+fragment@0 {
 		target-path = "/aliases";
 
 		__overlay__ {

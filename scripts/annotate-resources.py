@@ -1,24 +1,24 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: GPL-2.0-only
-"""Insert lc,provides / lc,requires / lc,revokes into overlay .dts roots.
+"""Insert Resource-* header comments into overlay .dts (not DT properties).
 
-Idempotent: skips files that already declare any of the three properties.
-Does not rewrite existing annotations.
+Idempotent: skips files that already have Resource-provides/requires/revokes
+or legacy lc,* DT props.
 
-Token grammar (R15 / overlay-dependencies.md):
+Token grammar (R15):
   bus:<label>           — bus enable (provider)
   pwm_<chip>.chN@<pin>  — exclusive PWM channel on header pin
   label:<name>          — created node (e.g. fan0)
   pin:<Header>-<N>      — exclusive header pin claim
-  alias:<key>           — /aliases key (exclusive among writers)
   i2c:<bus>@0xNN        — exclusive I2C address on bus
   excl:<resource>       — exclusive non-pin resource (usb.dr_mode, …)
   display:<name>        — display resource (for revokes)
 
+alias:<key> is NOT hand-written — ldto derives from target-path="/aliases".
+
 Usage:
-  python3 scripts/annotate-resources.py              # aml-s905x-cc defaults
-  python3 scripts/annotate-resources.py --board X
-  python3 scripts/annotate-resources.py --dry-run
+  python3 scripts/annotate-resources.py
+  python3 scripts/annotate-resources.py --board X --dry-run
 """
 from __future__ import annotations
 
@@ -178,46 +178,65 @@ BOARD_ANNOTATIONS: dict[str, dict[str, dict[str, list[str]]]] = {
 }
 
 
-def format_lc_block(
+def format_resource_comment_lines(
     provides: list[str] | None = None,
     requires: list[str] | None = None,
     revokes: list[str] | None = None,
-) -> str:
+) -> list[str]:
+    """Header comment lines (not DT properties — keep FDT clean)."""
     lines: list[str] = []
-    lines.append("\t/* resource-set tokens for deps/conflicts (see overlay-dependencies.md) */")
     if provides:
-        vals = ", ".join(f'"{t}"' for t in provides)
-        lines.append(f"\tlc,provides = {vals};")
+        # never hand-code alias:* — ldto derives from /aliases fragments
+        provides = [t for t in provides if not t.startswith("alias:")]
+        if provides:
+            lines.append(f" * Resource-provides: {', '.join(provides)}")
     if requires:
-        vals = ", ".join(f'"{t}"' for t in requires)
-        lines.append(f"\tlc,requires = {vals};")
+        lines.append(f" * Resource-requires: {', '.join(requires)}")
     if revokes:
-        vals = ", ".join(f'"{t}"' for t in revokes)
-        lines.append(f"\tlc,revokes = {vals};")
-    lines.append("")
-    return "\n".join(lines)
+        lines.append(f" * Resource-revokes: {', '.join(revokes)}")
+    return lines
 
 
 def already_annotated(text: str) -> bool:
-    return bool(re.search(r"\blc,(provides|requires|revokes)\s*=", text))
+    return bool(
+        re.search(r"Resource-(provides|requires|revokes)\s*:", text, re.I)
+        or re.search(r"\blc,(provides|requires|revokes)\s*=", text)
+    )
 
 
-def insert_after_compatible(text: str, block: str) -> str | None:
-    """Insert block after the root compatible = ...; property."""
-    # Match root-level compatible (first in file after / {)
+def insert_resource_comments(text: str, lines: list[str]) -> str | None:
+    if not lines:
+        return text
+    block = "\n".join(lines) + "\n"
     m = re.search(
-        r"(compatible\s*=\s*(?:\"[^\"]*\"\s*,\s*)*\"[^\"]*\"\s*;)",
+        r"(/\*[^*]*\*+(?:[^/*][^*]*\*+)*/\s*)\n(/dts-v1/)",
         text,
-        re.MULTILINE,
+        re.S,
     )
     if not m:
         return None
-    end = m.end()
-    # avoid double insert
-    rest = text[end : end + 200]
-    if re.search(r"\blc,(provides|requires|revokes)\s*=", rest):
+    hdr = m.group(1)
+    if re.search(r"Resource-(provides|requires|revokes)\s*:", hdr, re.I):
         return text
-    return text[:end] + "\n\n" + block + text[end:]
+    if re.search(r"^\s*\*\s*Requires\s*:", hdr, re.M | re.I):
+        hdr2 = re.sub(
+            r"(^\s*\*\s*Requires\s*:.*\n)",
+            r"\1" + block,
+            hdr,
+            count=1,
+            flags=re.M | re.I,
+        )
+    elif re.search(r"^\s*\*\s*Notes\s*:", hdr, re.M | re.I):
+        hdr2 = re.sub(
+            r"(^\s*\*\s*Notes\s*:)",
+            block + r"\1",
+            hdr,
+            count=1,
+            flags=re.M | re.I,
+        )
+    else:
+        hdr2 = re.sub(r"\*/\s*$", block + " */", hdr, count=1)
+    return text[: m.start(1)] + hdr2 + "\n" + text[m.start(2) :]
 
 
 def annotate_file(path: Path, meta: dict[str, list[str]], dry_run: bool) -> str:
@@ -226,14 +245,14 @@ def annotate_file(path: Path, meta: dict[str, list[str]], dry_run: bool) -> str:
     text = path.read_text(errors="replace")
     if already_annotated(text):
         return "skip-exists"
-    block = format_lc_block(
+    lines = format_resource_comment_lines(
         provides=meta.get("provides"),
         requires=meta.get("requires"),
         revokes=meta.get("revokes"),
     )
-    new = insert_after_compatible(text, block)
+    new = insert_resource_comments(text, lines)
     if new is None:
-        return "skip-no-compatible"
+        return "skip-no-header"
     if new == text:
         return "skip-unchanged"
     if not dry_run:

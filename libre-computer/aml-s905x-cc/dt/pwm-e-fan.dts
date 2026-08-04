@@ -9,6 +9,8 @@
  * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
  *   7J1.32   GPIOX_16      A3      WIFI_32K
  *   9J1.2    GPIOH_4       G19     SPDIF_OUT
+ * Resource-provides: label:fan0, pin:9J1-2
+ * Resource-requires: pwm_ef.ch0@7J1-32
  */
 /dts-v1/;
 /plugin/;
@@ -25,13 +27,7 @@
 		"libretech,aml-s905x-cc-v2",
 		"amlogic,s905x",
 		"amlogic,meson-gxl";
-
-	/* resource-set tokens for deps/conflicts (see overlay-dependencies.md) */
-	lc,provides = "label:fan0", "pin:9J1-2";
-	lc,requires = "pwm_ef.ch0@7J1-32";
-
-	
-	fragment@0 {
+fragment@0 {
 		target = <&spdif_out_h_pins>;
 		__overlay__ {
 			mux {

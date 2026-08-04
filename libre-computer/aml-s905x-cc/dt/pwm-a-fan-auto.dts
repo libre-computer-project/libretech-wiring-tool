@@ -9,6 +9,7 @@
  * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
  *   7J1.33   GPIOX_6       D2      WIFI_PWREN
  *   9J1.2    GPIOH_4       G19     SPDIF_OUT
+ * Resource-requires: label:fan0
  */
 /dts-v1/;
 /plugin/;
@@ -26,12 +27,7 @@
 		"libretech,aml-s905x-cc-v2",
 		"amlogic,s905x",
 		"amlogic,meson-gxl";
-
-	/* resource-set tokens for deps/conflicts (see overlay-dependencies.md) */
-	lc,requires = "label:fan0";
-
-
-	fragment@0 {
+fragment@0 {
 		target = <&fan0>;
 		__overlay__ {
 			cooling-levels = <0 100 150 200 255>;

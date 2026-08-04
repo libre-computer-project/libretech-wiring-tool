@@ -11,6 +11,7 @@
  *   7J1.5    GPIOAO_4      A10     I2C_SCK_AO
  *
  * Requires: i2c-ao-emc2301
+ * Resource-requires: emc2301-fan
  *
  * Notes:
  *   Maps cpu-thermal trips to fan0 from i2c-ao-emc2301. Enable bus + device
@@ -29,11 +30,7 @@
 		     "libretech,aml-s905x-cc-v2",
 		     "amlogic,s905x",
 		     "amlogic,meson-gxl";
-
-	/* overlay-deps: thermal maps need device + fan0 from i2c-ao-emc2301 */
-	lc,requires = "emc2301-fan";
-
-	fragment@0 {
+fragment@0 {
 		target-path = "/thermal-zones/cpu-thermal/trips";
 
 		__overlay__ {

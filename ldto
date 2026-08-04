@@ -509,7 +509,7 @@ LDTO_enableGateConflicts()
 	out=$(mktemp /tmp/ldto-conflicts.XXXXXX) || return 1
 	LDTO_conflicts "$@" >"$out" 2>&1 || rc=$?
 	if [ "$rc" -eq 2 ]; then
-		echo "WARNING: pin conflicts between plan and/or active overlays" >&2
+		echo "WARNING: pin or resource conflicts between plan and/or active overlays" >&2
 		cat "$out" >&2
 		rm -f "$out"
 		return 1
@@ -632,7 +632,7 @@ LDTO_enable()
 			if ! LDTO_enableGateConflicts "${args[@]}"; then
 				return 1
 			fi
-			echo "DRY-RUN: pin conflicts OK" >&2
+			echo "DRY-RUN: pin/resource conflicts OK" >&2
 			# R10: do not claim OK when firmware FDT is missing (soft-skip).
 			if [ ! -r "$PATH_OF_DT" ]; then
 				echo "DRY-RUN: live fdtoverlay preflight SKIPPED (no readable $PATH_OF_DT)" >&2
@@ -983,7 +983,7 @@ LDTO_merge()
 	# R7: same pin-conflict gate as enable (plan + any configfs actives).
 	# Runs before firmware DTB check so host dry-run still catches pin fights.
 	if ! LDTO_enableGateConflicts "${args[@]}"; then
-		echo "WARNING: merge aborted — pin conflicts; ESP override not modified" >&2
+		echo "WARNING: merge aborted — pin or resource conflicts; ESP override not modified" >&2
 		return 1
 	fi
 
@@ -1349,6 +1349,15 @@ LDTO_info()
 			echo "Required by: $rev"
 		fi
 
+		# Resource tokens (header comments + derived aliases)
+		if [ -n "$dts" ] && [ -f "$dts" ]; then
+			local res_line
+			res_line=$(LDTO_exclusiveClaims "$dto" 2>/dev/null | sort -u | tr '\n' ' ')
+			if [ -n "${res_line// }" ]; then
+				echo "Resource claims: $res_line"
+			fi
+		fi
+
 		# Active?
 		if [ -d "$PATH_OF_CONFIG" ] && [ -e "$PATH_OF_CONFIG/$dto" ]; then
 			echo "Active: yes ($(cat "$PATH_OF_CONFIG/$dto/status" 2>/dev/null || echo applied))"
@@ -1523,33 +1532,68 @@ LDTO_conflictsHelp()
 	echo "$0 conflicts [OVERLAY|ALIAS]..." >&2
 	echo "  Report header pin collisions and resource-token exclusivity among" >&2
 	echo "  the named overlays (with deps) and any currently active overlays." >&2
-	echo "  Resource tokens: lc,provides / lc,requires / lc,revokes in overlay .dts;" >&2
-	echo "  plus alias:<key> derived from target-path=\"/aliases\" fragments (not hand-coded)." >&2
+	echo "  Resource tokens (header comments, not DT props):" >&2
+	echo "    * Resource-provides: tok, tok" >&2
+	echo "    * Resource-requires: tok" >&2
+	echo "    * Resource-revokes: tok" >&2
+	echo "  plus alias:<key> derived from target-path=\"/aliases\" fragments." >&2
 	echo "  No args = active only." >&2
 }
 
-# Parse lc,<prop> = "a", "b"; from a .dts (single-line or multi-line prop).
+# Parse resource tokens from .dts header comments (preferred) or legacy
+# lc,<prop> = "a", "b"; DT properties. prop = provides|requires|revokes.
 # Prints one token per line.
 LDTO_lcStrings()
 {
 	local file="$1" prop="$2"
 	[ -f "$file" ] || return 0
-	# collapse newlines in a copy region around the property
+	local field
+	case "$prop" in
+		provides) field="Resource-provides" ;;
+		requires) field="Resource-requires" ;;
+		revokes) field="Resource-revokes" ;;
+		*) return 0 ;;
+	esac
+	# Comment form: * Resource-provides: a, b
+	local line
+	while IFS= read -r line; do
+		# strip leading " * Resource-provides:"
+		line=${line#*:}
+		line=${line//$'\r'/}
+		local part
+		IFS=',' read -ra _parts <<<"$line"
+		for part in "${_parts[@]}"; do
+			part=${part//\"/}
+			part=$(echo "$part" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+			[ -n "$part" ] && printf '%s\n' "$part"
+		done
+	done < <(grep -iE "^[[:space:]]\*[[:space:]]*${field}[[:space:]]*:" "$file" 2>/dev/null || true)
+	# If comments produced anything, skip legacy DT props
+	if grep -qiE "^[[:space:]]\*[[:space:]]*${field}[[:space:]]*:" "$file" 2>/dev/null; then
+		return 0
+	fi
+	# Legacy: lc,provides = "a", "b";
 	tr '\n' ' ' <"$file" | \
 		grep -oE "lc,${prop}[[:space:]]*=[[:space:]]*[^;]+;" | \
 		grep -oE '"[^"]+"' | tr -d '"'
 }
 
 # Derive exclusive alias claims from fragment target-path = "/aliases".
-# Do NOT hand-hardcode alias:* in lc,provides — keys come from the real
-# property names written under /aliases (avoids drift / invented tokens).
-# Prints one "alias:<key>" per line. Requires python3.
+# Keys come from the real property names under /aliases (not hand-coded).
+# Prints one "alias:<key>" per line. Uses python3 when available; pure-bash
+# fallback if not. If the file has /aliases but derivation fails → return 2.
 LDTO_derivedAliasClaims()
 {
 	local file="$1"
 	[ -f "$file" ] || return 0
-	command -v python3 >/dev/null 2>&1 || return 0
-	python3 - "$file" <<'PY'
+	local has_aliases=0
+	if grep -qE 'target-path[[:space:]]*=[[:space:]]*"/aliases"' "$file" 2>/dev/null; then
+		has_aliases=1
+	fi
+	[ "$has_aliases" -eq 1 ] || return 0
+
+	if command -v python3 >/dev/null 2>&1; then
+		if out=$(python3 - "$file" <<'PY'
 import re
 import sys
 from pathlib import Path
@@ -1569,17 +1613,10 @@ def extract_braced(s: str, open_idx: int) -> tuple[str, int]:
         i += 1
     return s[open_idx + 1 :], len(s)
 
-# Not alias keys (noise inside __overlay__)
 _SKIP = {
-    "status",
-    "compatible",
-    "phandle",
-    "name",
-    "pinctrl-names",
-    "clock-names",
-    "sound-name-prefix",
+    "status", "compatible", "phandle", "name",
+    "pinctrl-names", "clock-names", "sound-name-prefix",
 }
-
 seen: set[str] = set()
 for m in re.finditer(r"fragment@\d+\s*\{", text):
     body, _ = extract_braced(text, m.end() - 1)
@@ -1600,24 +1637,74 @@ for m in re.finditer(r"fragment@\d+\s*\{", text):
             seen.add(tok)
             print(tok)
 PY
+		); then
+			[ -n "$out" ] && printf '%s\n' "$out"
+			return 0
+		fi
+		# fall through to bash fallback
+	fi
+
+	# Pure-bash fallback: line-oriented scan (good enough for normal LWT form)
+	local in_aliases=0 in_overlay=0 key found=0
+	local -A seen=()
+	while IFS= read -r line || [ -n "$line" ]; do
+		if [[ "$line" =~ target-path[[:space:]]*=[[:space:]]*\"/aliases\" ]]; then
+			in_aliases=1
+			in_overlay=0
+			continue
+		fi
+		if [ "$in_aliases" -eq 1 ] && [[ "$line" =~ fragment@ ]]; then
+			in_aliases=0
+			in_overlay=0
+		fi
+		if [ "$in_aliases" -eq 1 ] && [[ "$line" =~ __overlay__ ]]; then
+			in_overlay=1
+			continue
+		fi
+		if [ "$in_overlay" -eq 1 ]; then
+			if [[ "$line" =~ ^[[:space:]]*([A-Za-z_][A-Za-z0-9_]*)[[:space:]]*=[[:space:]]*\" ]]; then
+				key="${BASH_REMATCH[1]}"
+				case "$key" in
+					status|compatible|phandle|name|pinctrl-names|clock-names|sound-name-prefix) ;;
+					*)
+						if [ -z "${seen[$key]:-}" ]; then
+							seen["$key"]=1
+							found=1
+							printf 'alias:%s\n' "$key"
+						fi
+						;;
+				esac
+			fi
+			# end of overlay block (naive)
+			if [[ "$line" =~ ^[[:space:]]*\}\;[[:space:]]*$ ]] && [ "$found" -eq 1 ]; then
+				in_overlay=0
+				in_aliases=0
+			fi
+		fi
+	done <"$file"
+	if [ "$found" -eq 0 ] && [ "$has_aliases" -eq 1 ]; then
+		echo "WARNING: alias derivation found no keys in $file" >&2
+		return 2
+	fi
+	return 0
 }
 
 # Exclusive claim tokens for conflict detection (R15).
-# = (lc,provides minus hand-coded alias:*) ∪ lc,revokes
-#   ∪ (lc,requires that are pin:|i2c:|excl:)
+# = Resource-provides (minus alias:*) ∪ Resource-revokes
+#   ∪ (Resource-requires that are pin:|i2c:|excl:)
 #   ∪ derived alias:<key> from /aliases fragments
 # bus: requires stay out so provider+consumer do not false-conflict.
-# Hand-coded alias:* in lc,provides is ignored (derive from DTS instead).
+# Returns 2 if alias derivation is required but failed.
 LDTO_exclusiveClaims()
 {
 	local dto="$1"
-	local dts t
+	local dts t rc=0
 	dts=$(LDTO_getDTS "$dto")
 	[ -n "$dts" ] && [ -f "$dts" ] || return 0
 	while IFS= read -r t; do
 		[ -z "$t" ] && continue
 		case "$t" in
-			alias:*) ;; # prefer LDTO_derivedAliasClaims
+			alias:*) ;; # prefer derived
 			*) printf '%s\n' "$t" ;;
 		esac
 	done < <(LDTO_lcStrings "$dts" provides)
@@ -1632,7 +1719,8 @@ LDTO_exclusiveClaims()
 				;;
 		esac
 	done < <(LDTO_lcStrings "$dts" requires)
-	LDTO_derivedAliasClaims "$dts"
+	LDTO_derivedAliasClaims "$dts" || rc=$?
+	return "$rc"
 }
 
 LDTO_conflicts()
@@ -1785,15 +1873,34 @@ LDTO_conflicts()
 		done <<<"$pin_groups"
 	fi
 
-	# R15: resource-token exclusivity (lc,provides / revokes / exclusive requires)
+	# R15: resource-token exclusivity (header Resource-* / exclusive requires + derived aliases)
 	local -A claims_by_ov=()
-	local dto tok line dto_real
+	local dto tok line dto_real der_rc claims_tmp err_tmp
+	local alias_derivation_failed=0
+	claims_tmp=$(mktemp)
+	err_tmp=$(mktemp)
 	for dto in "${seq[@]}"; do
 		dto_real=$(LDTO_getAliasDT "$dto")
 		[ -n "$dto_real" ] && dto=$dto_real
-		line=$(LDTO_exclusiveClaims "$dto" | sort -u | tr '\n' ' ')
+		der_rc=0
+		: >"$claims_tmp"
+		LDTO_exclusiveClaims "$dto" >"$claims_tmp" 2>>"$err_tmp" || der_rc=$?
+		if [ "$der_rc" -eq 2 ]; then
+			alias_derivation_failed=1
+		fi
+		line=$(sort -u "$claims_tmp" | tr '\n' ' ')
 		claims_by_ov["$dto"]="$line"
 	done
+	rm -f "$claims_tmp"
+	if [ -s "$err_tmp" ]; then
+		cat "$err_tmp" >&2
+	fi
+	rm -f "$err_tmp"
+	if [ "$alias_derivation_failed" -eq 1 ]; then
+		echo "WARNING: alias derivation failed for one or more overlays; refusing silent pass" >&2
+		rm -f "$conf_tmp" "$res_tmp"
+		return 1
+	fi
 	local -A tok_owners=()
 	for dto in "${!claims_by_ov[@]}"; do
 		for tok in ${claims_by_ov[$dto]}; do

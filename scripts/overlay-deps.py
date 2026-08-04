@@ -29,9 +29,40 @@ def read_text(path: Path) -> str:
 
 
 def parse_lc_strings(text: str, prop: str) -> list[str]:
-    """Parse lc,prop = "a", "b"; from overlay source."""
-    # allow multi-line
-    m = re.search(rf'{re.escape(prop)}\s*=\s*([^;]+);', text)
+    """Parse resource tokens from overlay source.
+
+    Preferred (host tooling): header comments — do not pollute DT/FDT::
+      * Resource-provides: tok, tok
+      * Resource-requires: tok
+      * Resource-revokes: tok
+
+    Legacy (still accepted): root DT properties
+      lc,provides = "a", "b";
+    """
+    bare = prop.replace("lc,", "").strip()
+    field = {
+        "provides": "Resource-provides",
+        "requires": "Resource-requires",
+        "revokes": "Resource-revokes",
+    }.get(bare)
+    if not field:
+        return []
+
+    out: list[str] = []
+    for m in re.finditer(
+        rf"^\s*\*\s*{re.escape(field)}\s*:\s*(.+)$",
+        text,
+        re.M | re.I,
+    ):
+        for part in m.group(1).split(","):
+            tok = part.strip().strip('"').strip()
+            if tok:
+                out.append(tok)
+    if out:
+        return out
+
+    # Legacy DT property
+    m = re.search(rf"lc,{re.escape(bare)}\s*=\s*([^;]+);", text)
     if not m:
         return []
     return re.findall(r'"([^"]+)"', m.group(1))
@@ -156,8 +187,8 @@ def analyze_source(name: str, text: str) -> dict:
     provides: list[tuple[str, int]] = []
     requires: list[tuple[str, int]] = []
 
-    expl_p = parse_lc_strings(text, "lc,provides")
-    expl_r = parse_lc_strings(text, "lc,requires")
+    expl_p = parse_lc_strings(text, "provides")
+    expl_r = parse_lc_strings(text, "requires")
     pn = parse_lc_u32(text, "lc,provides-n")
     rn = parse_lc_u32(text, "lc,requires-n")
 
@@ -170,10 +201,7 @@ def analyze_source(name: str, text: str) -> dict:
         for cap in expl_r:
             requires.append((cap, n))
 
-    if expl_p or expl_r:
-        return {"provides": provides, "requires": requires}
-
-    # Structural inference
+    # Always merge structural inference with explicit tokens (comments preferred).
     for target, ob in fragment_bodies(text):
         # New nodes under root (spi-gpio host, pwm-fan, …) provide their labels.
         if target == "/" or target == "":
