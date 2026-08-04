@@ -44,27 +44,33 @@ else
   DEPS_FILES := $(addprefix libre-computer/,$(addsuffix /dt.deps,$(DEPS_BOARDS)))
 endif
 
-.PHONY : clean install-lgpio install-ldto install deps check check-strict check-fdtoverlay
+.PHONY : clean install-lgpio install-ldto install deps check check-strict check-fdtoverlay check-conflicts
 
 # Integrity + gpio.map accuracy (lgpio pinout). Warnings only — does not fail the build.
 # Use `make check-strict` or scripts/* --strict in CI if desired.
 # fdtoverlay smoke needs base DTBs: set LWT_DTB_DIR or rely on auto-search
 # (e.g. ~/build/lc618/x86_64-arm64/arch/arm64/boot/dts). Missing bases SKIP.
+# check-conflicts: host ldto pin/resource matrix (no board); || true under make check.
 CHECK_LWT := python3 scripts/check-lwt.py
 CHECK_FDT := python3 scripts/check-fdtoverlay.py
+CHECK_CONFLICTS := bash scripts/check-conflicts.sh
 ifneq ($(BOARD_FILTER),)
   CHECK_LWT_ARGS := --board $(BOARD_FILTER)
   CHECK_FDT_ARGS := --board $(BOARD_FILTER)
+  CHECK_CONFLICTS_ARGS := --board $(BOARD_FILTER)
 else
   CHECK_LWT_ARGS :=
   CHECK_FDT_ARGS :=
+  # Default matrix board when make check is unscoped
+  CHECK_CONFLICTS_ARGS := --board aml-s905x-cc
 endif
 
 all: $(DTOS_REAL) $(DTOS_SYM) $(DEPS_FILES)
 	@$(CHECK_LWT) $(CHECK_LWT_ARGS) || true
 	@$(CHECK_FDT) $(CHECK_FDT_ARGS) || true
+	@$(CHECK_CONFLICTS) $(CHECK_CONFLICTS_ARGS) || true
 
-check: check-maps check-fdtoverlay
+check: check-maps check-fdtoverlay check-conflicts
 
 check-maps:
 	$(CHECK_LWT) $(CHECK_LWT_ARGS) || true
@@ -72,9 +78,13 @@ check-maps:
 check-fdtoverlay:
 	$(CHECK_FDT) $(CHECK_FDT_ARGS) || true
 
+check-conflicts:
+	$(CHECK_CONFLICTS) $(CHECK_CONFLICTS_ARGS) || true
+
 check-strict:
 	$(CHECK_LWT) $(CHECK_LWT_ARGS) --strict
 	$(CHECK_FDT) $(CHECK_FDT_ARGS) --strict
+	$(CHECK_CONFLICTS) $(CHECK_CONFLICTS_ARGS)
 
 deps: $(DEPS_FILES)
 
