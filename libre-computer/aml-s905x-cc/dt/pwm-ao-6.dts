@@ -23,6 +23,11 @@
 		"amlogic,s905x",
 		"amlogic,meson-gxl";
 
+	/* resource-set tokens for deps/conflicts (see overlay-dependencies.md) */
+	lc,provides = "pwm_AO_ab.ch0@7J1-11", "pwm_AO_ab.ch1@7J1-12";
+	lc,revokes = "cec_AO";
+
+
 	fragment@0 {
 		target = <&cec_AO>;
 		

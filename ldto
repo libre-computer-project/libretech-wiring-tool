@@ -1521,8 +1521,47 @@ LDTO_info()
 LDTO_conflictsHelp()
 {
 	echo "$0 conflicts [OVERLAY|ALIAS]..." >&2
-	echo "  Report header pin collisions among the named overlays (with deps)" >&2
-	echo "  and any currently active overlays. No args = active only." >&2
+	echo "  Report header pin collisions and resource-token exclusivity among" >&2
+	echo "  the named overlays (with deps) and any currently active overlays." >&2
+	echo "  Resource tokens: lc,provides / lc,requires / lc,revokes in overlay .dts." >&2
+	echo "  No args = active only." >&2
+}
+
+# Parse lc,<prop> = "a", "b"; from a .dts (single-line or multi-line prop).
+# Prints one token per line.
+LDTO_lcStrings()
+{
+	local file="$1" prop="$2"
+	[ -f "$file" ] || return 0
+	# collapse newlines in a copy region around the property
+	tr '\n' ' ' <"$file" | \
+		grep -oE "lc,${prop}[[:space:]]*=[[:space:]]*[^;]+;" | \
+		grep -oE '"[^"]+"' | tr -d '"'
+}
+
+# Exclusive claim tokens for conflict detection (R15).
+# = lc,provides ∪ lc,revokes ∪ (lc,requires that are pin:|alias:|i2c:|excl:)
+# bus: requires stay out so provider+consumer do not false-conflict.
+LDTO_exclusiveClaims()
+{
+	local dto="$1"
+	local dts t
+	dts=$(LDTO_getDTS "$dto")
+	[ -n "$dts" ] && [ -f "$dts" ] || return 0
+	while IFS= read -r t; do
+		[ -n "$t" ] && printf '%s\n' "$t"
+	done < <(LDTO_lcStrings "$dts" provides)
+	while IFS= read -r t; do
+		[ -n "$t" ] && printf '%s\n' "$t"
+	done < <(LDTO_lcStrings "$dts" revokes)
+	while IFS= read -r t; do
+		[ -z "$t" ] && continue
+		case "$t" in
+			pin:*|alias:*|i2c:*|excl:*)
+				printf '%s\n' "$t"
+				;;
+		esac
+	done < <(LDTO_lcStrings "$dts" requires)
 }
 
 LDTO_conflicts()
@@ -1573,64 +1612,55 @@ LDTO_conflicts()
 	)
 
 	if [ -z "$pins_blob" ]; then
-		# R15: pin gate is silent on pinless overlays (cvbs-disable, usb dr_mode,
-		# gpu-turbo, …). Not a hard fail — exclusivity for those needs resource
-		# tokens (lc,provides / lc,revokes), not header pins. Be honest.
 		echo "No header pins resolved from overlays (need .dts + gpio.map)."
-		if [ ${#seq[@]} -gt 1 ]; then
-			echo "WARNING: pin conflict gate cannot check exclusivity among ${#seq[@]} pinless/unmapped overlays" >&2
-			echo "WARNING: use fdtoverlay preflight for structural clashes; resource-set metadata for semantic exclusivity" >&2
-		fi
-		return 0
-	fi
-
-	# Occupancy table
-	echo "Pin occupancy:"
-	printf '  %-6s %-4s %-14s %s\n' "Header" "Pin" "Name" "Overlays"
-	printf '%s\n' "$pins_blob" | awk -F '\t' '
-		{
-			key = $1 SUBSEP $2
-			nm[key] = $3
-			h[key] = $1
-			p[key] = $2
-			if (!seen[key, $4]++) {
-				if (own[key] == "")
-					own[key] = $4
-				else
-					own[key] = own[key] " " $4
-			}
-		}
-		END {
-			for (k in own)
-				printf "%s\t%02d\t%s\t%s\t%s\n", h[k], p[k]+0, p[k], nm[k], own[k]
-		}
-	' | sort -t$'\t' -k1,1 -k2,2n | awk -F '\t' '{
-		printf "  %-6s %-4s %-14s %s\n", $1, $3, $4, $5
-	}'
-
-
-	echo
-	# True conflicts: same Header.Pin claimed by overlays that are NOT
-	# in a provider→consumer relationship (bus+device sharing SPI pins is OK).
-	LDTO_loadDeps
-	local pin_groups
-	pin_groups=$(
+	else
+		echo "Pin occupancy:"
+		printf '  %-6s %-4s %-14s %s\n' "Header" "Pin" "Name" "Overlays"
 		printf '%s\n' "$pins_blob" | awk -F '\t' '
 			{
-				key = $1 "\t" $2 "\t" $3
+				key = $1 SUBSEP $2
+				nm[key] = $3
+				h[key] = $1
+				p[key] = $2
 				if (!seen[key, $4]++) {
-					if (list[key] == "") list[key] = $4
-					else list[key] = list[key] " " $4
-					cnt[key]++
+					if (own[key] == "")
+						own[key] = $4
+					else
+						own[key] = own[key] " " $4
 				}
 			}
 			END {
-				for (k in cnt)
-					if (cnt[k] > 1)
-						print k "\t" list[k]
+				for (k in own)
+					printf "%s\t%02d\t%s\t%s\t%s\n", h[k], p[k]+0, p[k], nm[k], own[k]
 			}
-		'
-	)
+		' | sort -t$'\t' -k1,1 -k2,2n | awk -F '\t' '{
+			printf "  %-6s %-4s %-14s %s\n", $1, $3, $4, $5
+		}'
+	fi
+
+	echo
+	# Pin conflicts: same Header.Pin by unrelated overlays (bus→device OK).
+	LDTO_loadDeps
+	local pin_groups=""
+	if [ -n "$pins_blob" ]; then
+		pin_groups=$(
+			printf '%s\n' "$pins_blob" | awk -F '\t' '
+				{
+					key = $1 "\t" $2 "\t" $3
+					if (!seen[key, $4]++) {
+						if (list[key] == "") list[key] = $4
+						else list[key] = list[key] " " $4
+						cnt[key]++
+					}
+				}
+				END {
+					for (k in cnt)
+						if (cnt[k] > 1)
+							print k "\t" list[k]
+				}
+			'
+		)
+	fi
 
 	_ldto_is_related() {
 		local a="$1" b="$2" x
@@ -1643,11 +1673,28 @@ LDTO_conflicts()
 		for x in "${exp[@]}"; do
 			[ "$x" = "$a" ] && return 0
 		done
+		# Resource-set relatedness: A requires a token that B provides (or vice versa).
+		local dts_a dts_b
+		dts_a=$(LDTO_getDTS "$a")
+		dts_b=$(LDTO_getDTS "$b")
+		[ -n "$dts_a" ] && [ -n "$dts_b" ] || return 1
+		local -A prov_a=() prov_b=() req_a=() req_b=()
+		while IFS= read -r x; do [ -n "$x" ] && prov_a["$x"]=1; done < <(LDTO_lcStrings "$dts_a" provides)
+		while IFS= read -r x; do [ -n "$x" ] && prov_b["$x"]=1; done < <(LDTO_lcStrings "$dts_b" provides)
+		while IFS= read -r x; do [ -n "$x" ] && req_a["$x"]=1; done < <(LDTO_lcStrings "$dts_a" requires)
+		while IFS= read -r x; do [ -n "$x" ] && req_b["$x"]=1; done < <(LDTO_lcStrings "$dts_b" requires)
+		for x in "${!req_a[@]}"; do
+			[ -n "${prov_b[$x]:-}" ] && return 0
+		done
+		for x in "${!req_b[@]}"; do
+			[ -n "${prov_a[$x]:-}" ] && return 0
+		done
 		return 1
 	}
 
-	local conf_tmp
+	local conf_tmp res_tmp
 	conf_tmp=$(mktemp)
+	res_tmp=$(mktemp)
 	if [ -n "$pin_groups" ]; then
 		while IFS=$'\t' read -r h p name owners; do
 			[ -z "$owners" ] && continue
@@ -1667,17 +1714,84 @@ LDTO_conflicts()
 		done <<<"$pin_groups"
 	fi
 
-	if [ ! -s "$conf_tmp" ]; then
-		rm -f "$conf_tmp"
-		echo "Conflicts: none (shared bus→device pins are OK)"
+	# R15: resource-token exclusivity (lc,provides / revokes / exclusive requires)
+	local -A claims_by_ov=()
+	local dto tok line dto_real
+	for dto in "${seq[@]}"; do
+		dto_real=$(LDTO_getAliasDT "$dto")
+		[ -n "$dto_real" ] && dto=$dto_real
+		line=$(LDTO_exclusiveClaims "$dto" | sort -u | tr '\n' ' ')
+		claims_by_ov["$dto"]="$line"
+	done
+	local -A tok_owners=()
+	for dto in "${!claims_by_ov[@]}"; do
+		for tok in ${claims_by_ov[$dto]}; do
+			if [ -z "${tok_owners[$tok]:-}" ]; then
+				tok_owners["$tok"]="$dto"
+			else
+				case " ${tok_owners[$tok]} " in
+					*" $dto "*) ;;
+					*) tok_owners["$tok"]="${tok_owners[$tok]} $dto" ;;
+				esac
+			fi
+		done
+	done
+	local owners related_all
+	local -a oarr
+	for tok in "${!tok_owners[@]}"; do
+		owners="${tok_owners[$tok]}"
+		oarr=($owners)
+		[ ${#oarr[@]} -lt 2 ] && continue
+		related_all=1
+		local i j
+		for ((i=0; i<${#oarr[@]}; i++)); do
+			for ((j=i+1; j<${#oarr[@]}; j++)); do
+				if ! _ldto_is_related "${oarr[i]}" "${oarr[j]}"; then
+					related_all=0
+					break 2
+				fi
+			done
+		done
+		if [ "$related_all" -eq 0 ]; then
+			printf '%s\t%s\n' "$tok" "$owners" >> "$res_tmp"
+		fi
+	done
+
+	local has_pin=0 has_res=0
+	[ -s "$conf_tmp" ] && has_pin=1
+	[ -s "$res_tmp" ] && has_res=1
+
+	if [ "$has_pin" -eq 0 ] && [ "$has_res" -eq 0 ]; then
+		rm -f "$conf_tmp" "$res_tmp"
+		if [ -z "$pins_blob" ] && [ ${#seq[@]} -gt 1 ]; then
+			local any_claim=0
+			for dto in "${!claims_by_ov[@]}"; do
+				[ -n "${claims_by_ov[$dto]// }" ] && any_claim=1 && break
+			done
+			if [ "$any_claim" -eq 0 ]; then
+				echo "WARNING: no pin map and no lc,* resource tokens among ${#seq[@]} overlays — exclusivity not checked" >&2
+			fi
+		fi
+		echo "Conflicts: none (shared bus→device pins / related resource tokens OK)"
 		return 0
 	fi
-	echo "Conflicts (unrelated overlays share a pin):"
-	printf '  %-6s %-4s %-14s %s\n' "Header" "Pin" "Name" "Overlays"
-	sort -t$'\t' -k1,1 -k2,2n "$conf_tmp" | awk -F '\t' '{
-		printf "  %-6s %-4s %-14s %s\n", $1, $2, $3, $4
-	}'
-	rm -f "$conf_tmp"
+
+	if [ "$has_pin" -eq 1 ]; then
+		echo "Conflicts (unrelated overlays share a pin):"
+		printf '  %-6s %-4s %-14s %s\n' "Header" "Pin" "Name" "Overlays"
+		sort -t$'\t' -k1,1 -k2,2n "$conf_tmp" | awk -F '\t' '{
+			printf "  %-6s %-4s %-14s %s\n", $1, $2, $3, $4
+		}'
+		echo
+	fi
+	if [ "$has_res" -eq 1 ]; then
+		echo "Conflicts (unrelated overlays share a resource token):"
+		printf '  %-28s %s\n' "Token" "Overlays"
+		sort -t$'\t' -k1,1 "$res_tmp" | awk -F '\t' '{
+			printf "  %-28s %s\n", $1, $2
+		}'
+	fi
+	rm -f "$conf_tmp" "$res_tmp"
 	return 2
 }
 

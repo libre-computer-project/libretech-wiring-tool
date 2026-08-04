@@ -21,6 +21,10 @@
 		"amlogic,s905x",
 		"amlogic,meson-gxl";
 
+	/* resource-set tokens for deps/conflicts (see overlay-dependencies.md) */
+	lc,provides = "bus:i2c_AO";
+
+
 	fragment@0 {
 		target-path = "/aliases";
 

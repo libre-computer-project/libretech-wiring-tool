@@ -23,6 +23,10 @@
 		"amlogic,s905x",
 		"amlogic,meson-gxl";
 
+	/* resource-set tokens for deps/conflicts (see overlay-dependencies.md) */
+	lc,provides = "alias:serial1", "bus:uart_A";
+
+
 	fragment@0 {
 		target-path = "/aliases";
 

@@ -16,7 +16,13 @@ i2c-ao-ssd1306-128x64	i2c-ao
 i2c-b-at24c32	i2c-b
 i2c-b-ds3231	i2c-b
 pitft22-overlay	spi-cc-1cs
+pwm-a-fan	pwm-a
 pwm-a-fan-auto	pwm-a-fan
+pwm-ao-a-fan	pwm-ao-a
+pwm-ao-b-6-fan	pwm-ao-b-6
+pwm-ao-b-9-fan	pwm-ao-b-9
+pwm-e-fan	pwm-e
+pwm-f-fan	pwm-f
 rpi-sense	i2c-ao
 spi-cc-1cs-cs1-ads7846-irq-11	spi-cc-1cs-cs1
 spi-cc-1cs-cs1-ads7846-irq-13	spi-cc-1cs-cs1

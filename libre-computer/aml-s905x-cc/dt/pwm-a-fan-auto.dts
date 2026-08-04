@@ -27,6 +27,10 @@
 		"amlogic,s905x",
 		"amlogic,meson-gxl";
 
+	/* resource-set tokens for deps/conflicts (see overlay-dependencies.md) */
+	lc,requires = "label:fan0";
+
+
 	fragment@0 {
 		target = <&fan0>;
 		__overlay__ {

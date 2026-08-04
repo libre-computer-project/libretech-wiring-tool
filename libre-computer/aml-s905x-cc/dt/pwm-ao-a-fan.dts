@@ -25,6 +25,11 @@
 		"libretech,aml-s905x-cc-v2",
 		"amlogic,s905x",
 		"amlogic,meson-gxl";
+
+	/* resource-set tokens for deps/conflicts (see overlay-dependencies.md) */
+	lc,provides = "label:fan0", "pin:9J1-2";
+	lc,requires = "pwm_AO_ab.ch0@7J1-11";
+
 	
 	fragment@0 {
 		target = <&spdif_out_h_pins>;

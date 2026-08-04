@@ -22,6 +22,10 @@
 		"amlogic,s905x",
 		"amlogic,meson-gxl";
 
+	/* resource-set tokens for deps/conflicts (see overlay-dependencies.md) */
+	lc,provides = "pwm_AO_ab.ch1@7J1-12";
+
+
 	fragment@0 {
 		target = <&pwm_AO_ab>;
 		
