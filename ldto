@@ -391,10 +391,13 @@ LDTO_chainPreflight()
 }
 
 # Rollback configfs overlays created in this enable invocation (best-effort).
+# Reverse (LIFO) order so consumers are removed before providers.
 LDTO_rollbackConfigFS()
 {
-	local dto
-	for dto in "$@"; do
+	local -a items=("$@")
+	local i dto
+	for ((i=${#items[@]}-1; i>=0; i--)); do
+		dto="${items[i]}"
 		if [ -e "$PATH_OF_CONFIG/$dto" ]; then
 			rmdir "$PATH_OF_CONFIG/$dto" 2>/dev/null || true
 			echo "Overlay $dto: rolled back" >&2
@@ -503,9 +506,25 @@ LDTO_enable()
 	local status
 	for dto in "${seq[@]}"; do
 		dtbo_file=$(LDTO_getDTBO "$dto")
+		# Exists ≠ applied: only skip when configfs status is applied.
+		# Leftover dirs after a failed apply are usually unapplied and must
+		# be rmdir'd so re-enable can mkdir + write again.
 		if [ -e "$PATH_OF_CONFIG/$dto" ]; then
-			echo "Overlay $dto: already active" >&2
-			continue
+			status=$(tr -d '\n' < "$PATH_OF_CONFIG/$dto/status" 2>/dev/null || echo unknown)
+			if [ "$status" = "applied" ]; then
+				echo "Overlay $dto: already active" >&2
+				continue
+			fi
+			echo "Overlay $dto: configfs present but status='$status'; removing and re-applying" >&2
+			if ! rmdir "$PATH_OF_CONFIG/$dto" 2>/dev/null; then
+				echo "WARNING: apply not clean — cannot remove stale configfs node for '$dto' (status=$status)" >&2
+				echo "WARNING: autoload plan: ${seq[*]}" >&2
+				if [ ${#applied_now[@]} -gt 0 ]; then
+					echo "WARNING: rolling back overlays applied in this command: ${applied_now[*]}" >&2
+					LDTO_rollbackConfigFS "${applied_now[@]}"
+				fi
+				return 1
+			fi
 		fi
 		if ! mkdir "$PATH_OF_CONFIG/$dto" 2>/dev/null; then
 			echo "WARNING: apply not clean — cannot create configfs node for '$dto'" >&2
@@ -525,25 +544,22 @@ LDTO_enable()
 			fi
 			return 1
 		fi
-		status=$(cat "$PATH_OF_CONFIG/$dto/status" 2>/dev/null || echo unknown)
+		# Kernel configfs status is only "applied" or "unapplied" (of/configfs.c).
+		status=$(tr -d '\n' < "$PATH_OF_CONFIG/$dto/status" 2>/dev/null || echo unknown)
 		echo "Overlay $dto: $status" >&2
-		# Kernel reports applied / applied with errors / unapplied / …
-		case "$status" in
-			applied*)
-				applied_now+=("$dto")
-				;;
-			*)
-				echo "WARNING: apply not clean — configfs status for '$dto' is '$status'" >&2
-				echo "WARNING: autoload plan: ${seq[*]}" >&2
-				if [ ${#applied_now[@]} -gt 0 ]; then
-					echo "WARNING: intermediaries applied before failure: ${applied_now[*]}" >&2
-					echo "WARNING: rolling back this command's overlays (not pre-existing ones)" >&2
-					LDTO_rollbackConfigFS "${applied_now[@]}"
-				fi
-				rmdir "$PATH_OF_CONFIG/$dto" 2>/dev/null || true
-				return 1
-				;;
-		esac
+		if [ "$status" = "applied" ]; then
+			applied_now+=("$dto")
+		else
+			echo "WARNING: apply not clean — configfs status for '$dto' is '$status'" >&2
+			echo "WARNING: autoload plan: ${seq[*]}" >&2
+			if [ ${#applied_now[@]} -gt 0 ]; then
+				echo "WARNING: intermediaries applied before failure: ${applied_now[*]}" >&2
+				echo "WARNING: rolling back this command's overlays (not pre-existing ones)" >&2
+				LDTO_rollbackConfigFS "${applied_now[@]}"
+			fi
+			rmdir "$PATH_OF_CONFIG/$dto" 2>/dev/null || true
+			return 1
+		fi
 	done
 }
 
@@ -650,9 +666,23 @@ LDTO_findEFIDTBPath()
 		fi
 	done
 	if grep "root=/dev/nfs" /proc/cmdline > /dev/null; then
+		# Same RW gate as the non-NFS EFI branch: mkdir only when a
+		# non-empty arg requests write (e.g. merge install). Dry-run
+		# and read-only lookups must not create /boot/efi/dtb.
 		PATH_OF_EFI_DTB=/boot/efi/dtb
-		if [ ! -d "$PATH_OF_EFI_DTB" ]; then
-			mkdir "$PATH_OF_EFI_DTB"
+		if [ $# -ne 0 ]; then
+			if [ -d "$PATH_OF_EFI_DTB" ]; then
+				if ! test -w "$PATH_OF_EFI_DTB"; then
+					echo "$FUNCNAME: EFI path not writable! sudo?" >&2
+					return 1
+				fi
+			else
+				if ! test -w /boot/efi; then
+					echo "$FUNCNAME: EFI path not writable! sudo?" >&2
+					return 1
+				fi
+				mkdir -p "$PATH_OF_EFI_DTB"
+			fi
 		fi
 		return
 	fi
