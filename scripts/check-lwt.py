@@ -63,6 +63,7 @@ G12 = parse_defines(INC / "meson-g12a-gpio.h")
 BOARD_SOC: dict[str, tuple[str, dict[str, int], int]] = {
     "aml-s905x-cc": ("gxl", GXL, 0),
     "aml-s905x-cc-v2": ("gxl", GXL, 0),
+    "aml-s905x-cc-v3": ("gxl", GXL, 0),
     "aml-s805x-ac": ("gxl", GXL, 0),
     "aml-s805x-ac-v2": ("gxl", GXL, 0),
     "aml-a311d-cc": ("g12", G12, 1),
