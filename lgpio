@@ -183,9 +183,12 @@ LGPIO_info(){
 		grep -Ei "#\s*header" "$MAP_FILE" | cut -f 3- -d "$TAB_CHAR" >&2
 		grep -i "^$header$TAB_CHAR$pin$TAB_CHAR" "$MAP_FILE" | cut -f 3- -d "$TAB_CHAR"
 	elif [ "${1,,}" = "gpiod" ]; then
-		grep -i "^$header$TAB_CHAR$pin$TAB_CHAR" "$MAP_FILE" | cut -f 3,4 -d "$TAB_CHAR"
+		# A header pin may have more than one row when two SoC lines are
+		# wired to the same pin. Operations (get/set/watch/bcm) act on the
+		# FIRST row; only "all" reports every line. See docs/gpio-map.md.
+		grep -i "^$header$TAB_CHAR$pin$TAB_CHAR" "$MAP_FILE" | head -n 1 | cut -f 3,4 -d "$TAB_CHAR"
 	elif [ "$1" = "${1/,}" ]; then
-		grep -i "^$header$TAB_CHAR$pin$TAB_CHAR" "$MAP_FILE" | cut -f $(LGPIO_getColumn "$1") -d "$TAB_CHAR"
+		grep -i "^$header$TAB_CHAR$pin$TAB_CHAR" "$MAP_FILE" | head -n 1 | cut -f $(LGPIO_getColumn "$1") -d "$TAB_CHAR"
 	else
 		local colnames
 		for col in $@; do
@@ -196,7 +199,7 @@ LGPIO_info(){
 			cols="$cols,$(LGPIO_getColumn "$colname")"
 		done
 		grep -Ei "#\s*header" "$MAP_FILE" | cut -f "${cols:1}" -d "$TAB_CHAR" >&2
-		grep -i "^$header$TAB_CHAR$pin$TAB_CHAR" "$MAP_FILE" | cut -f "${cols:1}" -d "$TAB_CHAR"
+		grep -i "^$header$TAB_CHAR$pin$TAB_CHAR" "$MAP_FILE" | head -n 1 | cut -f "${cols:1}" -d "$TAB_CHAR"
 	fi
 }
 
@@ -415,7 +418,7 @@ LGPIO_bcmCheck(){
 			missing=$((missing + 1))
 			continue
 		fi
-		row=$(grep -i "^$header$TAB_CHAR$pin$TAB_CHAR" "$MAP_FILE")
+		row=$(grep -i "^$header$TAB_CHAR$pin$TAB_CHAR" "$MAP_FILE" | head -n 1)
 		chip=$(printf '%s' "$row" | cut -f3)
 		name=$(printf '%s' "$row" | cut -f6)
 		case "$chip" in
@@ -474,7 +477,7 @@ LGPIO_bcm(){
 		return 1
 	fi
 	local chip
-	chip=$(grep -i "^$header$TAB_CHAR$pin$TAB_CHAR" "$MAP_FILE" | cut -f3)
+	chip=$(grep -i "^$header$TAB_CHAR$pin$TAB_CHAR" "$MAP_FILE" | head -n 1 | cut -f3)
 	case "$chip" in
 		GND|5V|3.3V|ADC)
 			echo "WARNING: BCM $bcm_gpio → $header pin $pin is $chip (not a GPIO line)" >&2

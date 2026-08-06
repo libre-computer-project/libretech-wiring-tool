@@ -72,7 +72,10 @@ fi
 function PATTERN_getMainHeader(){
 	local header_map=$(grep -v "^#" "$GPIO_MAP_PATH" | cut -f 1,2,3,4,5 -d "	")
 	local main_header=$(echo "$header_map" | head -n 1 | cut -f 1 -d "	")
-	echo "$header_map" | grep "^$main_header"
+	# A header pin may have several rows when two SoC lines are wired to it.
+	# Drive only the first: the rest share the same physical pin, and
+	# toggling them together would contend through their series resistors.
+	echo "$header_map" | grep "^$main_header" | awk -F'\t' '!seen[$1 FS $2]++'
 }
 
 function PATTERN_displayToggle(){

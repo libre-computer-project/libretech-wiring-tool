@@ -34,6 +34,32 @@ Example (Le Potato SPI MOSI):
 7J1  19  1  87  488  GPIOX_8  B4  BTPCM_DOUT  PCM_OUT_A UART_TX_C SPI_MOSI
 ```
 
+## Pins with two SoC lines
+
+A header pin is normally one row. When the board wires **two SoC lines to the
+same physical pin** — each through its own series resistor — that pin gets
+**one row per line**, in wiring order:
+
+```text
+J1  33  2  16  80  GPIO2_C0  V15  GPIO2_C0_U/I2S1_LRCK_RX  I2S1_LRCK_RX/…
+J1  33  2  17  81  GPIO2_C1  P18  GPIO2_C1_U/I2S1_LRCK_TX  I2S1_LRCK_TX/…
+```
+
+- **The first row is authoritative for operations.** `lgpio get` / `set` /
+  `watch` / `bcm` resolve a pin to its first row, so adding a second row never
+  changes what an existing command does.
+- **`lgpio info PIN` (or `… all`) lists every row**, keeping both lines
+  discoverable; `lgpio info PIN COLUMN` returns the first row only.
+- **Never drive two rows of one pin at once.** They share a net through their
+  series resistors, so opposite values contend. `test/gpio/pattern.sh` drives
+  only the first row of each pin for exactly this reason.
+- **`Name` must hold a single pad per row.** A combined cell such as
+  `GPIO2_C0/GPIO2_C1` is unmatchable: `ldto`'s pad lookup compares the whole
+  `Name` field, so a combined cell resolves *neither* pad.
+
+Extra rows mean physically distinct SoC lines only — alternate *functions* of
+one line belong in `Desc`.
+
 ## Sharing and variants
 
 | Pattern | Example |

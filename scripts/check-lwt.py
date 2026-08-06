@@ -279,14 +279,17 @@ class Checker:
             return
 
         gpath = board / "gpio.map"
-        by_pin: dict[tuple[str, str], str] = {}
+        by_pin: dict[tuple[str, str], list[str]] = {}
         by_name: dict[str, tuple[str, str]] = {}
         if gpath.is_file():
             for r in load_gpio_map(gpath):
                 if r.get("_bad") or r["chip"] in POWER_CHIPS:
                     continue
                 bare = r["name"].rstrip("*")
-                by_pin[(r["header"], r["pin"])] = bare
+                # One header pin may have several rows when two SoC lines are
+                # wired to it, so keep every name; a Pins: row naming any of
+                # them is correct. A plain dict would silently keep the last.
+                by_pin.setdefault((r["header"], r["pin"]), []).append(bare)
                 by_name[bare] = (r["header"], r["pin"])
 
         for dts in sorted(dt.glob("*.dts")):
@@ -320,11 +323,11 @@ class Checker:
                         f"not in gpio.map"
                     )
                     continue
-                map_name = by_pin[key]
-                if name.rstrip("*") != map_name.rstrip("*"):
+                map_names = by_pin[key]
+                if name.rstrip("*") not in [m.rstrip("*") for m in map_names]:
                     self.warn(
                         f"{board.name}/{dts.name}: Pins {h}.{pin} says "
-                        f"{name} but gpio.map has {map_name}"
+                        f"{name} but gpio.map has {' / '.join(map_names)}"
                     )
 
             # DTS body pad names: if known to map, OK; unknown meson pads warn lightly
