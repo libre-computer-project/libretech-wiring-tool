@@ -69,6 +69,7 @@
 				spi-max-frequency = <30000000>;
 				reset-gpios = <&gpio GPIOX_0 GPIO_ACTIVE_HIGH>;
 				dc-gpios = <&gpio GPIOX_15 GPIO_ACTIVE_HIGH>;
+				rotation = <0>;
 				status = "okay";
 			};
 

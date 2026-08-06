@@ -65,12 +65,22 @@
 		__overlay__ {
 
 			display@0 {
-				compatible = "waveshare,rpi-lcd-35",	/* tinydrm: drm/tiny/ili9486 */
-					"ilitek,ili9486";	/* fbtft/legacy: staging/fbtft/fb_ili9486 */
+				/*
+				 * Module-specific FIRST: this panel needs MADCTL
+				 * base E0h, measured on hardware. Base 00h (the
+				 * chip's power-on default, what a bare
+				 * "ilitek,ili9486" selects) renders wrong on this
+				 * glass -- the reflection in E0h compensates for
+				 * how the module is physically wired, so it is a
+				 * property of the module, not of the controller.
+				 */
+				compatible = "waveshare,rpi-lcd-35",	/* module: MADCTL base E0h */
+					"ilitek,ili9486";	/* bare controller fallback: base 00h */
 				reg = <0>;
 				spi-max-frequency = <41666666>;
 				reset-gpios = <&gpio GPIOX_0 GPIO_ACTIVE_HIGH>;
 				dc-gpios = <&gpio GPIOX_15 GPIO_ACTIVE_HIGH>;
+				rotation = <0>;
 				status = "okay";
 			};
 
