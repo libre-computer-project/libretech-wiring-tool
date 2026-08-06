@@ -267,37 +267,51 @@ def load_map(path: Path) -> list[dict]:
             continue
         rows.append({
             "header": f[0], "pin": f[1], "chip": f[2], "line": f[3],
-            "name": f[5], "pad": f[6], "ref": f[7], "desc": f[8].strip(),
+            # Trailing '*' / '**' are footnote markers on the map's own name
+            # column, not part of the pad name, and leaving them attached makes
+            # every lookup against the driver miss.
+            "name": f[5].rstrip("*"), "pad": f[6], "ref": f[7],
+            "desc": f[8].strip(),
         })
     return rows
 
 
 def desc_tokens(desc: str) -> list[str]:
-    return [t for t in re.split(r"[\s/]+", desc) if t]
+    return [t for t in re.split(r"[\s/]+", desc) if t and t != "-"]
 
 
 # --------------------------------------------------------------------- check
 
 
 def check_board(board: Path, linux: Path, rk_json: Path | None,
-                verbose: bool) -> tuple[int, int, int]:
+                verbose: bool) -> tuple[int, int, int, int]:
     soc = SOC_OF_BOARD.get(board.name)
     gmap = board / "gpio.map"
     if soc is None or not gmap.is_file():
-        return 0, 0, 0
+        return 0, 0, 0, 0
     pads, src = load_authority(soc, linux, rk_json)
     if pads is None:
         print(f"UNAUDITED: {board.name}: {src}")
-        return 0, 0, 1
+        return 0, 0, 0, 1
 
-    missing = extra = 0
+    missing = extra = bare = 0
     for row in load_map(gmap):
         if row["chip"] in POWER or row["name"] in POWER:
             continue
         known = pads.get(row["name"])
-        if known is None:
-            continue          # pad carries no muxable function in the driver
         listed = desc_tokens(row["desc"])
+        if known is None:
+            # The driver gives this pad no alternate function at all. Skipping
+            # the row here is what let net names (BT_EN, BT_WAKE_HOST) sit in
+            # the mux column unnoticed, so report instead: whatever is in Desc
+            # is either a datasheet function mainline lacks, or not a function.
+            for tok in listed:
+                bare += 1
+                print(f"NOTE: {board.name} {row['header']}.{row['pin']} "
+                      f"{row['name']}: '{tok}' listed on a pad the {soc} "
+                      f"driver treats as GPIO-only -- confirm against the "
+                      f"datasheet that it is a mux and not a net name")
+            continue
         for group in sorted(known):
             if not any(same_function(group, tok) for tok in listed):
                 missing += 1
@@ -311,7 +325,7 @@ def check_board(board: Path, linux: Path, rk_json: Path | None,
                     print(f"NOTE: {board.name} {row['header']}.{row['pin']} "
                           f"{row['name']}: '{tok}' has no {soc} entry "
                           f"(datasheet-only, board-level name, or misspelt)")
-    return missing, extra, 0
+    return missing, extra, bare, 0
 
 
 def main() -> int:
@@ -340,15 +354,17 @@ def main() -> int:
 
     boards = ([LC / args.board] if args.board
               else sorted(p for p in LC.iterdir() if p.is_dir()))
-    missing = extra = unaudited = 0
+    missing = extra = bare = unaudited = 0
     for board in boards:
-        m, e, u = check_board(board, linux, rk_json, args.verbose)
+        m, e, b, u = check_board(board, linux, rk_json, args.verbose)
         missing += m
         extra += e
+        bare += b
         unaudited += u
 
     print(f"check-pinmux: {missing} omitted function(s), {extra} unmatched Desc "
-          f"token(s), {unaudited} unaudited SoC(s) [authority: {linux}]")
+          f"token(s), {bare} token(s) on GPIO-only pads, {unaudited} unaudited "
+          f"SoC(s) [authority: {linux}]")
     return 1 if (args.strict and missing) else 0
 
 
