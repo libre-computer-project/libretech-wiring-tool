@@ -67,6 +67,11 @@ one line belong in `Desc`.
 | Whole-board symlink | `aml-s905x-cc-v2/gpio.map` → `../aml-s905x-cc/gpio.map` |
 | Shared cottonwood pinout | `aml-s905d3-cc` → `aml-a311d-cc` |
 | Rev-specific maps | `aml-a311d-cc-v01` differs from main cottonwood |
+| Per-SoC maps for one PCB | `all-h3-cc-h3` and `all-h3-cc-h5` (de-symlinked 2026-08-06: same header, different SoC — H5's `PC1` can mux `SDC2_DS`, H3's cannot) |
+
+**A shared map may only span boards whose pads are identical.** Two boards on
+the same PCB but different SoCs are not that case: one differing mux makes the
+file wrong for one of them either way.
 
 Different boards (e.g. Potato vs La Frite) intentionally use different SoC
 pads on the same 40-pin positions.
@@ -101,7 +106,7 @@ the driver places on the pad that `Desc` does not mention:
 |-----|-----------|----------|
 | meson GXL / G12A | `pinctrl-meson-{gxl,g12a}.c` `<group>_pins[]` | every muxable group |
 | sunxi H3 / H5 | `pinctrl-sun{8i-h3,50i-h5}.c` `SUNXI_PIN(...)` | all four muxes per pad |
-| rockchip RK3328 | none | **unaudited** — the kernel encodes mux *indices*, not names, so `Desc` here rests on the schematic and the (absent) TRM |
+| rockchip RK3328 | RK3328 TRM `GRF_GPIO<b><L>_IOMUX`, extracted to `rockchip/rk3328/gpio_pinmux.json` in the claude repo (`--rk-pinmux PATH`) | every mux value per pin. The kernel is no use here — Rockchip DT carries mux *indices*, not names — and the datasheet's Table 2-3 stops at Func 6, losing `usb3phy_debug1-8` and `power_state0/1` |
 
 The driver is a proxy for the datasheet, not the datasheet: mainline omits
 functions nobody upstreamed. Treat a report as a candidate list — confirm
@@ -111,7 +116,15 @@ against the SoC datasheet before editing a map.
 make check-pinmux                                   # needs a kernel tree
 python3 scripts/check-pinmux.py --linux ~/git/linux-worktree/linux-6.18.y-lc
 python3 scripts/check-pinmux.py --board aml-s905x-cc --verbose
+python3 scripts/check-pinmux.py --board roc-rk3328-cc \
+        --rk-pinmux ~/git/claude/rockchip/rk3328/gpio_pinmux.json
 ```
+
+Map and authority speak different vocabularies — the map is written in
+datasheet names, the drivers in Linux ones — so names are compared after
+normalisation (`TWI`≡`I2C`, sunxi `PCM`≡`I2S`, meson `tdm_b_dout1`≡`TDMB_D1`,
+rockchip `cif_data5m1`≡`CIF_D5_M1_u`). Instance numbers stay significant:
+`TDMB_D1` never matches `tdm_b_dout2`.
 
 It is deliberately **not** part of `make` / `make check`: it walks a kernel
 source tree, which is slow over NFS and absent on most build hosts.

@@ -42,6 +42,12 @@ DEFAULT_LINUX = [
     Path.home() / "git" / "linux-worktree" / "linux-6.18.y-lc",
     Path.home() / "git" / "libretech-builder" / "linux",
 ]
+# Rockchip has no per-pin mux names in the kernel, so its authority is the
+# datasheet's Function IO Description table, extracted to JSON by
+# tools/gpio_extract.py in the claude doc repo.
+DEFAULT_RK_PINMUX = [
+    Path.home() / "git" / "claude" / "rockchip" / "rk3328" / "gpio_pinmux.json",
+]
 
 POWER = {"3.3V", "5V", "GND", "ADC", "PHY"}
 
@@ -98,12 +104,31 @@ ALIAS = {
     "EINT": "INT",
     "MMC": "SDC",          # sunxi driver "mmc2" == datasheet SDC2
     "PCM": "I2S",          # sunxi: one block, datasheet says PCM, driver I2S
+    "DATA": "D",           # rockchip TRM cif_data5m1 == datasheet cif_d5m1
 }
 
 
 def squash(name: str) -> str:
     """Separator-insensitive form: I2SOUT_CH45 == i2s_out_ch45."""
     return re.sub(r"[^A-Z0-9]", "", name.upper())
+
+
+def canon(name: str) -> str:
+    """Squash plus the decorations that ride along with a Rockchip mux name.
+
+    `cif_data5m1` (TRM) and `CIF_D5_M1_u` (map) are one function wearing three
+    differences: DATA vs D, a glued vs separated M-route marker, and a reset-
+    pull suffix. Length guards keep the strippers off short names -- PWM1 must
+    not lose its M1 and become PW.
+    """
+    s = squash(name).replace("DBG", "")
+    m = re.match(r"^(.*\d)[UDZ]$", s)       # reset pull: _u / _d / _z (outermost)
+    if m and len(m.group(1)) >= 4:
+        s = m.group(1)
+    m = re.match(r"^(.*?)M\d$", s)          # route marker: …M0 / …M1
+    if m and len(m.group(1)) >= 4:
+        s = m.group(1)
+    return s.replace("DATA", "D")
 
 
 def tokens(name: str) -> frozenset[str]:
@@ -113,6 +138,9 @@ def tokens(name: str) -> frozenset[str]:
     for p in parts:
         if not p:
             continue
+        # rockchip names the debug UART instance uart2dbg; the map calls the
+        # same pad UART2_TX_M1
+        p = re.sub(r"DBG$", "", p)
         # split a trailing instance number so UART2 and UART_2 agree, and so
         # I2C0 splits to I2C+0 (the leading 2 is part of the block name)
         m = re.match(r"^(.*[A-Z])(\d+)$", p)
@@ -132,6 +160,9 @@ def same_function(a: str, b: str) -> bool:
     """Do two names from different vocabularies denote the same function?"""
     sa, sb = squash(a), squash(b)
     if sa and sb and (sa in sb or sb in sa):
+        return True
+    ca, cb = canon(a), canon(b)
+    if ca and cb and ca == cb:
         return True
     ta, tb = tokens(a), tokens(b)
     if not ta or not tb:
@@ -169,7 +200,9 @@ def sunxi_pad_muxes(driver: Path) -> dict[str, set[str]]:
         funcs: set[str] = set()
         for fm in re.finditer(
             r'SUNXI_FUNCTION(?:_VARIANT)?\(0x[0-9a-fA-F]+,\s*"([^"]+)"\)'
-            r"(?:,)?[ \t]*(?:/\*\s*([^*]*?)\s*\*/)?",
+            # the last function of a pin closes SUNXI_PIN too, so allow any
+            # run of ) and , before the signal comment
+            r"[),]*[ \t]*(?:/\*\s*([^*]*?)\s*\*/)?",
             body,
         ):
             func, sig = fm.group(1), (fm.group(2) or "").strip()
@@ -183,7 +216,33 @@ def sunxi_pad_muxes(driver: Path) -> dict[str, set[str]]:
     return pads
 
 
-def load_authority(soc: str, linux: Path) -> tuple[dict[str, set[str]] | None, str]:
+def rk_pad_muxes(path: Path) -> dict[str, set[str]]:
+    """pad name (GPIO2_D1) -> {function names} from a gpio_extract.py JSON.
+
+    Entry 0 of each ball's mux list is the pad's own GPIO function; the rest
+    are the datasheet's Func 2..6.
+    """
+    import json
+
+    doc = json.loads(path.read_text())
+    pads: dict[str, set[str]] = {}
+    for ball in doc.get("balls", []):
+        m = re.match(r"^(gpio\d_[a-d]\d)", ball.get("reset_function", ""), re.I)
+        if not m:
+            continue
+        funcs = {x["signal_name"].upper() for x in ball.get("mux", [])[1:]}
+        if funcs:
+            pads[m.group(1).upper()] = funcs
+    return pads
+
+
+def load_authority(soc: str, linux: Path,
+                   rk_json: Path | None) -> tuple[dict[str, set[str]] | None, str]:
+    if soc == "rk3328":
+        if rk_json is None or not rk_json.is_file():
+            return None, (f"{soc}: no datasheet pinmux extract "
+                          f"(tools/gpio_extract.py --soc rk3328 in the claude repo)")
+        return rk_pad_muxes(rk_json), str(rk_json)
     rel = DRIVER.get(soc)
     if rel is None:
         return None, f"{soc}: no per-pin mux authority available"
@@ -220,12 +279,13 @@ def desc_tokens(desc: str) -> list[str]:
 # --------------------------------------------------------------------- check
 
 
-def check_board(board: Path, linux: Path, verbose: bool) -> tuple[int, int, int]:
+def check_board(board: Path, linux: Path, rk_json: Path | None,
+                verbose: bool) -> tuple[int, int, int]:
     soc = SOC_OF_BOARD.get(board.name)
     gmap = board / "gpio.map"
     if soc is None or not gmap.is_file():
         return 0, 0, 0
-    pads, src = load_authority(soc, linux)
+    pads, src = load_authority(soc, linux, rk_json)
     if pads is None:
         print(f"UNAUDITED: {board.name}: {src}")
         return 0, 0, 1
@@ -249,8 +309,8 @@ def check_board(board: Path, linux: Path, verbose: bool) -> tuple[int, int, int]
                 if not any(same_function(group, tok) for group in known):
                     extra += 1
                     print(f"NOTE: {board.name} {row['header']}.{row['pin']} "
-                          f"{row['name']}: '{tok}' has no {soc} driver group "
-                          f"(datasheet-only or misspelt)")
+                          f"{row['name']}: '{tok}' has no {soc} entry "
+                          f"(datasheet-only, board-level name, or misspelt)")
     return missing, extra, 0
 
 
@@ -259,6 +319,8 @@ def main() -> int:
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--board", help="single board directory name")
     ap.add_argument("--linux", help="kernel source tree (pinctrl drivers)")
+    ap.add_argument("--rk-pinmux",
+                    help="RK3328 gpio_pinmux.json from tools/gpio_extract.py")
     ap.add_argument("--verbose", action="store_true",
                     help="also report Desc tokens with no driver group")
     ap.add_argument("--strict", action="store_true",
@@ -273,11 +335,14 @@ def main() -> int:
         print("SKIP: no kernel tree found (--linux PATH); pinmux check not run")
         return 0
 
+    rk_json = (Path(args.rk_pinmux) if args.rk_pinmux
+               else next((p for p in DEFAULT_RK_PINMUX if p.is_file()), None))
+
     boards = ([LC / args.board] if args.board
               else sorted(p for p in LC.iterdir() if p.is_dir()))
     missing = extra = unaudited = 0
     for board in boards:
-        m, e, u = check_board(board, linux, args.verbose)
+        m, e, u = check_board(board, linux, rk_json, args.verbose)
         missing += m
         extra += e
         unaudited += u
