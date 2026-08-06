@@ -156,18 +156,53 @@ def tokens(name: str) -> frozenset[str]:
     return frozenset(t for t in out if t not in NOISE) or frozenset(out)
 
 
-def same_function(a: str, b: str) -> bool:
-    """Do two names from different vocabularies denote the same function?"""
+def match_score(a: str, b: str) -> int:
+    """How well two names from different vocabularies agree. 0 means not at all.
+
+    Graded rather than boolean because the loose rules are ambiguous on their
+    own: {i2c,sck,ao} is a subset of {i2c,slave,sck,ao}, so a Desc listing
+    I2C_SCK_AO would otherwise be read as covering the pad's *separate*
+    i2c_slave_sck_ao function. The caller resolves that by giving each Desc
+    token to its best-matching function only.
+    """
     sa, sb = squash(a), squash(b)
-    if sa and sb and (sa in sb or sb in sa):
-        return True
+    if sa and sb and sa == sb:
+        return 4
     ca, cb = canon(a), canon(b)
     if ca and cb and ca == cb:
-        return True
+        return 3
+    if sa and sb and (sa in sb or sb in sa):
+        return 2
     ta, tb = tokens(a), tokens(b)
     if not ta or not tb:
-        return False
-    return ta <= tb or tb <= ta
+        return 0
+    if ta <= tb or tb <= ta:
+        return 1
+    return 0
+
+
+def same_function(a: str, b: str) -> bool:
+    """Do two names from different vocabularies denote the same function?"""
+    return match_score(a, b) > 0
+
+
+def covered(known: set[str], listed: list[str]) -> set[str]:
+    """Which known functions does this Desc actually account for?
+
+    Each Desc token is spent on the single function it matches best, so a
+    less specific token cannot stand in for a more specific function that the
+    same pad also has.
+    """
+    pairs = sorted(
+        ((match_score(g, t), g, t) for g in known for t in listed),
+        key=lambda p: (-p[0], p[1], p[2]))
+    used_g, used_t = set(), set()
+    for score, group, tok in pairs:
+        if score == 0 or group in used_g or tok in used_t:
+            continue
+        used_g.add(group)
+        used_t.add(tok)
+    return used_g
 
 
 # ---------------------------------------------------------------- authorities
@@ -312,8 +347,9 @@ def check_board(board: Path, linux: Path, rk_json: Path | None,
                       f"driver treats as GPIO-only -- confirm against the "
                       f"datasheet that it is a mux and not a net name")
             continue
+        accounted = covered(known, listed)
         for group in sorted(known):
-            if not any(same_function(group, tok) for tok in listed):
+            if group not in accounted:
                 missing += 1
                 print(f"WARNING: {board.name} {row['header']}.{row['pin']} "
                       f"{row['name']}: Desc omits '{group}' "
