@@ -45,6 +45,21 @@
 	};
 	
 	fragment@1 {
+		target = <&pinctrl_aobus>;
+
+		__overlay__ {
+			xpt2046_pendown_pins: xpt2046-pendown-pins {
+				mux {
+					groups = "GPIOAO_8";
+					function = "gpio_aobus";
+					bias-pull-up;
+					output-disable;
+				};
+			};
+		};
+	};
+
+	fragment@2 {
 		target = <&spicc>;
 		
 		__overlay__ {
@@ -63,11 +78,15 @@
 			touchscreen@1 {
 				compatible = "ti,ads7846";
 				/*
-				 * No pinctrl here: GPIOAO_8 must stay in GPIO mode
-				 * for pendown-gpio and the gpio_intc edge below.
-				 * ao_cec_pins muxes it to the CEC function -- the
-				 * very function fragment@0 disables to free the pin.
+				 * GPIOAO_8 is explicitly muxed to GPIO (gpio_aobus,
+				 * function 0) by fragment@1 so pendown-gpio and the
+				 * gpio_intc edge below do not depend on whatever mux
+				 * the bootloader happened to leave. Selecting
+				 * function 0 also clears the cec_ao bit on this pad,
+				 * the function fragment@0 disables to free the pin.
 				 */
+				pinctrl-names = "default";
+				pinctrl-0 = <&xpt2046_pendown_pins>;
 				reg = <1>;
 				spi-max-frequency = <2000000>;
 				interrupt-parent = <&gpio_intc>;
