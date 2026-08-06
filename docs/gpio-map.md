@@ -90,6 +90,32 @@ make check-strict          # exit 1 on any WARNING
 python3 scripts/check-lwt.py --board aml-s905x-cc
 ```
 
+### Desc completeness (`make check-pinmux`)
+
+`check-lwt.py` validates the *offsets*; `scripts/check-pinmux.py` validates the
+**mux inventory** — does `Desc` list every function the SoC can put on that
+pad? It reads the pinctrl driver for the board's SoC and reports each function
+the driver places on the pad that `Desc` does not mention:
+
+| SoC | Authority | Coverage |
+|-----|-----------|----------|
+| meson GXL / G12A | `pinctrl-meson-{gxl,g12a}.c` `<group>_pins[]` | every muxable group |
+| sunxi H3 / H5 | `pinctrl-sun{8i-h3,50i-h5}.c` `SUNXI_PIN(...)` | all four muxes per pad |
+| rockchip RK3328 | none | **unaudited** — the kernel encodes mux *indices*, not names, so `Desc` here rests on the schematic and the (absent) TRM |
+
+The driver is a proxy for the datasheet, not the datasheet: mainline omits
+functions nobody upstreamed. Treat a report as a candidate list — confirm
+against the SoC datasheet before editing a map.
+
+```bash
+make check-pinmux                                   # needs a kernel tree
+python3 scripts/check-pinmux.py --linux ~/git/linux-worktree/linux-6.18.y-lc
+python3 scripts/check-pinmux.py --board aml-s905x-cc --verbose
+```
+
+It is deliberately **not** part of `make` / `make check`: it walks a kernel
+source tree, which is slow over NFS and absent on most build hosts.
+
 ## Consumers
 
 | Tool | Use |

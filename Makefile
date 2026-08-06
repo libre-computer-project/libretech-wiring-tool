@@ -44,23 +44,29 @@ else
   DEPS_FILES := $(addprefix libre-computer/,$(addsuffix /dt.deps,$(DEPS_BOARDS)))
 endif
 
-.PHONY : clean install-lgpio install-ldto install deps check check-strict check-fdtoverlay check-conflicts
+.PHONY : clean install-lgpio install-ldto install deps check check-strict check-fdtoverlay check-conflicts check-pinmux
 
 # Integrity + gpio.map accuracy (lgpio pinout). Warnings only — does not fail the build.
 # Use `make check-strict` or scripts/* --strict in CI if desired.
 # fdtoverlay smoke needs base DTBs: set LWT_DTB_DIR or rely on auto-search
 # (e.g. ~/build/lc618/x86_64-arm64/arch/arm64/boot/dts). Missing bases SKIP.
 # check-conflicts: host ldto pin/resource matrix (no board); || true under make check.
+# check-pinmux: gpio.map Desc vs the SoC pinctrl driver's mux table. Needs a
+# kernel source tree (--linux, else auto-search) and walks it, so it is NOT in
+# `all` or `check` -- run it when a map's alt-function list changes.
 CHECK_LWT := python3 scripts/check-lwt.py
 CHECK_FDT := python3 scripts/check-fdtoverlay.py
 CHECK_CONFLICTS := bash scripts/check-conflicts.sh
+CHECK_PINMUX := python3 scripts/check-pinmux.py
 ifneq ($(BOARD_FILTER),)
   CHECK_LWT_ARGS := --board $(BOARD_FILTER)
   CHECK_FDT_ARGS := --board $(BOARD_FILTER)
+  CHECK_PINMUX_ARGS := --board $(BOARD_FILTER)
   CHECK_CONFLICTS_ARGS := --board $(BOARD_FILTER)
 else
   CHECK_LWT_ARGS :=
   CHECK_FDT_ARGS :=
+  CHECK_PINMUX_ARGS :=
   # Default matrix board when make check is unscoped
   CHECK_CONFLICTS_ARGS := --board aml-s905x-cc
 endif
@@ -80,6 +86,9 @@ check-fdtoverlay:
 
 check-conflicts:
 	$(CHECK_CONFLICTS) $(CHECK_CONFLICTS_ARGS) || true
+
+check-pinmux:
+	$(CHECK_PINMUX) $(CHECK_PINMUX_ARGS) || true
 
 check-strict:
 	$(CHECK_LWT) $(CHECK_LWT_ARGS) --strict
