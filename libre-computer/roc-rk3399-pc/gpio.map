@@ -1,15 +1,17 @@
 # Copyright (C) 2026 Da Xue <da@libre.computer>
 # SPDX-License-Identifier: MIT
 #
-# ROC-RK3399-PC V1, from schematics V0.1 and V1.1-A.
+# ROC-RK3399-PC, from schematics V0.1 and V1.1-A.
 #
-# NOT valid as-is for V1.2A (the V2 board): that revision removes two IOs from
-# the expansion header to drive the new eDP panel's touch controller, so
-# J20.25 (GPIO0_A1) and J20.26 (GPIO0_B4) are unconnected there. Both pins are
-# unlabelled on the V1.2A sheet, annotated 20221017. Give V2 its own map before
-# claiming these rows for it.
+# ONE product, successive board revisions: V0.1 -> V1.1-A -> V1.2A. These rows
+# are V1.1-A-accurate. Revision V1.2A removes two IOs from the expansion header
+# to drive the new eDP panel's touch controller, so J20.25 (GPIO0_A1) and
+# J20.26 (GPIO0_B4) are unconnected there -- both keep their pin numbers but
+# carry no net on the V1.2A sheet, in a region annotated 20221017. Every other
+# J12/J15/J20 pin is identical across the revisions.
 # Source: tf-xd-rk3399-pc-v1.2a-20221109-changelog.pdf -- "expansion header:
 # remove the following two IO ports, used for the eDP panel's TP".
+# Detail: rockchip/rk3399/schematics/roc-rk3399-pc-revision-differences.md
 #
 # Not an RPi pinout: four 30-pin CON30A at 2.0 mm. J12/J15/J20 are the GPIO
 # headers; J21 is a PCIe breakout and is not mapped. lgpio bcm does not apply.
