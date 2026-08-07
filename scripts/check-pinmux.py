@@ -160,8 +160,15 @@ def canon(name: str) -> str:
     pull suffix. Length guards keep the strippers off short names -- PWM1 must
     not lose its M1 and become PW.
     """
+    # The reset pull is written as a LOWERCASE, underscore-separated suffix --
+    # I2C2_SCL_u, SPI3_CLK_d -- so strip it before case is thrown away. Doing
+    # it after squashing needed a guard (a digit before the U/D/Z) that failed
+    # on every name ending in a letter, leaving 29 real RK3399 muxes unmatched;
+    # doing it without a guard would eat the D of SPI2_TXD. Case and the
+    # separator together say which is which, and both are still here.
+    name = re.sub(r"_[udz]$", "", name)
     s = squash(name).replace("DBG", "")
-    m = re.match(r"^(.*\d)[UDZ]$", s)       # reset pull: _u / _d / _z (outermost)
+    m = re.match(r"^(.*\d)[UDZ]$", s)       # reset pull, glued: …1u
     if m and len(m.group(1)) >= 4:
         s = m.group(1)
     m = re.match(r"^(.*?)M\d$", s)          # route marker: …M0 / …M1
@@ -172,14 +179,25 @@ def canon(name: str) -> str:
 
 def tokens(name: str) -> frozenset[str]:
     """Comparable token set: case/underscore/instance-suffix insensitive."""
-    parts = re.split(r"[^A-Za-z0-9]+", name.upper())
+    # Same lowercase reset-pull suffix canon() drops, dropped here too -- left
+    # in, the stray U/D became a token of its own and no map name could ever be
+    # a subset of the TRM's.
+    parts = re.split(r"[^A-Za-z0-9]+", re.sub(r"_[udz]$", "", name).upper())
     out = set()
     for p in parts:
         if not p:
             continue
-        # rockchip names the debug UART instance uart2dbg; the map calls the
-        # same pad UART2_TX_M1
+        # rockchip glues the reference design's CONSUMER onto the block name --
+        # uart2dbg, i2c2tp_scl (touch panel), spi2tpm_rxd, uart0bt_sin,
+        # uart3gps_ctsn -- so the TRM says who Rockchip expected to wire there
+        # and the board map says only which controller it is. The consumer is
+        # not part of the function, and keeping it left 29 real RK3399 muxes
+        # looking unmatched. DBG is the same rule, written out longhand before.
         p = re.sub(r"DBG$", "", p)
+        m = re.match(r"^([A-Z]+)(\d)([A-Z]{2,})$", p)
+        if m:
+            out.add(m.group(2))
+            p = m.group(1)
         # split a trailing instance number so UART2 and UART_2 agree, and so
         # I2C0 splits to I2C+0 (the leading 2 is part of the block name)
         m = re.match(r"^(.*[A-Z])(\d+)$", p)
@@ -383,6 +401,8 @@ def check_board(board: Path, linux: Path, rk_json: Path | None,
         print(f"UNAUDITED: {board.name}: {src}")
         return 0, 0, 0, 1
 
+    ds_known, _ = load_datasheet(board)
+    ds_known = ds_known or {}
     missing = extra = bare = 0
     for row in load_map(gmap):
         if row["chip"] in POWER or row["name"] in POWER:
@@ -394,7 +414,12 @@ def check_board(board: Path, linux: Path, rk_json: Path | None,
             # the row here is what let net names (BT_EN, BT_WAKE_HOST) sit in
             # the mux column unnoticed, so report instead: whatever is in Desc
             # is either a datasheet function mainline lacks, or not a function.
+            # ...unless the datasheet names it a mux on this pad, which settles
+            # the question the NOTE was asking the reader to go settle.
+            ds = ds_known.get(row["name"], set())
             for tok in listed:
+                if any(same_function(group, tok) for group in ds):
+                    continue
                 bare += 1
                 print(f"NOTE: {board.name} {row['header']}.{row['pin']} "
                       f"{row['name']}: '{tok}' listed on a pad the {soc} "
@@ -408,13 +433,26 @@ def check_board(board: Path, linux: Path, rk_json: Path | None,
                 print(f"WARNING: {board.name} {row['header']}.{row['pin']} "
                       f"{row['name']}: Desc omits '{group}' "
                       f"[Desc: {row['desc']}]")
-        if verbose:
-            for tok in listed:
-                if not any(same_function(group, tok) for group in known):
-                    extra += 1
-                    print(f"NOTE: {board.name} {row['header']}.{row['pin']} "
-                          f"{row['name']}: '{tok}' has no {soc} entry "
-                          f"(datasheet-only, board-level name, or misspelt)")
+        # A Desc token has to be unknown to BOTH authorities before it is
+        # unmatched. Checking it against the driver alone called 117 tokens
+        # unmatched that the vendor's own table names -- the driver models a
+        # subset of the silicon, which is the whole reason the datasheet
+        # extracts exist.
+        #
+        # And the count itself used to be computed only under --verbose, so the
+        # headline read '0 unmatched Desc token(s)' on every default run no
+        # matter what was in the maps. Verbosity decides what is PRINTED; it
+        # must never decide what is COUNTED.
+        for tok in listed:
+            if any(same_function(group, tok)
+                   for group in known | ds_known.get(row["name"], set())):
+                continue
+            extra += 1
+            if verbose:
+                print(f"NOTE: {board.name} {row['header']}.{row['pin']} "
+                      f"{row['name']}: '{tok}' is in neither the {soc} driver "
+                      f"nor the datasheet extract (board-level name, or "
+                      f"misspelt)")
 
     missing += check_datasheet(board, linux, verbose)
     return missing, extra, bare, 0
