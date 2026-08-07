@@ -72,13 +72,11 @@ DATASHEET_JSON = {
     "aml-s905d3-cc": CLAUDE / "amlogic/g12sm1/s905d3/gpio_pinmux.json",
     "aml-s905d3-cc-v01": CLAUDE / "amlogic/g12sm1/s905d3/gpio_pinmux.json",
     "all-h3-cc-h3": CLAUDE / "allwinner/h3/gpio_pinmux.json",
-    # H5 is deliberately absent. Its datasheet states mux options as a
-    # row-per-function pin list (Ball / Pin Name / Signal Name / Function)
-    # rather than the column-per-function table every other book here uses, so
-    # gpio_ocr_extract.py reads it as a ball description and produces nothing
-    # usable. H5 keeps pinctrl-sun50i-h5.c as its authority until that shape is
-    # handled -- an absent extract is checked as "no datasheet", a wrong one
-    # would be checked as fact.
+    # H5's book states alternates as a row-per-function pin list rather than
+    # Func1..FuncN columns, which needed its own reader (gpio_ocr_extract.py
+    # --shape pinlist). It carries the mux INDEX per function, which the
+    # column-shaped books do not.
+    "all-h3-cc-h5": CLAUDE / "allwinner/h5/gpio_pinmux.json",
 }
 
 POWER = {"3.3V", "5V", "GND", "ADC", "PHY"}
@@ -425,12 +423,14 @@ def check_datasheet(board: Path, linux: Path, verbose: bool) -> int:
             print(f"NOTE: {board.name}: datasheet check skipped -- {src}")
         return 0
 
-    # Which pad does the DRIVER put each function on? OCR occasionally slips a
+    # Which pad does the DRIVER put each function on? An extraction can slip a
     # row, and a shifted row is invisible to name verification because the name
     # itself is real -- TSIN_B_DIN0 read against GPIOX_11 when it belongs to
     # GPIOX_10. If the driver places a function on some other pad and not this
-    # one, the extraction is the likelier suspect, so say so rather than
-    # inviting a wrong function into the map.
+    # one, hold the row back rather than inviting a wrong function into the map.
+    # Not always an extraction error: H5's PA6 PCM0_MCLK is in the datasheet and
+    # absent from the driver, which is a real disagreement, so this reports
+    # rather than decides.
     soc = SOC_OF_BOARD.get(board.name)
     driver_pads, _ = load_authority(soc, linux, None) if soc else (None, "")
     def driver_owners(name: str) -> set[str]:
@@ -451,8 +451,9 @@ def check_datasheet(board: Path, linux: Path, verbose: bool) -> int:
             if owners and row["name"] not in owners:
                 print(f"SUSPECT: {board.name} {row['header']}.{row['pin']} "
                       f"{row['name']}: datasheet extract claims '{group}', but "
-                      f"the driver puts it on {sorted(owners)} -- likely a "
-                      f"shifted OCR row, not a missing function")
+                      f"the driver puts it on {sorted(owners)} -- either a "
+                      f"shifted row in the extraction, or a real "
+                      f"datasheet/driver disagreement; confirm before adding")
                 continue
             missing += 1
             print(f"WARNING: {board.name} {row['header']}.{row['pin']} "
