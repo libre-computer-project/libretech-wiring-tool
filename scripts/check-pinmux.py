@@ -49,6 +49,38 @@ DEFAULT_RK_PINMUX = [
     Path.home() / "git" / "claude" / "rockchip" / "rk3328" / "gpio_pinmux.json",
 ]
 
+# The pinctrl driver is a SUBSET of the datasheet -- mainline models no JTAG,
+# PCM or CLK24 group on GXL -- so checking Desc against the driver alone
+# answers a weaker question than it appears to. These are the vendor's own
+# multiplexing tables, extracted by tools/gpio_ocr_extract.py in the claude doc
+# repo, with every name verified against the PDF text layer.
+#
+# Keyed by BOARD, not by the SoC name below: SOC_OF_BOARD collapses S905X and
+# S805X to "gxl" and A311D and S905D3 to "g12a" because they share a pinctrl
+# driver, but they do NOT share a datasheet. S905D3 documents TDMB_D4..D7 on
+# six GPIOA pads and A311D documents none of them, which is precisely the
+# difference a driver-keyed lookup would erase.
+CLAUDE = Path.home() / "git" / "claude"
+DATASHEET_JSON = {
+    "aml-s905x-cc": CLAUDE / "amlogic/gxl/s905x/gpio_pinmux.json",
+    "aml-s905x-cc-v2": CLAUDE / "amlogic/gxl/s905x/gpio_pinmux.json",
+    "aml-s905x-cc-v3": CLAUDE / "amlogic/gxl/s905x/gpio_pinmux.json",
+    "aml-s805x-ac": CLAUDE / "amlogic/gxl/s805x/gpio_pinmux.json",
+    "aml-s805x-ac-v2": CLAUDE / "amlogic/gxl/s805x/gpio_pinmux.json",
+    "aml-a311d-cc": CLAUDE / "amlogic/g12sm1/a311d/gpio_pinmux.json",
+    "aml-a311d-cc-v01": CLAUDE / "amlogic/g12sm1/a311d/gpio_pinmux.json",
+    "aml-s905d3-cc": CLAUDE / "amlogic/g12sm1/s905d3/gpio_pinmux.json",
+    "aml-s905d3-cc-v01": CLAUDE / "amlogic/g12sm1/s905d3/gpio_pinmux.json",
+    "all-h3-cc-h3": CLAUDE / "allwinner/h3/gpio_pinmux.json",
+    # H5 is deliberately absent. Its datasheet states mux options as a
+    # row-per-function pin list (Ball / Pin Name / Signal Name / Function)
+    # rather than the column-per-function table every other book here uses, so
+    # gpio_ocr_extract.py reads it as a ball description and produces nothing
+    # usable. H5 keeps pinctrl-sun50i-h5.c as its authority until that shape is
+    # handled -- an absent extract is checked as "no datasheet", a wrong one
+    # would be checked as fact.
+}
+
 POWER = {"3.3V", "5V", "GND", "ADC", "PHY"}
 
 # Tokens that carry no function identity -- routing/variant suffixes, pad
@@ -102,6 +134,7 @@ ALIAS = {
     "AVALID": "VALID",
     "AFAIL": "FAIL",
     "EINT": "INT",
+    "OWA": "SPDIF",        # Allwinner calls S/PDIF "OWA" (One Wire Audio)
     "MMC": "SDC",          # sunxi driver "mmc2" == datasheet SDC2
     "PCM": "I2S",          # sunxi: one block, datasheet says PCM, driver I2S
     "DATA": "D",           # rockchip TRM cif_data5m1 == datasheet cif_d5m1
@@ -361,7 +394,71 @@ def check_board(board: Path, linux: Path, rk_json: Path | None,
                     print(f"NOTE: {board.name} {row['header']}.{row['pin']} "
                           f"{row['name']}: '{tok}' has no {soc} entry "
                           f"(datasheet-only, board-level name, or misspelt)")
+
+    missing += check_datasheet(board, linux, verbose)
     return missing, extra, bare, 0
+
+
+def load_datasheet(board: Path) -> tuple[dict[str, set[str]] | None, str]:
+    """pad -> {function names} from the vendor's own multiplexing tables."""
+    path = DATASHEET_JSON.get(board.name)
+    if path is None:
+        return None, "no datasheet extract mapped for this board"
+    if not path.is_file():
+        return None, f"{path} not present"
+    import json
+    data = json.loads(path.read_text())
+    return {p: set(f) for p, f in data.get("pads", {}).items()}, str(path)
+
+
+def check_datasheet(board: Path, linux: Path, verbose: bool) -> int:
+    """Report functions the DATASHEET gives a pad that Desc does not list.
+
+    Separate from the driver check because the two authorities disagree in both
+    directions: mainline has TSIN_B_CLK on GPIOH_6 where the datasheet shows
+    only JTAG_TCK and I2S_AM_CLK, and the datasheet has I2C_SLAVE_SCK_AO where
+    Desc had nothing. A pad is only fully described when both are satisfied.
+    """
+    pads, src = load_datasheet(board)
+    if pads is None:
+        if verbose:
+            print(f"NOTE: {board.name}: datasheet check skipped -- {src}")
+        return 0
+
+    # Which pad does the DRIVER put each function on? OCR occasionally slips a
+    # row, and a shifted row is invisible to name verification because the name
+    # itself is real -- TSIN_B_DIN0 read against GPIOX_11 when it belongs to
+    # GPIOX_10. If the driver places a function on some other pad and not this
+    # one, the extraction is the likelier suspect, so say so rather than
+    # inviting a wrong function into the map.
+    soc = SOC_OF_BOARD.get(board.name)
+    driver_pads, _ = load_authority(soc, linux, None) if soc else (None, "")
+    def driver_owners(name: str) -> set[str]:
+        """Pads the driver puts this function on, matched by vocabulary."""
+        return {pad for pad, groups in (driver_pads or {}).items()
+                if any(same_function(g, name) for g in groups)}
+
+    missing = 0
+    for row in load_map(board / "gpio.map"):
+        if row["chip"] in POWER or row["name"] in POWER:
+            continue
+        known = pads.get(row["name"])
+        if not known:
+            continue
+        listed = desc_tokens(row["desc"])
+        for group in sorted(known - covered(known, listed)):
+            owners = driver_owners(group)
+            if owners and row["name"] not in owners:
+                print(f"SUSPECT: {board.name} {row['header']}.{row['pin']} "
+                      f"{row['name']}: datasheet extract claims '{group}', but "
+                      f"the driver puts it on {sorted(owners)} -- likely a "
+                      f"shifted OCR row, not a missing function")
+                continue
+            missing += 1
+            print(f"WARNING: {board.name} {row['header']}.{row['pin']} "
+                  f"{row['name']}: Desc omits '{group}' (datasheet) "
+                  f"[Desc: {row['desc']}]")
+    return missing
 
 
 def main() -> int:
