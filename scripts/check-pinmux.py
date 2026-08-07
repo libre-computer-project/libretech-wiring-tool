@@ -351,10 +351,18 @@ def desc_tokens(desc: str) -> list[str]:
 
 def check_board(board: Path, linux: Path, rk_json: Path | None,
                 verbose: bool) -> tuple[int, int, int, int]:
-    soc = SOC_OF_BOARD.get(board.name)
     gmap = board / "gpio.map"
-    if soc is None or not gmap.is_file():
+    if not gmap.is_file():
         return 0, 0, 0, 0
+    soc = SOC_OF_BOARD.get(board.name)
+    if soc is None:
+        # Returning quietly here made a whole board invisible: roc-rk3399-pc
+        # exposes 55 IO with 52 Desc entries and no SoC mapping, so every run
+        # reported it as neither clean nor unaudited -- it simply was not
+        # there. An unmapped board is unaudited, and says so.
+        print(f"UNAUDITED: {board.name}: no SoC mapping "
+              f"(add to SOC_OF_BOARD + DRIVER or DATASHEET_JSON)")
+        return 0, 0, 0, 1
     pads, src = load_authority(soc, linux, rk_json)
     if pads is None:
         print(f"UNAUDITED: {board.name}: {src}")
@@ -462,6 +470,44 @@ def check_datasheet(board: Path, linux: Path, verbose: bool) -> int:
     return missing
 
 
+def coverage(linux: Path, rk_json: Path | None) -> int:
+    """Per board: how much of the exposed IO an authority actually knows.
+
+    "0 omissions" is only as strong as the number of pads that could be looked
+    up at all. A pad absent from both authorities is skipped, so without this
+    table a clean run is indistinguishable from an empty one.
+    """
+    print(f"{'board':<20} {'IO':>4} {'driver':>7} {'datasheet':>10} "
+          f"{'neither':>8}   pads with no authority")
+    print("-" * 96)
+    worst = 0
+    for board in sorted(p for p in LC.iterdir() if p.is_dir()):
+        gmap = board / "gpio.map"
+        if not gmap.is_file():
+            continue
+        soc = SOC_OF_BOARD.get(board.name)
+        drv = load_authority(soc, linux, rk_json)[0] if soc else None
+        ds = load_datasheet(board)[0]
+        io = ndrv = nds = 0
+        orphans = []
+        for row in load_map(gmap):
+            if row["chip"] in POWER or row["name"] in POWER:
+                continue
+            io += 1
+            a = bool(drv and drv.get(row["name"]))
+            b = bool(ds and ds.get(row["name"]))
+            ndrv += a
+            nds += b
+            if not a and not b:
+                orphans.append(f"{row['header']}.{row['pin']}:{row['name']}")
+        worst += len(orphans)
+        print(f"{board.name:<20} {io:>4} {ndrv:>7} {nds:>10} {len(orphans):>8}   "
+              f"{' '.join(orphans[:5])}{' …' if len(orphans) > 5 else ''}")
+    print("-" * 96)
+    print(f"{worst} exposed pad(s) across all boards have no authority at all")
+    return 0
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -473,6 +519,9 @@ def main() -> int:
                     help="also report Desc tokens with no driver group")
     ap.add_argument("--strict", action="store_true",
                     help="exit 1 when Desc omits a function")
+    ap.add_argument("--coverage", action="store_true",
+                    help="report how much exposed IO each authority knows, "
+                         "instead of checking Desc")
     args = ap.parse_args()
 
     if args.linux:
@@ -485,6 +534,9 @@ def main() -> int:
 
     rk_json = (Path(args.rk_pinmux) if args.rk_pinmux
                else next((p for p in DEFAULT_RK_PINMUX if p.is_file()), None))
+
+    if args.coverage:
+        return coverage(linux, rk_json)
 
     boards = ([LC / args.board] if args.board
               else sorted(p for p in LC.iterdir() if p.is_dir()))
