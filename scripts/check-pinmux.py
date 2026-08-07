@@ -194,9 +194,12 @@ def tokens(name: str) -> frozenset[str]:
         # not part of the function, and keeping it left 29 real RK3399 muxes
         # looking unmatched. DBG is the same rule, written out longhand before.
         p = re.sub(r"DBG$", "", p)
-        m = re.match(r"^([A-Z]+)(\d)([A-Z]{2,})$", p)
+        # Split at the LAST digit, not after a run of letters: the block name
+        # may itself contain one, and I2C6TPM is i2c6 + tpm, not i + 2 + ....
+        # A letters-then-digit rule silently skipped every I2C consumer and
+        # left those four looking like omissions.
+        m = re.match(r"^(.*\d)[A-Z]{2,}$", p)
         if m:
-            out.add(m.group(2))
             p = m.group(1)
         # split a trailing instance number so UART2 and UART_2 agree, and so
         # I2C0 splits to I2C+0 (the leading 2 is part of the block name)
