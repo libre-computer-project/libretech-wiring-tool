@@ -48,6 +48,13 @@ DEFAULT_LINUX = [
 DEFAULT_RK_PINMUX = [
     Path.home() / "git" / "claude" / "rockchip" / "rk3328" / "gpio_pinmux.json",
 ]
+# RK3399 splits its IOMUX registers across two syscons -- GPIO0/GPIO1 in
+# PMUGRF, GPIO2..4 in GRF -- so its authority is two extracts, merged.
+RK_PINMUX = {
+    "rk3328": [Path.home() / "git/claude/rockchip/rk3328/gpio_pinmux.json"],
+    "rk3399": [Path.home() / "git/claude/rockchip/rk3399/gpio_pinmux.json",
+               Path.home() / "git/claude/rockchip/rk3399/gpio_pinmux_pmu.json"],
+}
 
 # The pinctrl driver is a SUBSET of the datasheet -- mainline models no JTAG,
 # PCM or CLK24 group on GXL -- so checking Desc against the driver alone
@@ -99,6 +106,7 @@ SOC_OF_BOARD = {
     "aml-s905d3-cc": "g12a", "aml-s905d3-cc-v01": "g12a",
     "all-h3-cc-h3": "h3", "all-h3-cc-h5": "h5",
     "roc-rk3328-cc": "rk3328", "roc-rk3328-cc-v2": "rk3328",
+    "roc-rk3399-pc": "rk3399",
 }
 
 DRIVER = {
@@ -304,11 +312,18 @@ def rk_pad_muxes(path: Path) -> dict[str, set[str]]:
 
 def load_authority(soc: str, linux: Path,
                    rk_json: Path | None) -> tuple[dict[str, set[str]] | None, str]:
-    if soc == "rk3328":
-        if rk_json is None or not rk_json.is_file():
-            return None, (f"{soc}: no datasheet pinmux extract "
-                          f"(tools/gpio_extract.py --soc rk3328 in the claude repo)")
-        return rk_pad_muxes(rk_json), str(rk_json)
+    if soc in RK_PINMUX:
+        paths = [p for p in RK_PINMUX[soc] if p.is_file()]
+        if soc == "rk3328" and rk_json is not None and rk_json.is_file():
+            paths = [rk_json]
+        if not paths:
+            return None, (f"{soc}: no TRM pinmux extract "
+                          f"(tools/gpio_extract.py --soc {soc} in the claude repo)")
+        merged: dict[str, set[str]] = {}
+        for path in paths:
+            for pad, groups in rk_pad_muxes(path).items():
+                merged.setdefault(pad, set()).update(groups)
+        return merged, ", ".join(str(p) for p in paths)
     rel = DRIVER.get(soc)
     if rel is None:
         return None, f"{soc}: no per-pin mux authority available"
