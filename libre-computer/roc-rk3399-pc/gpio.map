@@ -6,7 +6,7 @@
 # directory. They are not distinguishable at runtime today -- the practical
 # discriminator is the DDR model, which nothing reads.
 #
-# Three pins differ across the revisions; the rest of J12/J15/J20/J21 is
+# Five pins differ across the revisions; the rest of J1/J6/J12/J15/J20/J21 is
 # identical in all three. Rows are stated on the V1.1-A basis and name the
 # other states in Ref, so `lgpio info J20 25` shows the divergence.
 #
@@ -25,36 +25,60 @@
 #                   so the row is NC on this file's V1.1-A basis. Read off the
 #                   Extension Interface sheet of each revision in turn, and
 #                   confirmed against a 600 dpi render of all three.
+#   J6.3, J6.4      DC_12V on V1.1-A and V1.2A -- the barrel-jack side of the
+#                   input diode/fuse, i.e. the raw incoming 12 V. On V0.1 the
+#                   same two positions carry SYS_12V, so on that revision all
+#                   four of J6.3-6 are one net and the connector cannot feed
+#                   the board upstream of its input protection. Read off the
+#                   Extension Interface sheet of each revision and confirmed
+#                   against a 600 dpi render of V1.1-A and V1.2A.
 #
 # Detail: rockchip/rk3399/schematics/roc-rk3399-pc-revision-differences.md
 #
-# Not an RPi pinout. SIX pin headers, read off the schematic by designator and
+# Not an RPi pinout. EIGHT pin headers, read off the schematic by designator and
 # footprint, not off any summary:
 #
 #   J12  CON30A     SMD_PH_15x2_2d0  2x15 2.0 mm   Extension Interface sheet
 #   J15  CON30A     SMD_PH_15x2_2d0  2x15 2.0 mm   Extension Interface sheet
 #   J20  CON30A     SMD_PH_15x2_2d0  2x15 2.0 mm   Extension Interface sheet
 #   J21  CON30A     SMD_PH_15x2_2d0  2x15 2.0 mm   Extension Interface sheet
+#   J1   CON6A      SMD_PH_3x2_2d0   2x3  2.0 mm   Extension Interface sheet
+#   J6   CON6A      SMD_PH_3x2_2d0   2x3  2.0 mm   Extension Interface sheet
 #   J13  sip3_2d54                   1x3  2.54 mm  KEY/LED/DEBUG sheet
 #   J16  SIP4_2D0                    1x4  2.0 mm   Memory-eMMC/SPI FLASH sheet
 #
-# The four CON30A are on the Extension Interface sheet (page 28 of V0.1 and
-# V1.1-A, page 29 of V1.2A), same part and same footprint in all three
-# revisions. J13 is the debug serial port the product spec lists as
-# "Debug serial port x 1"; J16 breaks the SPI NOR out for programming.
-# "SIP" is single-in-line, so J13 and J16 are 1xN and must not be drawn 2xN --
-# see the DUAL_ROW_HEADERS comment in hardware-gpio tools/gen-pinout-data.py.
-# lgpio bcm does not apply.
+# The four CON30A and the two CON6A are all on the Extension Interface sheet
+# (page 28 of V0.1 and V1.1-A, page 29 of V1.2A), same parts and same
+# footprints in all three revisions. J13 is the debug serial port the product
+# spec lists as "Debug serial port x 1"; J16 breaks the SPI NOR out for
+# programming. "SIP" is single-in-line, so J13 and J16 are 1xN and must not be
+# drawn 2xN -- see the DUAL_ROW_HEADERS comment in hardware-gpio
+# tools/gen-pinout-data.py. lgpio bcm does not apply.
 #
-# Deliberately NOT mapped, two 2x3 2.0 mm SMD headers on the same Extension
-# Interface sheet, both footprint CON6A / SMD_PH_3x2_2d0:
-#   J6  1,2 GND  3,4 DC_12V  5,6 SYS_12V     board power in/out
-#   J1  1 POE1  2 POE2  3 GND  4 POE3  5 GND  6 POE4    PoE magnetics tap
-# Neither carries a single SoC-routed signal -- they are a bare 12 V pair and
-# the four PoE conductors off the RJ45 magnetics. Every header in every other
-# board map carries at least one routed signal (Le Potato 9J1 SPDIF, La Frite
-# 9J5 line-out, Renegade J22 PMIC PWREN/PWRON), so a pure-rail connector has no
-# precedent to follow. Left out pending an owner decision, not overlooked.
+# J1 and J6 carry no SoC-routed signal at all -- J6 is the 12 V pair in and
+# out, J1 is the four PoE conductors off the RJ45 magnetics. Every other
+# board's headers carry at least one routed signal (Le Potato 9J1 SPDIF,
+# La Frite 9J5 line-out, Renegade J22 PMIC PWREN/PWRON), so a pure-rail
+# connector had no precedent here; the board owner settled it -- they are
+# physical 2x3 connectors you can plug into, and a header you can plug into is
+# a header the pinout has to show, on the same standard J21 is mapped under.
+#
+# J1's four POE positions are the only pins in any board map that can carry
+# the PSE's line voltage. They are the RJ45 magnetics' centre taps, straight
+# off U31 SG24719PTG on the Ethernet sheet (page 21 of V1.1-A): TCT1/MCT1 ->
+# POE1, TCT2/MCT2 -> POE2, TCT3/MCT3 -> POE3, TCT4/MCT4 -> POE4. Those four
+# nets appear on exactly two pages of the schematic, 21 and 28 -- the
+# magnetics and this connector -- so there is no rectifier, no PD controller
+# and no current limit anywhere between the cable and these six pads. A PoE
+# PSE drives up to 57 V DC.
+#
+# CAUTION: J1 is a magnetics tap, not a PoE supply output. Treat all four
+# POE pins as live whenever an Ethernet cable is plugged in, and never bridge
+# one to J6's 12 V pair.
+#
+# That is why Chip is POE rather than 12V/5V/PHY: those classes say "a rail
+# this board makes", and this is the opposite. See CHIP_CLASS in
+# hardware-gpio tools/gen-pinout-data.py for the class and its colour.
 #
 # Other connectors on the board are not pin headers and are out of scope:
 # J11 eMMC module socket (CON_30PIN_0D4_SMT), J4 microSD (tf_socket), J3 RJ45,
@@ -84,13 +108,32 @@
 # Read by word and line-segment GEOMETRY off that sheet, not by text reading
 # order: it draws J12 and J21 side by side and a flat text join interleaves
 # their columns into nonsense. Ground is a symbol, not a net label, so a
-# text-only pass cannot see it at all -- J12.11/12, J20.5/8/13/28/29 and
-# J21.4/6/8/10/19/20 are read from the ground-symbol stack (four bars of
-# decreasing length) sitting on the end of each wire. The three ways a
-# position can end are therefore distinguished by what is at the far end of
-# the lead, not by whether a text label happened to be extractable:
+# text-only pass cannot see it at all -- J12.11/12, J20.5/8/13/28/29,
+# J21.4/6/8/10/19/20, J6.1/2 and J1.3/5 are read from the ground-symbol stack
+# (four bars of decreasing length) sitting on the end of each wire. The three
+# ways a position can end are therefore distinguished by what is at the far end
+# of the lead, not by whether a text label happened to be extractable:
 # net-label flag -> the net, ground stack -> GND, nothing at all -> NC.
+#
+# Two geometry traps this sheet sets, both of which a naive reader falls into:
+#
+#   * A ground stack's longest bar is 10.08 pt tall and the row pitch is
+#     5.04 pt, so the bar CROSSES the next row's wire on the page. It is a bar,
+#     not a junction. Nets must be unioned over segment ENDPOINTS only -- turn
+#     T-junction merging on and J6.1's ground swallows J6.3's DC_12V, which is
+#     how a reading that puts the rails on the wrong rows gets produced.
+#   * J1.3 and J1.5 each carry their OWN ground symbol, stacked 5.04 pt apart
+#     so the two overlap into what looks like one large symbol serving one pin.
+#     Their bar centres are 5.04 pt apart and each stack has its own stem: two
+#     symbols, two grounded pins. Reading them as one is how J1 ends up listed
+#     with POE3/POE4 twice and no ground at all.
 #Header	Pin	Chip	Line	sysfs	Name	Pad	Ref	Desc
+J1	1	POE	POE	POE	POE1	-	POE1	POE1
+J1	2	POE	POE	POE	POE2	-	POE2	POE2
+J1	3	GND	GND	GND	GND	-	GND	GND
+J1	4	POE	POE	POE	POE3	-	POE3	POE3
+J1	5	GND	GND	GND	GND	-	GND	GND
+J1	6	POE	POE	POE	POE4	-	POE4	POE4
 J12	1	2	1	65	GPIO2_A1	H30	I2C2_SCL	VOP_D1/CIF_D1/I2C2_SCL_u
 J12	2	2	0	64	GPIO2_A0	H25	I2C2_SDA	VOP_D0/CIF_D0/I2C2_SDA_u
 J12	3	4	27	155	GPIO4_D3	AK3	GPIO4_D3	-
@@ -218,3 +261,9 @@ J21	27	PCIE	PCIE	PCIE	PCIE_TX0N	-	PCIE_TX0N	PCIE_TX0N
 J21	28	PCIE	PCIE	PCIE	PCIE_TX0P	-	PCIE_TX0P	PCIE_TX0P
 J21	29	PCIE	PCIE	PCIE	PCIE_REF_CLKN	-	PCIE_REF_CLKN	PCIE_REF_CLKN
 J21	30	PCIE	PCIE	PCIE	PCIE_REF_CLKP	-	PCIE_REF_CLKP	PCIE_REF_CLKP
+J6	1	GND	GND	GND	GND	-	GND	GND
+J6	2	GND	GND	GND	GND	-	GND	GND
+J6	3	12V	12V	12V	DC_12V	-	DC_12V(V1.1A/V1.2A)/SYS_12V(V0.1)	DC_12V
+J6	4	12V	12V	12V	DC_12V	-	DC_12V(V1.1A/V1.2A)/SYS_12V(V0.1)	DC_12V
+J6	5	12V	12V	12V	SYS_12V	-	SYS_12V	SYS_12V
+J6	6	12V	12V	12V	SYS_12V	-	SYS_12V	SYS_12V

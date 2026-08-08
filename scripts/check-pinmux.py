@@ -111,7 +111,10 @@ DATASHEET_JSON = {
 # of them (J12.13-30, J21.1/2, J20.30) so the drawing can show all 30
 # positions of each 2x15 connector. There is no pad to audit and no Desc to
 # audit it against, so auditing one as a mux pad would only manufacture NOTEs.
-POWER = {"3.3V", "5V", "12V", "GND", "ADC", "PHY", "PCIE", "NC"}
+# POE is here on the same footing as PCIE: roc-rk3399-pc J1 brings the RJ45
+# magnetics' four centre taps out on a 2x3 header, and a transformer tap is
+# hard-wired copper, not a mux option. Nothing on that net reaches the SoC.
+POWER = {"3.3V", "5V", "12V", "GND", "ADC", "PHY", "PCIE", "POE", "NC"}
 
 # Tokens that carry no function identity -- routing/variant suffixes, pad
 # qualifiers, and the drive/pull decorations Rockchip hangs off a mux name.
@@ -564,6 +567,8 @@ SELF_TEST = [
     ("3.0V", "VCCA3V0_CODEC", False),       # roc-rk3399-pc J20.16
     ("3.3V", "VCC3V3_SYS", False),          # roc-rk3399-pc J15.18
     ("3.3V", "VDDIO_AO3.3V", False),        # aml-s905x-cc 2J3.8
+    ("12V", "DC_12V", False),               # roc-rk3399-pc J6.3, jack-side 12V
+    ("POE", "POE1", False),                 # roc-rk3399-pc J1.1, magnetics tap
     ("0", "GPIO0_B4(V1.1A)/EDP_TP(V1.2A)", False),   # roc-rk3399-pc J20.26
     ("2", "I2C2_SCL", False),
     ("0", "WIFI_REG_ON_H", False),
