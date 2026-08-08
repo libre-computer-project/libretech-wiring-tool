@@ -28,10 +28,39 @@
 #
 # Detail: rockchip/rk3399/schematics/roc-rk3399-pc-revision-differences.md
 #
-# Not an RPi pinout: four 30-pin CON30A at 2.0 mm -- J12, J15, J20 and J21,
-# every one of them footprint SMD_PH_15x2_2d0, on the Extension Interface
-# sheet (page 28 of V0.1 and V1.1-A, page 29 of V1.2A). Same part and same
-# footprint in all three revisions. lgpio bcm does not apply.
+# Not an RPi pinout. SIX pin headers, read off the schematic by designator and
+# footprint, not off any summary:
+#
+#   J12  CON30A     SMD_PH_15x2_2d0  2x15 2.0 mm   Extension Interface sheet
+#   J15  CON30A     SMD_PH_15x2_2d0  2x15 2.0 mm   Extension Interface sheet
+#   J20  CON30A     SMD_PH_15x2_2d0  2x15 2.0 mm   Extension Interface sheet
+#   J21  CON30A     SMD_PH_15x2_2d0  2x15 2.0 mm   Extension Interface sheet
+#   J13  sip3_2d54                   1x3  2.54 mm  KEY/LED/DEBUG sheet
+#   J16  SIP4_2D0                    1x4  2.0 mm   Memory-eMMC/SPI FLASH sheet
+#
+# The four CON30A are on the Extension Interface sheet (page 28 of V0.1 and
+# V1.1-A, page 29 of V1.2A), same part and same footprint in all three
+# revisions. J13 is the debug serial port the product spec lists as
+# "Debug serial port x 1"; J16 breaks the SPI NOR out for programming.
+# "SIP" is single-in-line, so J13 and J16 are 1xN and must not be drawn 2xN --
+# see the DUAL_ROW_HEADERS comment in hardware-gpio tools/gen-pinout-data.py.
+# lgpio bcm does not apply.
+#
+# Deliberately NOT mapped, two 2x3 2.0 mm SMD headers on the same Extension
+# Interface sheet, both footprint CON6A / SMD_PH_3x2_2d0:
+#   J6  1,2 GND  3,4 DC_12V  5,6 SYS_12V     board power in/out
+#   J1  1 POE1  2 POE2  3 GND  4 POE3  5 GND  6 POE4    PoE magnetics tap
+# Neither carries a single SoC-routed signal -- they are a bare 12 V pair and
+# the four PoE conductors off the RJ45 magnetics. Every header in every other
+# board map carries at least one routed signal (Le Potato 9J1 SPDIF, La Frite
+# 9J5 line-out, Renegade J22 PMIC PWREN/PWRON), so a pure-rail connector has no
+# precedent to follow. Left out pending an owner decision, not overlooked.
+#
+# Other connectors on the board are not pin headers and are out of scope:
+# J11 eMMC module socket (CON_30PIN_0D4_SMT), J4 microSD (tf_socket), J3 RJ45,
+# J5 HDMI (hdmi_a_phd), J9/J18 USB Type-C (USB_TYPEC_115H0), J10/J30/J31 USB
+# 2.0 jacks, J8/J17 MIPI camera FPC (FPC_24PIN_0D5), J19 MIPI DSI FPC
+# (FPC_30PIN_0D5), J7 eDP FPC (FPC_45PIN).
 #
 # J21 is the PCIe breakout half of the M2.NGFF pair on that sheet. It carries
 # no SoC GPIO -- four PCIe lanes, the reference clock, the 12V and 5V rails
@@ -92,6 +121,9 @@ J12	27	NC	NC	NC	NC	-	NC	-
 J12	28	NC	NC	NC	NC	-	NC	-
 J12	29	NC	NC	NC	NC	-	NC	-
 J12	30	NC	NC	NC	NC	-	NC	-
+J13	1	4	19	147	GPIO4_C3	AK2	UART2_RXD	UART2C_RX_u/UART2DBGC_SIN/UARTHDCP_SIN
+J13	2	4	20	148	GPIO4_C4	AJ4	UART2_TXD	UART2C_TX_u/UART2DBGC_SOUT/UARTHDCP_SOUT
+J13	3	GND	GND	GND	GND	-	GND	GND
 J15	1	0	10	10	GPIO0_B2	U30	WIFI_REG_ON_H	-
 J15	2	0	3	3	GPIO0_A3	AA25	WIFI_HOST_WAKE_L	SDIO0_WRPT_d/SDIO_WRPRT/PMU_DEBUG1
 J15	3	GND	GND	GND	GND	-	GND	GND
@@ -122,6 +154,10 @@ J15	27	ADC	ADC	ADC_IN0	ADC_IN0	-	ADC_IN0	ADC_IN0
 J15	28	0	4	4	GPIO0_A4	V27	BT_HOST_WAKE_L	SDIO0_INTn_d/PMU_DEBUG2
 J15	29	ADC	ADC	ADC_IN2	ADC_IN2	-	ADC_IN2	ADC_IN2
 J15	30	ADC	ADC	ADC_IN3	ADC_IN3	-	ADC_IN3	ADC_IN3
+J16	1	GND	GND	GND	GND	-	GND	GND
+J16	2	1	9	41	GPIO1_B1	P28	SPI1_CLK	SPI1_CLK/PMCU_JTAG_TCK_u/PMUM0JTAG_TCK
+J16	3	FLASH	FLASH	FLASH	FLASH_WP	-	FLASH_WP	-
+J16	4	3.3V	3.3V	3.3V	VCC3V3_SYS	-	VCC3V3_SYS	VCC3V3_SYS
 J20	1	3	26	122	GPIO3_D2	AJ2	I2S0_LRCK_TX	I2S0_LRCK_TX_d/TRACE_DATA2/A53CORE0_WFI
 J20	2	4	0	128	GPIO4_A0	AC7	I2S_CLK_0	I2S_CLK_d/TRACE_CTL/LPM0_WFI
 J20	3	3	30	126	GPIO3_D6	AH2	I2S0_SDI3SDO1	I2S0_SDI3SDO1_d/TRACE_DATA6/A72L2_WFI
