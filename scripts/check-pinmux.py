@@ -94,7 +94,19 @@ DATASHEET_JSON = {
     "all-h3-cc-h5": CLAUDE / "allwinner/h5/gpio_pinmux.json",
 }
 
-POWER = {"3.3V", "5V", "GND", "ADC", "PHY"}
+# Chip classes the mux checks must skip: the row is not a muxable SoC pad, so
+# there is no pinctrl group to look its Desc up against. Not only rails --
+# ADC and PHY are here for the same reason, and PCIE joins them: roc-rk3399-pc
+# J21 brings four PCIe lanes and the reference clock out on a 2x15 header, and
+# a differential pair is hard-wired silicon, not a mux option. 12V is the
+# header's own supply on that connector (J21.3/J21.5 SYS_12V).
+#
+# Known gap, deliberately not widened here: 1.8V, 3.0V, USB, CLK, I2C, AUDIO,
+# DAC and CVBS are also non-mux Chip classes in use and are NOT in this set,
+# so they still emit a NOTE per Desc token (14 of them on roc-rk3399-pc alone).
+# Adding them is a separate change with its own before/after -- this comment
+# exists so the next reader knows the omission is known, not overlooked.
+POWER = {"3.3V", "5V", "12V", "GND", "ADC", "PHY", "PCIE"}
 
 # Tokens that carry no function identity -- routing/variant suffixes, pad
 # qualifiers, and the drive/pull decorations Rockchip hangs off a mux name.
@@ -446,8 +458,11 @@ def rail_class(name: str) -> tuple[str, int | None] | None:
 
     None means "this field does not name a rail", which is the answer for every
     GPIO row and for the non-rail Chip classes (a gpiochip index, ADC, PHY, I2C,
-    USB, CLK, AUDIO, DAC, CVBS). fullmatch, not search, is the whole point of
-    the scope rule above.
+    USB, PCIE, CLK, AUDIO, DAC, CVBS). fullmatch, not search, is the whole point
+    of the scope rule above. Chip='12V' IS a rail class and does match, which is
+    why roc-rk3399-pc J21.3/J21.5 land in scope: Chip says 12V, Ref says
+    SYS_12V, and the sign has to agree even though the net name states no
+    voltage of its own.
     """
     n = name.strip()
     if not n or n == "-":

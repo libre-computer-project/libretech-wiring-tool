@@ -19,8 +19,28 @@
 # remove the following two IO ports, used for the eDP panel's TP".
 # Detail: rockchip/rk3399/schematics/roc-rk3399-pc-revision-differences.md
 #
-# Not an RPi pinout: four 30-pin CON30A at 2.0 mm. J12/J15/J20 are the GPIO
-# headers; J21 is a PCIe breakout and is not mapped. lgpio bcm does not apply.
+# Not an RPi pinout: four 30-pin CON30A at 2.0 mm -- J12, J15, J20 and J21,
+# every one of them footprint SMD_PH_15x2_2d0, on the Extension Interface
+# sheet (page 28 of V0.1 and V1.1-A, page 29 of V1.2A). Same part and same
+# footprint in all three revisions. lgpio bcm does not apply.
+#
+# J21 is the PCIe breakout half of the M2.NGFF pair on that sheet. It carries
+# no SoC GPIO -- four PCIe lanes, the reference clock, the 12V and 5V rails
+# and their grounds -- but it is a physical 2x15 connector on the board, so
+# it is mapped: a header you can plug into is a header the pinout has to show.
+# Chip=PCIE follows the same-board USB precedent (J12.9/10 HUB_HOST_DM*/DP*):
+# a fixed-function differential pair, not a muxable SoC pad. Its pins are
+# identical in V0.1, V1.1-A and V1.2A, so no per-revision note is needed here.
+#
+# Unpopulated positions carry no row, the way J22 pin 2 does on Renegade:
+#   J21.1, J21.2  bare pin stubs, no net
+#   J12.13..30    bare pin stubs, no net (J12.11 and J12.12 ARE ground --
+#                 an earlier "J12 11-30 NC" reading missed those two)
+# Read by word and line-segment GEOMETRY off that sheet, not by text reading
+# order: it draws J12 and J21 side by side and a flat text join interleaves
+# their columns into nonsense. Ground is a symbol, not a net label, so a
+# text-only pass cannot see it at all -- J12.11/12 and J21.4/6/8/10/19/20 are
+# read from the ground-symbol stack sitting on the end of each wire.
 #Header	Pin	Chip	Line	sysfs	Name	Pad	Ref	Desc
 J12	1	2	1	65	GPIO2_A1	H30	I2C2_SCL	VOP_D1/CIF_D1/I2C2_SCL_u
 J12	2	2	0	64	GPIO2_A0	H25	I2C2_SDA	VOP_D0/CIF_D0/I2C2_SDA_u
@@ -32,6 +52,8 @@ J12	7	4	24	152	GPIO4_D0	AE6	GPIO4_D0	PCIE_CLKREQnB_u
 J12	8	CLK	CLK	CLK	RTC_CLK_OUT	-	RTC_CLK_OUT	RTC_CLK_OUT
 J12	9	USB	USB	USB	HUB_HOST_DM3	-	HUB_HOST_DM3	HUB_HOST_DM3
 J12	10	USB	USB	USB	HUB_HOST_DP3	-	HUB_HOST_DP3	HUB_HOST_DP3
+J12	11	GND	GND	GND	GND	-	GND	GND
+J12	12	GND	GND	GND	GND	-	GND	GND
 J15	1	0	10	10	GPIO0_B2	U30	WIFI_REG_ON_H	-
 J15	2	0	3	3	GPIO0_A3	AA25	WIFI_HOST_WAKE_L	SDIO0_WRPT_d/SDIO_WRPRT/PMU_DEBUG1
 J15	3	GND	GND	GND	GND	-	GND	GND
@@ -92,3 +114,31 @@ J20	27	2	28	92	GPIO2_D4	AF8	GPIO2_D4	SDIO0_BKPWR_d
 J20	28	GND	GND	GND	GND	-	GND	GND
 J20	29	GND	GND	GND	GND	-	GND	GND
 J20	30	GND	GND	GND	GND	-	GND	GND
+J21	3	12V	12V	12V	SYS_12V	-	SYS_12V	SYS_12V
+J21	4	GND	GND	GND	GND	-	GND	GND
+J21	5	12V	12V	12V	SYS_12V	-	SYS_12V	SYS_12V
+J21	6	GND	GND	GND	GND	-	GND	GND
+J21	7	5V	5V	5V	VCC5V_SYS	-	VCC_SYS	VCC5V_SYS
+J21	8	GND	GND	GND	GND	-	GND	GND
+J21	9	5V	5V	5V	VCC5V_SYS	-	VCC_SYS	VCC5V_SYS
+J21	10	GND	GND	GND	GND	-	GND	GND
+J21	11	PCIE	PCIE	PCIE	PCIE_RX3_N	-	PCIE_RX3_N	PCIE_RX3_N
+J21	12	PCIE	PCIE	PCIE	PCIE_RX3_P	-	PCIE_RX3_P	PCIE_RX3_P
+J21	13	PCIE	PCIE	PCIE	PCIE_TX3N	-	PCIE_TX3N	PCIE_TX3N
+J21	14	PCIE	PCIE	PCIE	PCIE_TX3P	-	PCIE_TX3P	PCIE_TX3P
+J21	15	PCIE	PCIE	PCIE	PCIE_RX2_N	-	PCIE_RX2_N	PCIE_RX2_N
+J21	16	PCIE	PCIE	PCIE	PCIE_RX2_P	-	PCIE_RX2_P	PCIE_RX2_P
+J21	17	PCIE	PCIE	PCIE	PCIE_TX2N	-	PCIE_TX2N	PCIE_TX2N
+J21	18	PCIE	PCIE	PCIE	PCIE_TX2P	-	PCIE_TX2P	PCIE_TX2P
+J21	19	GND	GND	GND	GND	-	GND	GND
+J21	20	GND	GND	GND	GND	-	GND	GND
+J21	21	PCIE	PCIE	PCIE	PCIE_RX1_N	-	PCIE_RX1_N	PCIE_RX1_N
+J21	22	PCIE	PCIE	PCIE	PCIE_RX1_P	-	PCIE_RX1_P	PCIE_RX1_P
+J21	23	PCIE	PCIE	PCIE	PCIE_TX1N	-	PCIE_TX1N	PCIE_TX1N
+J21	24	PCIE	PCIE	PCIE	PCIE_TX1P	-	PCIE_TX1P	PCIE_TX1P
+J21	25	PCIE	PCIE	PCIE	PCIE_RX0_N	-	PCIE_RX0_N	PCIE_RX0_N
+J21	26	PCIE	PCIE	PCIE	PCIE_RX0_P	-	PCIE_RX0_P	PCIE_RX0_P
+J21	27	PCIE	PCIE	PCIE	PCIE_TX0N	-	PCIE_TX0N	PCIE_TX0N
+J21	28	PCIE	PCIE	PCIE	PCIE_TX0P	-	PCIE_TX0P	PCIE_TX0P
+J21	29	PCIE	PCIE	PCIE	PCIE_REF_CLKN	-	PCIE_REF_CLKN	PCIE_REF_CLKN
+J21	30	PCIE	PCIE	PCIE	PCIE_REF_CLKP	-	PCIE_REF_CLKP	PCIE_REF_CLKP
