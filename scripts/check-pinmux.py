@@ -106,7 +106,12 @@ DATASHEET_JSON = {
 # so they still emit a NOTE per Desc token (14 of them on roc-rk3399-pc alone).
 # Adding them is a separate change with its own before/after -- this comment
 # exists so the next reader knows the omission is known, not overlooked.
-POWER = {"3.3V", "5V", "12V", "GND", "ADC", "PHY", "PCIE"}
+# NC is here for the opposite reason to the rest: not "this pad is fixed
+# function" but "this position is wired to nothing". roc-rk3399-pc carries 21
+# of them (J12.13-30, J21.1/2, J20.30) so the drawing can show all 30
+# positions of each 2x15 connector. There is no pad to audit and no Desc to
+# audit it against, so auditing one as a mux pad would only manufacture NOTEs.
+POWER = {"3.3V", "5V", "12V", "GND", "ADC", "PHY", "PCIE", "NC"}
 
 # Tokens that carry no function identity -- routing/variant suffixes, pad
 # qualifiers, and the drive/pull decorations Rockchip hangs off a mux name.
