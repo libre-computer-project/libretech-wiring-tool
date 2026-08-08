@@ -25,8 +25,16 @@ So a Desc token with no kernel group is reported separately from a kernel group
 missing from Desc -- the first is usually datasheet-only, the second is usually
 a gap in the map.
 
+It also cross-checks the rows the mux check has to skip: for a supply or ground
+row, Chip carries the rail class and Ref carries the board's own net name, and
+the two must describe the same net. Four boards published a 3.3V supply as
+ground on header pin 17 for four years because nothing compared them (--rails
+runs that check alone; it needs no kernel tree).
+
 Usage:
     scripts/check-pinmux.py [--board B] [--linux PATH] [--verbose] [--strict]
+    scripts/check-pinmux.py --rails [--board B]
+    scripts/check-pinmux.py --self-test
 """
 
 from __future__ import annotations
@@ -382,6 +390,185 @@ def desc_tokens(desc: str) -> list[str]:
     return [t for t in re.split(r"[\s/]+", desc) if t and t != "-"]
 
 
+# --------------------------------------------------------------------- rails
+#
+# Every check above this line asks what a GPIO pad can be muxed to, so every one
+# of them SKIPS the rows whose Chip is a supply or a ground -- and that is
+# precisely where the map was wrong for four years. all-h3-cc-h3, all-h3-cc-h5,
+# roc-rk3328-cc and roc-rk3328-cc-v2 carried header pin 17 as Chip=GND Name=GND
+# Desc=GND while Ref -- the board's own net name -- said VCC3V3-OUT (Tritium) /
+# VCC_IO (Renegade): a 3.3V supply published as ground, fixed in 0bff83d0a /
+# 6b23dbe. hardware-gpio colours a pin from Chip, so the page told the reader to
+# tie a live rail into their ground, which is the dangerous direction of that
+# error. It was present in each file's first commit (2022) and survived a
+# 3465217 RK3328 TRM audit two days before it was found, because a TRM has
+# nothing to say about a row that claims not to be a GPIO at all. The only
+# witness is inside the row: Chip and Ref have to describe the same net.
+#
+# Scope. A rail-ish SUBSTRING is not enough. A GPIO's net name may legitimately
+# mention a rail -- roc-rk3399-pc J20.26 carries TCPD_VBUS_BDIS_d -- and a check
+# that fired on those would be switched off inside a week, which costs more than
+# not having it. A row is in scope only when Chip is itself a rail class, or
+# when Ref is WHOLLY a rail name. That is the narrowest rule that still contains
+# the defect, because the bad rows satisfied both halves at once.
+
+# A supply name that ends in one of these is a signal ABOUT a rail (an enable, a
+# power-good), not the rail: VCC5V_EN is a GPIO. Deliberately no IN/OUT here --
+# Tritium's rail is literally named VCC3V3-OUT.
+CONTROL_SUFFIX = ("EN", "ON", "OFF", "SEL", "CTL", "CTRL", "DET", "PG",
+                  "PWRGD", "PWROK", "OK", "FAULT", "TRIG", "HOLD")
+
+# Voltages are read as millivolts, not sorted into three named classes. The
+# headers are not only 3.3V/5V/GND: roc-rk3399-pc brings out VCC_1V8 (1.8V) on
+# J15.16 and VCCA3V0_CODEC (3.0V) on J20.16, and rounding those to the nearest
+# of three would either invent a disagreement or hide a real one.
+VOLTAGE = re.compile(
+    r"(?<![0-9])(?:(\d+)[.](\d+)\s*V|(\d+)V(\d+)|(\d+)\s*V)(?![0-9A-Za-z])")
+GROUND_NAME = re.compile(r"[AD]?GND\d*|VSS[A-Z0-9_]*", re.I)
+SUPPLY_NAME = re.compile(r"(?:[AD])?(?:VCC|VDD|VBUS|VBAT|VIN|VPP)[A-Z0-9._+-]*"
+                         r"|\d+(?:[.]\d+)?V\d*", re.I)
+
+
+def rail_mv(name: str) -> int | None:
+    """Millivolts a rail name spells out, or None when it names no voltage."""
+    m = VOLTAGE.search(name)
+    if not m:
+        return None
+    if m.group(1):
+        return round(float(f"{m.group(1)}.{m.group(2)}") * 1000)
+    if m.group(3):
+        return round(float(f"{m.group(3)}.{m.group(4)}") * 1000)
+    return int(m.group(5)) * 1000
+
+
+def rail_class(name: str) -> tuple[str, int | None] | None:
+    """('GND'|'SUPPLY', millivolts or None) for a whole-field rail name.
+
+    None means "this field does not name a rail", which is the answer for every
+    GPIO row and for the non-rail Chip classes (a gpiochip index, ADC, PHY, I2C,
+    USB, CLK, AUDIO, DAC, CVBS). fullmatch, not search, is the whole point of
+    the scope rule above.
+    """
+    n = name.strip()
+    if not n or n == "-":
+        return None
+    if GROUND_NAME.fullmatch(n):
+        return "GND", None
+    if SUPPLY_NAME.fullmatch(n):
+        if re.split(r"[._-]", n.upper())[-1] in CONTROL_SUFFIX:
+            return None
+        return "SUPPLY", rail_mv(n)
+    return None
+
+
+def rail_verdict(chip: str, ref: str) -> str | None:
+    """Why Chip and Ref cannot both be right, or None when they agree.
+
+    A supply name that states no voltage -- VCC_IO, VCC_SYS -- constrains only
+    the SIGN of the row: supply, not ground. roc-rk3399-pc J15.20 is Chip=5V
+    Ref=VCC_SYS and VCC_SYS really is 5V there (DC_12V -> TPS563200 -> VCC_SYS);
+    roc-rk3328-cc J1.1 is Chip=3.3V Ref=VCC_IO and VCC_IO really is 3.3V. Both
+    are correct rows whose two columns merely use different vocabularies, so
+    demanding that such a name spell its voltage would enforce a naming
+    convention rather than correctness -- and two known-good rows in the report
+    is the entire cost of a check nobody trusts. What still has to fire, and
+    does, is either of those names against Chip=GND.
+    """
+    c, r = rail_class(chip), rail_class(ref)
+    if r is None:
+        # Chip may still say rail here (Ref '-' or a connector label). Nothing
+        # to compare against, so nothing to claim.
+        return None
+    if c is None:
+        return (f"Chip='{chip}' is not a supply or ground class, but Ref="
+                f"'{ref}' is wholly a rail name")
+    if c[0] != r[0]:
+        return (f"Chip='{chip}' is {'ground' if c[0] == 'GND' else 'a supply'}, "
+                f"but Ref='{ref}' names "
+                f"{'ground' if r[0] == 'GND' else 'a supply'}")
+    if c[1] is not None and r[1] is not None and c[1] != r[1]:
+        return (f"Chip='{chip}' is {c[1] / 1000:g}V, but Ref='{ref}' names "
+                f"{r[1] / 1000:g}V")
+    return None
+
+
+def check_rails(board: Path) -> tuple[int, int]:
+    """(contradictions, rows in scope) from Chip vs Ref, row by row.
+
+    Needs no kernel tree and no datasheet -- it is an internal consistency check
+    on the file, which is why it runs even for the SoCs reported UNAUDITED above
+    and why it is cheap enough for `make check`.
+
+    The second number is reported for the same reason coverage() exists: "0
+    contradictions" is only as strong as the number of rows that were in scope
+    at all, and a scope rule tightened until nothing matches would otherwise
+    read exactly like a clean board.
+    """
+    gmap = board / "gpio.map"
+    if not gmap.is_file():
+        return 0, 0
+    bad = scope = 0
+    for row in load_map(gmap):
+        if rail_class(row["chip"]) is None and rail_class(row["ref"]) is None:
+            continue
+        scope += 1
+        why = rail_verdict(row["chip"], row["ref"])
+        if why is None:
+            continue
+        bad += 1
+        print(f"MISMATCH: {board.name} {row['header']}.{row['pin']}: {why} -- "
+              f"the two columns describe different nets and hardware-gpio "
+              f"colours the pin from Chip [Name: {row['name']}]")
+    return bad, scope
+
+
+# Kept beside the rule it exercises, not in test/, because test/ holds
+# board-attached scripts (spi bench, gpio pattern) that cannot run on a build
+# host. Every no-fire case below is a real row from a real map: the check is
+# only worth having if a clean run means something.
+SELF_TEST = [
+    # (Chip, Ref, must the check fire?)
+    ("GND", "VCC3V3-OUT", True),            # all-h3-cc-h3/-h5 7J1.17, pre-fix
+    ("GND", "VCC_IO", True),                # roc-rk3328-cc(-v2) J1.17, pre-fix
+    ("GND", "VCC_SYS", True),               # same shape, voltage unstated
+    ("3.3V", "GND", True),                  # the mirror error
+    ("3.3V", "VCC5V", True),                # both supplies, wrong voltage
+    ("5V", "VCC3V3_SYS", True),
+    ("2", "GND", True),                     # a rail row given a gpiochip
+    ("GND", "GND", False),
+    ("3.3V", "VCC3.3V", False),             # aml-* 7J1.1 / 7J1.17
+    ("3.3V", "VCC_IO", False),              # roc-rk3328-cc J1.1
+    ("5V", "VCC_SYS", False),               # roc-rk3399-pc J15.20, rk3328 J1.2
+    ("5V", "VCC5V", False),                 # all-h3-cc / aml-* 7J1.2
+    ("1.8V", "VCC_1V8", False),             # roc-rk3399-pc J15.16
+    ("3.0V", "VCCA3V0_CODEC", False),       # roc-rk3399-pc J20.16
+    ("3.3V", "VCC3V3_SYS", False),          # roc-rk3399-pc J15.18
+    ("3.3V", "VDDIO_AO3.3V", False),        # aml-s905x-cc 2J3.8
+    ("0", "GPIO0_B4(V1.1A)/EDP_TP(V1.2A)", False),   # roc-rk3399-pc J20.26
+    ("2", "I2C2_SCL", False),
+    ("0", "WIFI_REG_ON_H", False),
+    ("ADC", "ADC1", False),
+    ("PHY", "PWREN", False),
+    ("AUDIO", "MIC_IN1P", False),
+    ("CLK", "RTC_CLKO_WIFI", False),
+    ("0", "VCC5V_EN", False),               # names a rail, IS an enable signal
+    ("GND", "-", False),
+]
+
+
+def self_test() -> int:
+    fails = 0
+    for chip, ref, want in SELF_TEST:
+        got = rail_verdict(chip, ref)
+        if bool(got) != want:
+            fails += 1
+            print(f"SELFTEST FAIL: Chip={chip!r} Ref={ref!r}: expected "
+                  f"{'a mismatch' if want else 'no mismatch'}, got {got!r}")
+    print(f"check-pinmux --self-test: {len(SELF_TEST) - fails}/{len(SELF_TEST)} "
+          f"rail cases pass")
+    return 1 if fails else 0
+
+
 # --------------------------------------------------------------------- check
 
 
@@ -578,7 +765,36 @@ def main() -> int:
     ap.add_argument("--coverage", action="store_true",
                     help="report how much exposed IO each authority knows, "
                          "instead of checking Desc")
+    ap.add_argument("--rails", action="store_true",
+                    help="only cross-check Chip (rail class) against Ref (net "
+                         "name) on supply/ground rows; needs no kernel tree")
+    ap.add_argument("--self-test", action="store_true",
+                    help="run the rail cross-check against its case table")
     args = ap.parse_args()
+
+    if args.self_test:
+        return self_test()
+
+    boards = [b for b in ([LC / args.board] if args.board
+                          else sorted(p for p in LC.iterdir() if p.is_dir()))
+              if (b / "gpio.map").is_file()]
+
+    # Run BEFORE the kernel-tree gate, on purpose. The rail check reads nothing
+    # but the map, so a host with no kernel source still gets it, and so does a
+    # SoC the mux check reports UNAUDITED -- the four boards that carried the
+    # pin-17 defect include two whose SoC has no per-pin mux authority at all.
+    # Its exit code is also not behind --strict: a row whose own two columns
+    # contradict each other is a defect, not the candidate list the mux
+    # warnings are.
+    rails = 0
+    if not args.coverage:
+        counted = [check_rails(b) for b in boards]
+        rails = sum(c[0] for c in counted)
+        print(f"check-pinmux: {rails} rail contradiction(s) (Chip vs Ref) in "
+              f"{sum(c[1] for c in counted)} supply/ground row(s) across "
+              f"{len(boards)} board(s)")
+    if args.rails:
+        return 1 if rails else 0
 
     if args.linux:
         linux = Path(args.linux)
@@ -586,7 +802,7 @@ def main() -> int:
         linux = next((p for p in DEFAULT_LINUX if (p / "drivers").is_dir()), None)
     if linux is None or not (linux / "drivers").is_dir():
         print("SKIP: no kernel tree found (--linux PATH); pinmux check not run")
-        return 0
+        return 1 if rails else 0
 
     rk_json = (Path(args.rk_pinmux) if args.rk_pinmux
                else next((p for p in DEFAULT_RK_PINMUX if p.is_file()), None))
@@ -594,8 +810,6 @@ def main() -> int:
     if args.coverage:
         return coverage(linux, rk_json)
 
-    boards = ([LC / args.board] if args.board
-              else sorted(p for p in LC.iterdir() if p.is_dir()))
     missing = extra = bare = unaudited = 0
     for board in boards:
         m, e, b, u = check_board(board, linux, rk_json, args.verbose)
@@ -607,7 +821,7 @@ def main() -> int:
     print(f"check-pinmux: {missing} omitted function(s), {extra} unmatched Desc "
           f"token(s), {bare} token(s) on GPIO-only pads, {unaudited} unaudited "
           f"SoC(s) [authority: {linux}]")
-    return 1 if (args.strict and missing) else 0
+    return 1 if (rails or (args.strict and missing)) else 0
 
 
 if __name__ == "__main__":

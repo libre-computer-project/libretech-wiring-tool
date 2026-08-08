@@ -129,6 +129,42 @@ rockchip `cif_data5m1`≡`CIF_D5_M1_u`). Instance numbers stay significant:
 It is deliberately **not** part of `make` / `make check`: it walks a kernel
 source tree, which is slow over NFS and absent on most build hosts.
 
+### Rail consistency (`make check-rails`)
+
+On a supply or ground row, `Chip` carries the rail class (`3.3V`, `5V`, `GND`,
+and on Renegade Elite also `1.8V` / `3.0V`) and `Ref` carries the board's own
+net name. The same script's `--rails` half checks that the two describe the
+same net — the one thing no other checker looked at, because every mux and
+offset check *skips* the non-GPIO rows:
+
+```bash
+make check-rails                       # also runs inside make / make check
+python3 scripts/check-pinmux.py --rails --board roc-rk3328-cc
+python3 scripts/check-pinmux.py --self-test
+```
+
+- Reads only the maps, so it needs **no kernel tree** and runs even for an SoC
+  the mux check reports `UNAUDITED`.
+- Exits **1** on a contradiction whether or not `--strict` is given: unlike the
+  mux warnings, a row whose own two columns disagree is a defect, not a
+  candidate list.
+- A rail-ish *substring* is never enough. A row is in scope only when `Chip` is
+  a rail class, or when `Ref` is **wholly** a rail name — a GPIO's net name may
+  legitimately mention one (`TCPD_VBUS_BDIS_d`), and a name ending in a control
+  suffix (`VCC5V_EN`) is a signal about a rail, not the rail.
+- A supply name that states no voltage (`VCC_IO`, `VCC_SYS`) constrains only
+  supply-vs-ground; `Chip=5V Ref=VCC_SYS` passes, `Chip=GND Ref=VCC_SYS` does
+  not. Voltages that *are* spelled out compare as millivolts, so `VCC_1V8` and
+  `VCCA3V0_CODEC` are checked as 1.8V and 3.0V rather than rounded into one of
+  three classes.
+
+This is what four boards needed and did not have: `all-h3-cc-h3`,
+`all-h3-cc-h5`, `roc-rk3328-cc` and `roc-rk3328-cc-v2` published header pin 17
+as `Chip=GND` while `Ref` said `VCC3V3-OUT` / `VCC_IO`, from each file's first
+commit in 2022 until `0bff83d0a` — a 3.3V supply drawn as ground, in the
+direction that damages hardware. `--self-test` keeps those four rows, and every
+correct row they resemble, in a case table.
+
 ## Consumers
 
 | Tool | Use |

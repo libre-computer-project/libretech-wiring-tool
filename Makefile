@@ -44,7 +44,7 @@ else
   DEPS_FILES := $(addprefix libre-computer/,$(addsuffix /dt.deps,$(DEPS_BOARDS)))
 endif
 
-.PHONY : clean install-lgpio install-ldto install deps check check-strict check-fdtoverlay check-conflicts check-pinmux
+.PHONY : clean install-lgpio install-ldto install deps check check-strict check-fdtoverlay check-conflicts check-pinmux check-rails
 
 # Integrity + gpio.map accuracy (lgpio pinout). Warnings only — does not fail the build.
 # Use `make check-strict` or scripts/* --strict in CI if desired.
@@ -54,6 +54,10 @@ endif
 # check-pinmux: gpio.map Desc vs the SoC pinctrl driver's mux table. Needs a
 # kernel source tree (--linux, else auto-search) and walks it, so it is NOT in
 # `all` or `check` -- run it when a map's alt-function list changes.
+# check-rails: the same script's --rails half -- Chip (rail class) vs Ref (net
+# name) on supply/ground rows. Reads only the maps, so unlike check-pinmux it IS
+# in `check`, and it hard-fails there: four boards published a 3.3V supply as
+# ground for four years because no checker ran on those rows at all.
 CHECK_LWT := python3 scripts/check-lwt.py
 CHECK_FDT := python3 scripts/check-fdtoverlay.py
 CHECK_CONFLICTS := bash scripts/check-conflicts.sh
@@ -75,8 +79,9 @@ all: $(DTOS_REAL) $(DTOS_SYM) $(DEPS_FILES)
 	@$(CHECK_LWT) $(CHECK_LWT_ARGS) || true
 	@$(CHECK_FDT) $(CHECK_FDT_ARGS) || true
 	@$(CHECK_CONFLICTS) $(CHECK_CONFLICTS_ARGS) || true
+	@$(CHECK_PINMUX) $(CHECK_PINMUX_ARGS) --rails || true
 
-check: check-maps check-fdtoverlay check-conflicts
+check: check-maps check-rails check-fdtoverlay check-conflicts
 
 check-maps:
 	$(CHECK_LWT) $(CHECK_LWT_ARGS) || true
@@ -90,8 +95,12 @@ check-conflicts:
 check-pinmux:
 	$(CHECK_PINMUX) $(CHECK_PINMUX_ARGS) || true
 
+check-rails:
+	$(CHECK_PINMUX) $(CHECK_PINMUX_ARGS) --rails
+
 check-strict:
 	$(CHECK_LWT) $(CHECK_LWT_ARGS) --strict
+	$(CHECK_PINMUX) $(CHECK_PINMUX_ARGS) --rails
 	$(CHECK_FDT) $(CHECK_FDT_ARGS) --strict
 	$(CHECK_CONFLICTS) $(CHECK_CONFLICTS_ARGS)
 
