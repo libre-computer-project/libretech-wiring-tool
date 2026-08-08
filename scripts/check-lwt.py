@@ -5,12 +5,47 @@
 
 Validates:
   - gpio.map format and Name/Line/Chip vs SoC dt-bindings (lgpio pinout data)
+  - gpio.map row IDENTITY: no two header positions may claim the same BGA
+    ball, the same legacy sysfs number or the same (Chip,Line); sysfs must be
+    one base per chip; Pad must look like a ball; no stray whitespace; header
+    pin numbers run 1..N with no hole  (--self-test covers these)
   - overlay .dts headers (Summary; Pins rows match gpio.map)
   - dt.map values name real non-symlink overlay basenames
   - dt.deps providers/consumers exist
 
 Exit 0 always unless --strict (then non-zero if any WARNING).
 Prints WARNING: lines for make to surface.
+
+Why the identity checks exist
+-----------------------------
+Every other checker validates a cell against an EXTERNAL authority -- Line
+against dt-bindings, Desc against the pinctrl driver, Chip against Ref for the
+rails.  Nothing compared two ROWS of the same file, so a cell copied off the
+wrong line of a datasheet or schematic was invisible for as long as the file
+existed.  Found by the 2026-08-08 data audit, all present from each file's
+first commit:
+
+  all-h3-cc-h3/-h5  7J1.16 PG9 carried ball D3, which is PG7's -- and PG7 is
+                    7J1.10 of the same header, so one ball was published on two
+                    pins (H3 datasheet V1.2 / H5 V1.0: PG9 is E3).  7J1.15 PA3
+                    carried D13, which is PA9's; PA9 is not on the header, so
+                    that one collided with nothing and only a datasheet
+                    comparison could see it.
+  roc-rk3399-pc     twelve Pad cells each held the ball of the NEXT pad in the
+                    bank -- the schematic prints the ball one text row below
+                    the pad name -- and the last of each run (J20.20 GPIO2_B4)
+                    fell off the end and was left as '-'.
+  aml-a311d-cc-v01  GPIOX_13 ball 'BKH30': no BGA ball has that shape.
+  aml-s905d3-cc-v01
+  aml-a311d-cc      the AO gpiochip was given base 15 while the EE chip at
+  aml-s905d3-cc     base 0 has 85 lines, so four pairs of header pins on each
+  aml-a311d-cc-v01  board shared one legacy number.  Measured 2026-08-08 on
+  aml-s905d3-cc-v01 live boards: periphs base 512 ngpio 85, aobus base 597 --
+                    AO starts 85 above EE, not 15.
+
+A ball, a sysfs number and a (Chip,Line) are each an identifier: two header
+positions holding the same one is a contradiction no authority is needed to
+see.  These run for EVERY board, including the SoCs with no binding table.
 """
 
 from __future__ import annotations
@@ -42,6 +77,18 @@ PAD_TOKEN = re.compile(
     r"GPIO[0-9]_[A-Z][0-9]+|P[A-G][0-9]+)\b"
 )
 SKIP_PAD = re.compile(r"^(GPIO_ACTIVE_|GPIO_OPEN_|GPIO_PULL_|GPIO_PERSISTENT)")
+
+# A package ball: one or two column letters then a row number.  Rockchip and
+# Amlogic both use this shape; 'BKH30' (three letters) is how a typo shows up.
+BALL_RE = re.compile(r"^[A-Z]{1,2}[0-9]{1,2}$")
+
+# Chip values that are a rail/function class rather than a gpiochip index.
+# Those rows carry no ball, no line and no sysfs number, so the identity
+# checks skip them -- Chip-vs-Ref on them is check-pinmux.py --rails.
+CLASS_CHIPS = {
+    "3.3V", "3.0V", "1.8V", "5V", "12V", "GND", "ADC", "DAC", "PHY", "USB",
+    "PCIE", "POE", "NC", "FLASH", "CLK", "I2C", "AUDIO", "CVBS",
+}
 
 
 def parse_defines(path: Path) -> dict[str, int]:
@@ -134,6 +181,271 @@ def real_dt_dir(board: Path) -> Path | None:
     return dt
 
 
+def map_identity_warnings(bname: str, rows: list[dict]) -> list[str]:
+    """Every row-vs-row contradiction in one board's gpio.map.
+
+    Pure function over parsed rows so --self-test can drive it directly.
+    """
+    out: list[str] = []
+    where = lambda r: f"{r['header']}.{r['pin']}"
+
+    # --- per-field hygiene -------------------------------------------------
+    for r in rows:
+        for col in ("header", "pin", "chip", "line", "sysfs", "name", "pad",
+                    "ref", "desc"):
+            v = r[col]
+            if v != v.strip():
+                out.append(
+                    f"{bname}: {where(r)} {r['name']}: {col} is {v!r} "
+                    f"-- leading/trailing whitespace"
+                )
+            elif v == "":
+                out.append(f"{bname}: {where(r)}: {col} is empty")
+
+    gpio = [r for r in rows if r["chip"] not in CLASS_CHIPS]
+    for r in gpio:
+        if not r["chip"].isdigit():
+            out.append(
+                f"{bname}: {where(r)} {r['name']}: Chip={r['chip']!r} is "
+                f"neither a gpiochip index nor a known rail/function class"
+            )
+            continue
+        if not r["line"].isdigit() or not r["sysfs"].isdigit():
+            out.append(
+                f"{bname}: {where(r)} {r['name']}: Chip is numeric but "
+                f"Line={r['line']!r} sysfs={r['sysfs']!r} are not"
+            )
+            continue
+        if not BALL_RE.match(r["pad"]):
+            out.append(
+                f"{bname}: {where(r)} {r['name']}: Pad={r['pad']!r} is not a "
+                f"package ball (expected 1-2 letters then 1-2 digits)"
+            )
+
+    ok = [r for r in gpio
+          if r["chip"].isdigit() and r["line"].isdigit() and r["sysfs"].isdigit()]
+
+    # --- one base per gpiochip --------------------------------------------
+    per_chip: dict[str, dict[int, list[dict]]] = {}
+    for r in ok:
+        per_chip.setdefault(r["chip"], {}).setdefault(
+            int(r["sysfs"]) - int(r["line"]), []
+        ).append(r)
+    for chip, bases in sorted(per_chip.items()):
+        if len(bases) < 2:
+            continue
+        major = max(bases, key=lambda b: len(bases[b]))
+        for base, brs in sorted(bases.items()):
+            if base == major:
+                continue
+            for r in brs:
+                out.append(
+                    f"{bname}: {where(r)} {r['name']}: sysfs {r['sysfs']} "
+                    f"implies gpiochip{chip} base {base}, but "
+                    f"{len(bases[major])} other row(s) on gpiochip{chip} use "
+                    f"base {major} (expected {major + int(r['line'])})"
+                )
+
+    # --- identifiers that must be unique across the whole board ------------
+    def collide(key, label, fmt):
+        seen: dict = {}
+        for r in ok:
+            seen.setdefault(key(r), []).append(r)
+        for k, rs in sorted(seen.items(), key=lambda kv: str(kv[0])):
+            if len(rs) < 2:
+                continue
+            out.append(
+                f"{bname}: {label} {fmt(k)} on {len(rs)} header positions: "
+                + "; ".join(f"{where(r)} {r['name']}" for r in rs)
+            )
+
+    collide(lambda r: r["pad"], "package ball", str)
+    collide(lambda r: int(r["sysfs"]), "legacy sysfs number", str)
+    collide(lambda r: (int(r["chip"]), int(r["line"])),
+            "gpiochip line", lambda k: f"gpiochip{k[0]} line {k[1]}")
+
+    # A pad NAME may repeat only when it is the same SoC line reached twice,
+    # which the (Chip,Line) check above already rejects -- so any repeat here
+    # is a second row claiming a pad that is already placed elsewhere.
+    byname: dict[str, list[dict]] = {}
+    for r in ok:
+        byname.setdefault(r["name"].rstrip("*"), []).append(r)
+    for n, rs in sorted(byname.items()):
+        if len(rs) > 1:
+            out.append(
+                f"{bname}: SoC pad {n} on {len(rs)} header positions: "
+                + "; ".join(f"{where(r)} (ball {r['pad']})" for r in rs)
+            )
+
+    # --- every physical position 1..N present ------------------------------
+    hdrs: dict[str, set] = {}
+    for r in rows:
+        if r["pin"].isdigit():
+            hdrs.setdefault(r["header"], set()).add(int(r["pin"]))
+    for h, pins in sorted(hdrs.items()):
+        missing = sorted(set(range(1, max(pins) + 1)) - pins)
+        if missing:
+            out.append(
+                f"{bname}: header {h} skips pin position(s) "
+                f"{', '.join(map(str, missing))} (highest pin {max(pins)}) -- "
+                f"a pinout that omits a position makes the reader miscount pads"
+            )
+
+    # --- a Desc token listed twice on one pad ------------------------------
+    for r in rows:
+        if r["desc"] in ("-", ""):
+            continue
+        toks = [t for t in re.split(r"[/ ]+", r["desc"]) if t]
+        for t in sorted({t for t in toks if toks.count(t) > 1}):
+            out.append(
+                f"{bname}: {where(r)} {r['name']}: Desc lists {t!r} "
+                f"{toks.count(t)} times: {r['desc']!r}"
+            )
+    return out
+
+
+SELF_TEST_CASES: list[tuple[str, list[str], str | None]] = [
+    # (label, gpio.map rows as raw TSV, substring that MUST appear in a
+    #  warning -- None means the case must produce no warning at all)
+    (
+        "clean 6-pin board",
+        [
+            "7J1\t1\t3.3V\t3.3V\t3.3V\t3.3V\t3.3V\tVCC3.3V\t3.3V",
+            "7J1\t2\t5V\t5V\t5V\t5V\t5V\tVCC5V\t5V",
+            "7J1\t3\t0\t5\t506\tGPIOAO_5\tD13\tI2C_SDA_AO\tI2C_SDA_AO",
+            "7J1\t4\tGND\tGND\tGND\tGND\tGND\tGND\tGND",
+            "7J1\t5\t1\t87\t488\tGPIOX_8\tB4\tSPI_MOSI\tSPI_MOSI PCM_OUT_A",
+            "7J1\t6\tNC\tNC\tNC\tNC\t-\tNC\t-",
+        ],
+        None,
+    ),
+    (
+        # all-h3-cc-h3 7J1.10/7J1.16 as published 2022..2026-08-08
+        "one ball on two pins (PG7/PG9 both D3)",
+        [
+            "7J1\t10\t1\t199\t199\tPG7\tD3\tAP-UART1-RX\tUART1_RX/PG_EINT7",
+            "7J1\t16\t1\t201\t201\tPG9\tD3\tAP-UART1-CTS\tUART1_CTS/PG_EINT9",
+        ],
+        "package ball D3 on 2 header positions",
+    ),
+    (
+        # aml-a311d-cc as published 2023-10-04..2026-08-08: AO base 15 while
+        # the 85-line EE chip sits at base 0
+        "AO and EE gpiochips overlapping in sysfs",
+        [
+            "7J1\t7\t1\t6\t21\tGPIOAO_6\tAV44\tJTAG_CLK\tJTAG_A_CLK",
+            "7J1\t21\t0\t21\t21\tGPIOH_5\tW38\tSPI_B_MISO\tSPDIF_IN",
+        ],
+        "legacy sysfs number 21 on 2 header positions",
+    ),
+    (
+        "one gpiochip with two bases",
+        [
+            "7J1\t3\t1\t2\t403\tGPIOAO_2\tB7\tPWR\tUART_CTS_AO_A",
+            "7J1\t5\t1\t0\t501\tGPIOAO_0\tC9\tTX\tUART_TX_AO_A",
+            "7J1\t7\t1\t1\t502\tGPIOAO_1\tC8\tRX\tUART_RX_AO_A",
+        ],
+        "implies gpiochip1 base 401",
+    ),
+    (
+        # aml-s905d3-cc-v01 7J1.10 as published
+        "malformed ball BKH30",
+        ["7J1\t10\t0\t78\t78\tGPIOX_13\tBKH30\tUART_A_RX\tUART_EE_A_RX"],
+        "Pad='BKH30' is not a package ball",
+    ),
+    (
+        # roc-rk3399-pc J20.20 as published: the ball fell off the end of a
+        # run of off-by-one reads and was left blank
+        "blank ball on a routed SoC line",
+        ["J20\t20\t2\t12\t76\tGPIO2_B4\t-\tSPI2_CSN0\tSPI2_CSn0_u"],
+        "Pad='-' is not a package ball",
+    ),
+    (
+        "two pins claiming one SoC line",
+        [
+            "J1\t7\t2\t20\t84\tGPIO2_C4\tV18\tI2S1_SDO1\tI2S1_SDIO1",
+            "J1\t9\t2\t20\t85\tGPIO2_C4x\tV19\tI2S1_SDO1b\tI2S1_SDIO1",
+        ],
+        "gpiochip line gpiochip2 line 20 on 2 header positions",
+    ),
+    (
+        # roc-rk3399-pc J12 published 30 physical positions as 12 rows
+        "header with a hole in its numbering",
+        [
+            "J12\t1\t2\t1\t65\tGPIO2_A1\tH25\tI2C2_SCL\tVOP_D1",
+            "J12\t4\t2\t0\t64\tGPIO2_A0\tG31\tI2C2_SDA\tVOP_D0",
+        ],
+        "skips pin position(s) 2, 3",
+    ),
+    (
+        # roc-rk3399-pc J20.17 shipped SPI2_RXD and SPI2TPM_RXD together
+        "one signal spelled twice in Desc",
+        ["J20\t17\t2\t9\t73\tGPIO2_B1\tF30\tSPI2_RXD\tSPI2_RXD/CIF_HREF/SPI2_RXD"],
+        "Desc lists 'SPI2_RXD' 2 times",
+    ),
+    (
+        "trailing whitespace in Desc",
+        ["7J1\t32\t1\t95\t496\tGPIOX_16\tA3\tWIFI_32K\tPWM_E "],
+        "desc is 'PWM_E ' -- leading/trailing whitespace",
+    ),
+    (
+        # Renegade J1.33: two SoC lines really are wired to one pin, each
+        # through its own series resistor.  Distinct ball, line and sysfs on
+        # both rows, so nothing here is a duplicate.  (Pin 1 in the fixture
+        # only so the single-row header has no numbering hole.)
+        "deliberate two-line pin is not a duplicate",
+        [
+            "J1\t1\t2\t16\t80\tGPIO2_C0\tV15\tI2S1_LRCK_RX\tI2S1_LRCK_RX",
+            "J1\t1\t2\t17\t81\tGPIO2_C1\tP18\tI2S1_LRCK_TX\tI2S1_LRCK_TX",
+        ],
+        None,
+    ),
+    (
+        # roc-rk3399-pc J1/J21: rail-only and NC positions carry no ball, no
+        # line and no sysfs, and repeat freely
+        "rail and NC rows repeat without warning",
+        [
+            "J21\t3\t12V\t12V\t12V\tSYS_12V\t-\tSYS_12V\tSYS_12V",
+            "J21\t4\tGND\tGND\tGND\tGND\t-\tGND\tGND",
+            "J21\t5\t12V\t12V\t12V\tSYS_12V\t-\tSYS_12V\tSYS_12V",
+            "J21\t6\tGND\tGND\tGND\tGND\t-\tGND\tGND",
+            "J21\t1\tNC\tNC\tNC\tNC\t-\tNC\t-",
+            "J21\t2\tNC\tNC\tNC\tNC\t-\tNC\t-",
+        ],
+        None,
+    ),
+]
+
+
+def self_test() -> int:
+    cols = ("header", "pin", "chip", "line", "sysfs", "name", "pad", "ref",
+            "desc")
+    failed = 0
+    for label, raw, expect in SELF_TEST_CASES:
+        rows = []
+        for i, ln in enumerate(raw, 1):
+            parts = ln.split("\t")
+            r = {"_bad": False, "_line": i}
+            r.update(dict(zip(cols, parts)))
+            rows.append(r)
+        got = map_identity_warnings("case", rows)
+        if expect is None:
+            if got:
+                failed += 1
+                print(f"FAIL [{label}]: expected no warning, got:",
+                      file=sys.stderr)
+                for g in got:
+                    print(f"       {g}", file=sys.stderr)
+        elif not any(expect in g for g in got):
+            failed += 1
+            print(f"FAIL [{label}]: no warning contained {expect!r}; got "
+                  f"{got or 'nothing'}", file=sys.stderr)
+    total = len(SELF_TEST_CASES)
+    print(f"check-lwt --self-test: {total - failed}/{total} identity cases pass",
+          file=sys.stderr)
+    return 1 if failed else 0
+
+
 class Checker:
     def __init__(self) -> None:
         self.warnings: list[str] = []
@@ -210,6 +522,21 @@ class Checker:
                     f"Chip={r['chip']} expected {exp_chip} "
                     f"(AO=chip{ao_chip} on this SoC family)"
                 )
+
+    def check_map_identity(self, board: Path) -> None:
+        """Row-vs-row checks that need no external authority.
+
+        Runs for every board with a gpio.map, including the SoCs with no
+        binding table -- these compare the file against itself.
+        """
+        gpath = board / "gpio.map"
+        if not gpath.exists():
+            return
+        rows = [r for r in load_gpio_map(gpath) if not r.get("_bad")]
+        if not rows:
+            return
+        for w in map_identity_warnings(board.name, rows):
+            self.warn(w)
 
     def check_dt_map(self, board: Path) -> None:
         mpath = board / "dt.map"
@@ -351,7 +678,20 @@ class Checker:
             self.warn(f"no board dirs for filter={board_filter!r}")
             return 1 if board_filter else 0
 
+        seen_maps: set = set()
         for board in boards:
+            gpath = board / "gpio.map"
+            # A whole-board symlink shares one file; check it once so the
+            # aliases do not triple every warning.
+            if gpath.exists():
+                real = gpath.resolve()
+                if real in seen_maps:
+                    self.check_dt_map(board)
+                    self.check_dt_deps(board)
+                    self.check_overlay_headers(board)
+                    continue
+                seen_maps.add(real)
+            self.check_map_identity(board)
             self.check_gpio_map(board)
             self.check_dt_map(board)
             self.check_dt_deps(board)
@@ -385,7 +725,14 @@ def main() -> int:
         action="store_true",
         help="exit 1 if any WARNING (default: always 0 for make)",
     )
+    ap.add_argument(
+        "--self-test",
+        action="store_true",
+        help="run the gpio.map identity checks against their case table",
+    )
     args = ap.parse_args()
+    if args.self_test:
+        return self_test()
     c = Checker()
     n = c.run(args.board)
     if args.strict and n:

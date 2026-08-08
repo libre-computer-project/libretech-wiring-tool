@@ -44,7 +44,7 @@ else
   DEPS_FILES := $(addprefix libre-computer/,$(addsuffix /dt.deps,$(DEPS_BOARDS)))
 endif
 
-.PHONY : clean install-lgpio install-ldto install deps check check-strict check-fdtoverlay check-conflicts check-pinmux check-rails
+.PHONY : clean install-lgpio install-ldto install deps check check-strict check-fdtoverlay check-conflicts check-pinmux check-rails check-self-test
 
 # Integrity + gpio.map accuracy (lgpio pinout). Warnings only — does not fail the build.
 # Use `make check-strict` or scripts/* --strict in CI if desired.
@@ -81,7 +81,15 @@ all: $(DTOS_REAL) $(DTOS_SYM) $(DEPS_FILES)
 	@$(CHECK_CONFLICTS) $(CHECK_CONFLICTS_ARGS) || true
 	@$(CHECK_PINMUX) $(CHECK_PINMUX_ARGS) --rails || true
 
-check: check-maps check-rails check-fdtoverlay check-conflicts
+# check-self-test: drive both map checkers against their own case tables. It
+# reads no board file, so it is fast and always runnable -- and it is the only
+# thing that answers "would this checker still fail if the defect came back?".
+# It hard-fails: a checker that cannot fire is worse than no checker.
+check: check-self-test check-maps check-rails check-fdtoverlay check-conflicts
+
+check-self-test:
+	$(CHECK_LWT) --self-test
+	$(CHECK_PINMUX) --self-test
 
 check-maps:
 	$(CHECK_LWT) $(CHECK_LWT_ARGS) || true

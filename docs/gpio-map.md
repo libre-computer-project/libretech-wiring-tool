@@ -95,6 +95,43 @@ make check-strict          # exit 1 on any WARNING
 python3 scripts/check-lwt.py --board aml-s905x-cc
 ```
 
+### Row identity (`check-lwt.py`, every board)
+
+The binding / mux / rail checks each compare one cell against an **external**
+authority. Nothing compared two **rows of the same file**, so a cell copied off
+the wrong line of a datasheet or schematic stayed invisible for as long as the
+file existed. `check-lwt.py` now also checks each map against itself, for every
+board including the SoCs with no binding table:
+
+| Rule | What it catches |
+|------|-----------------|
+| A package ball appears once | `all-h3-cc-h3/-h5` 7J1.16 `PG9` carried `D3`, which is `PG7`'s — and `PG7` is 7J1.10 of the same header |
+| A legacy sysfs number appears once | the four G12B/SM1 maps put the 15-line AO gpiochip at base 15 while the 85-line EE chip sat at base 0, so four pairs of pins on each board shared one number |
+| A `(Chip,Line)` appears once | two header positions claiming one SoC line |
+| A `Name` appears once | one SoC pad placed on two positions |
+| One sysfs base per gpiochip | a board where `sysfs - Line` holds for 39 rows and breaks on one |
+| `Pad` looks like a ball | `BKH30` (`aml-*-cc-v01` `GPIOX_13`, really `BH30`), and `-` left on a routed line (`roc-rk3399-pc` J20.20) |
+| Header pins run 1..N | a position silently skipped, which makes the reader miscount pads |
+| No repeated `Desc` token | one signal spelled twice on a pad (`SPI2_RXD` / `SPI2TPM_RXD`) |
+| No stray whitespace, no empty cell | `Desc` `"PWM_E "` on `aml-s905x-cc` 7J1.32 |
+
+Rail, `NC` and other class rows carry no ball, line or sysfs number and repeat
+freely; a pin with **two** rows (Renegade J1.33) is fine because its two rows
+differ in every identifier.
+
+`--self-test` drives these against a case table built from the real defects, so
+the checks cannot silently stop firing:
+
+```bash
+python3 scripts/check-lwt.py --self-test    # also runs inside make check
+```
+
+**Limit:** self-consistency cannot see a wrong ball that collides with nothing.
+Eleven of `roc-rk3399-pc`'s twelve off-by-one `Pad` cells were only found by
+comparing against the RK3399 datasheet ball table; only the twelfth (the blank
+one) trips a rule here. A `Pad`-vs-ballmap check would need the per-SoC ball
+tables the way `check-pinmux --rk-pinmux` takes the mux table.
+
 ### Desc completeness (`make check-pinmux`)
 
 `check-lwt.py` validates the *offsets*; `scripts/check-pinmux.py` validates the
