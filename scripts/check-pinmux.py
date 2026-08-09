@@ -137,6 +137,23 @@ SOC_OF_BOARD = {
     "roc-rk3399-pc": "rk3399",
 }
 
+# SUSPECT rows that have been CONFIRMED against the book and are a real
+# datasheet/driver disagreement rather than a shifted row. Keyed by
+# (SoC, pad, function); the value says what was read where.
+#
+# The rule this closes is "confirm before adding" -- so a confirmation has to
+# be recorded somewhere, and it belongs beside the check that asks for it. An
+# entry here still prints; it just prints as the answer rather than as the
+# question, and adds nothing to any board map, because the mainline driver has
+# no group for it and no overlay can select it.
+CONFIRMED_DISAGREEMENT = {
+    ("g12a", "GPIOAO_9", "IR_REMOTE_OUT"):
+        "A311D p224 and S905D3 p187 both print IR_REMOTE_OUT on GPIOAO_9's "
+        "own row (Func2, AO_RTI_PIN_MUX_REG1 [7:4], which gpio_reg_crosscheck "
+        "confirms against the driver's arithmetic for GPIOAO_9); "
+        "pinctrl-meson-g12a.c's remote_ao_out_pins[] lists only GPIOAO_4",
+}
+
 DRIVER = {
     "gxl": "drivers/pinctrl/meson/pinctrl-meson-gxl.c",
     "g12a": "drivers/pinctrl/meson/pinctrl-meson-g12a.c",
@@ -725,6 +742,13 @@ def check_datasheet(board: Path, linux: Path, verbose: bool) -> int:
         for group in sorted(known - covered(known, listed)):
             owners = driver_owners(group)
             if owners and row["name"] not in owners:
+                why = CONFIRMED_DISAGREEMENT.get((soc, row["name"], group))
+                if why:
+                    print(f"CONFIRMED: {board.name} "
+                          f"{row['header']}.{row['pin']} {row['name']}: "
+                          f"'{group}' is a real datasheet/driver "
+                          f"disagreement, not a shifted row -- {why}")
+                    continue
                 print(f"SUSPECT: {board.name} {row['header']}.{row['pin']} "
                       f"{row['name']}: datasheet extract claims '{group}', but "
                       f"the driver puts it on {sorted(owners)} -- either a "
