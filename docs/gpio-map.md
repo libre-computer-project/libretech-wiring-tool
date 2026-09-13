@@ -95,6 +95,44 @@ make check-strict          # exit 1 on any WARNING
 python3 scripts/check-lwt.py --board aml-s905x-cc
 ```
 
+### `Desc` mux inventory (`check-pinmux.py`)
+
+`check-lwt.py` validates the *offsets*; `check-pinmux.py` validates the *mux
+inventory* — does `Desc` list the functions the SoC can actually mux onto that
+pad. It has two independent halves, and they take different routes to an
+authority:
+
+| Half | Authority route | Keyed by |
+|---|---|---|
+| primary mux check | `SOC_OF_BOARD` → `load_authority()` → e.g. `RK_PINMUX` | **SoC** |
+| driver-vs-datasheet cross-check | `DATASHEET_JSON` → `load_datasheet()` | **board** |
+
+> 🔴 **`NOTE: <board>: datasheet check skipped -- no datasheet extract mapped`
+> does NOT mean the map is unvalidated.** It refers only to the second half. A
+> Rockchip board reaching that note still had its `Desc` fully checked by the
+> primary half via `RK_PINMUX`. Measured on `roc-rk3328-cc`: 29/29 rows match,
+> 0 omitted functions, 0 unmatched tokens — while the note is printed.
+>
+> 🔴 **Do not silence that note by adding the board to `DATASHEET_JSON`.** The
+> two readers expect different schemas: `load_datasheet()` reads
+> `data.get("pads", {})`, which is the `gpio_ocr_extract.py` shape, while the
+> Rockchip extracts are `gpio_extract.py` shape (`{"balls": [...]}`, no `pads`
+> key). The lookup returns `{}`, which is not `None`, so the honest note
+> **disappears while zero pads are compared** — turning a truthful "unaudited"
+> into a false "clean". Wiring it up properly needs a schema adapter routing
+> the RK JSON through `rk_pad_muxes()`, and even then it duplicates the primary
+> check.
+
+`--rails` runs the supply/ground half alone and needs no kernel tree: for a
+power or ground row, `Chip` carries the rail class and `Ref` the board's net
+name, and the two must describe the same net. Four boards published a 3.3 V
+supply as ground on header pin 17 for years because nothing compared them.
+
+```bash
+python3 scripts/check-pinmux.py --self-test        # what a clean run is worth
+python3 scripts/check-pinmux.py --rails --board roc-rk3328-cc
+```
+
 ### Row identity (`check-lwt.py`, every board)
 
 The binding / mux / rail checks each compare one cell against an **external**
