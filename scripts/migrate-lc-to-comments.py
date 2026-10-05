@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: GPL-2.0-only
+# Copyright (C) 2026 Da Xue <da@libre.computer>
 """Migrate root lc,provides/requires/revokes DT properties to header comments.
 
 Header fields (alongside Summary / Pins / Requires basenames):

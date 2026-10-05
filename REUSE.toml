@@ -26,11 +26,14 @@ precedence = "aggregate"
 SPDX-FileCopyrightText = "2021-2026 Libre Computer Project contributors"
 SPDX-License-Identifier = "CC0-1.0"
 
-# Build system / packaging / tools: license already in-file; supply copyright.
+# Build system / packaging / tools / docs: license already in-file; supply
+# copyright only. No SPDX-License-Identifier here: with "aggregate" it would be
+# added to the in-file tag (README.md and docs/ are MIT, the rest GPL-2.0-only).
 [[annotations]]
 path = [
     "Makefile",
     "README.md",
+    "docs/*.md",
     "build.sh",
     "install.sh",
     "include/update.sh",
@@ -47,7 +50,6 @@ path = [
 ]
 precedence = "aggregate"
 SPDX-FileCopyrightText = "2021-2026 Libre Computer Project contributors"
-SPDX-License-Identifier = "GPL-2.0-only"
 
 # Board data files (license already MIT in-file OR via generator).
 [[annotations]]
@@ -76,7 +78,9 @@ precedence = "aggregate"
 SPDX-FileCopyrightText = "2021-2026 Libre Computer Project contributors"
 SPDX-License-Identifier = "GPL-2.0-or-later OR MIT"
 
-# Vendored Linux UAPI headers missing a Copyright line (license tag present).
+# Vendored Linux UAPI headers missing a Copyright line (license tag present,
+# and it differs per header -- irq.h is GPL-2.0-only OR MIT, gpio.h adds
+# BSD-2-Clause -- so this block supplies copyright only).
 [[annotations]]
 path = [
     "include/dt-bindings/clock/gxbb-clkc.h",
@@ -89,4 +93,3 @@ path = [
 ]
 precedence = "aggregate"
 SPDX-FileCopyrightText = "Linux kernel contributors"
-SPDX-License-Identifier = "GPL-2.0-only"

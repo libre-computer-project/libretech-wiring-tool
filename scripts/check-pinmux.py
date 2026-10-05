@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: MIT
+# Copyright (C) 2026 Da Xue <da@libre.computer>
 """Cross-check gpio.map Desc (alt-mux column) against the SoC's mux table.
 
 check-lwt.py validates the *offsets* (Chip/Line vs dt-bindings). This validates

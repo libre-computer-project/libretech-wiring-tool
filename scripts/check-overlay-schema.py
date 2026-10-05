@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: MIT
+# Copyright (C) 2026 Da Xue <da@libre.computer>
 """Schema errors each overlay introduces, judged against the kernel's bindings.
 
 dt-validate on the base DTB with the overlay's dt.deps providers applied, and

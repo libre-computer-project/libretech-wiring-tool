@@ -24,10 +24,56 @@ Files: libre-computer/*/*.map
 Copyright: 2021-2026 Libre Computer Project contributors
 License: MIT
 
+Files: README.md
+       docs/*
+       scripts/check-overlay-pins.py
+       scripts/check-overlay-schema.py
+       scripts/check-pinmux.py
+       test/spi/*.sh
+Copyright: 2025-2026 Da Xue <da@libre.computer>
+           2021-2026 Libre Computer Project contributors
+License: MIT
+
 Files: include/dt-bindings/*
 Copyright: Linux kernel contributors
-License: GPL-2.0-only OR MIT OR BSD-3-Clause
-Comment: Vendored Linux UAPI headers; keep upstream SPDX tags as-is.
+License: GPL-2.0-only
+Comment: Vendored Linux UAPI headers; keep upstream SPDX tags as-is. The
+  stanzas below cover the headers that are dual-licensed upstream.
+
+Files: include/dt-bindings/gpio/gpio.h
+Copyright: Linux kernel contributors
+License: GPL-2.0-only OR BSD-2-Clause
+
+Files: include/dt-bindings/clock/gxbb-aoclkc.h
+       include/dt-bindings/reset/amlogic,meson-gxbb-reset.h
+Copyright: 2016 BayLibre, SAS.
+License: GPL-2.0-only OR BSD-3-Clause
+
+Files: include/dt-bindings/reset/amlogic,meson-g12a-reset.h
+Copyright: 2019 BayLibre, SAS.
+License: GPL-2.0-or-later OR BSD-3-Clause
+
+Files: include/dt-bindings/interrupt-controller/irq.h
+Copyright: Linux kernel contributors
+License: GPL-2.0-only OR MIT
+
+Files: include/dt-bindings/interrupt-controller/amlogic,meson-g12a-gpio-intc.h
+Copyright: 2023 Amlogic, Inc.
+License: GPL-2.0-only OR MIT
+
+Files: include/dt-bindings/gpio/meson-g12a-gpio.h
+Copyright: 2018 Amlogic, Inc.
+License: GPL-2.0-or-later OR MIT
+
+Files: include/dt-bindings/interrupt-controller/amlogic,meson-gxl-gpio-intc.h
+Copyright: 2022 Da Xue <da@libre.computer>
+License: GPL-2.0-or-later OR MIT
+Comment: Libre Computer header (IRQID_* numbers for the GXL GPIO interrupt
+  controller); not from the kernel tree.
+
+Files: include/dt-bindings/pinctrl/rockchip.h
+Copyright: 2013 MundoReader S.L.
+License: GPL-2.0-or-later
 
 License: GPL-2.0-only
  This program is free software; you can redistribute it and/or modify

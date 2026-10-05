@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: MIT
+# Copyright (C) 2026 Da Xue <da@libre.computer>
 """Check what each overlay actually muxes against what its header says.
 
 check-lwt compares an overlay's `Pins:` comment with gpio.map. Nothing
