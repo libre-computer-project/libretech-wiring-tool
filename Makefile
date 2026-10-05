@@ -57,11 +57,15 @@ endif
 # check-rails: the same script's --rails half -- Chip (rail class) vs Ref (net
 # name) on supply/ground rows. Reads only the maps, so unlike check-pinmux it IS
 # in `check`, and it hard-fails there: four boards published a 3.3V supply as
-# ground for four years because no checker ran on those rows at all.
+# ground for four years because no checker ran on those rows at all. It also
+# checks every board's Pad against the datasheet ball in the claude repo's
+# extracts (reported UNAUDITED, not failed, when an extract is absent).
 CHECK_LWT := python3 scripts/check-lwt.py
 CHECK_FDT := python3 scripts/check-fdtoverlay.py
 CHECK_CONFLICTS := bash scripts/check-conflicts.sh
 CHECK_PINMUX := python3 scripts/check-pinmux.py
+# Runs ON a board against the live kernel; only its self-test runs here.
+VERIFY_GPIO := python3 scripts/verify-gpio-map.py
 ifneq ($(BOARD_FILTER),)
   CHECK_LWT_ARGS := --board $(BOARD_FILTER)
   CHECK_FDT_ARGS := --board $(BOARD_FILTER)
@@ -81,15 +85,17 @@ all: $(DTOS_REAL) $(DTOS_SYM) $(DEPS_FILES)
 	@$(CHECK_CONFLICTS) $(CHECK_CONFLICTS_ARGS) || true
 	@$(CHECK_PINMUX) $(CHECK_PINMUX_ARGS) --rails || true
 
-# check-self-test: drive both map checkers against their own case tables. It
-# reads no board file, so it is fast and always runnable -- and it is the only
-# thing that answers "would this checker still fail if the defect came back?".
-# It hard-fails: a checker that cannot fire is worse than no checker.
+# check-self-test: drive the map checkers and the on-board verifier against
+# their own case tables. It reads no board file, so it is fast and always
+# runnable -- and it is the only thing that answers "would this checker still
+# fail if the defect came back?". It hard-fails: a checker that cannot fire is
+# worse than no checker.
 check: check-self-test check-maps check-rails check-fdtoverlay check-conflicts
 
 check-self-test:
 	$(CHECK_LWT) --self-test
 	$(CHECK_PINMUX) --self-test
+	$(VERIFY_GPIO) --self-test
 
 check-maps:
 	$(CHECK_LWT) $(CHECK_LWT_ARGS) || true

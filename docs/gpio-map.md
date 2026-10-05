@@ -60,6 +60,28 @@ J1  33  2  17  81  GPIO2_C1  P18  GPIO2_C1_U/I2S1_LRCK_TX  I2S1_LRCK_TX/…
 Extra rows mean physically distinct SoC lines only — alternate *functions* of
 one line belong in `Desc`.
 
+## Raspberry Pi header declaration
+
+"BCM" is Broadcom's GPIO numbering, i.e. the Raspberry Pi pinout. A map names
+the header that follows the Pi layout with one comment line, placed before the
+`#Header` row:
+
+```text
+#rpi-header: 7J1          # this header is Pi-compatible
+#rpi-header: none         # this board has no Pi-compatible header
+```
+
+It lives in the map, so a board whose `gpio.map` is a symlink inherits it.
+Two things read it:
+
+- **`lgpio bcm`** resolves BCM numbers on the declared header only. With
+  `none` (or no line), `lgpio bcm <n>` refuses with exit 1 and
+  `lgpio bcm check` reports that BCM numbering does not apply — it no longer
+  maps the Pi table onto whichever header happens to be listed first.
+- **`check-lwt.py`** requires a declaration on any map with a 40-position
+  header, and checks the declared header against the Pi's fixed skeleton
+  (below).
+
 ## Sharing and variants
 
 | Pattern | Example |
@@ -78,16 +100,48 @@ pads on the same 40-pin positions.
 
 ## Accuracy checks
 
-`make` / `make check` runs `scripts/check-lwt.py`, which for Amlogic boards
-verifies:
+`make` / `make check` runs `scripts/check-lwt.py`. What it verifies about a
+row's SoC coordinates depends on the SoC:
 
-- `Name` exists in the SoC gpio header (`meson-gxl` / `meson-g12a`)
-- `Line` matches the binding value for that name
-- `Chip` matches the board family’s AO vs EE gpiochip index  
-  (GXL: AO=0 EE=1; G12B/SM1: EE=0 AO=1)
+| SoC | Authority | Checks |
+|---|---|---|
+| Amlogic GXL / G12B / SM1 | `meson-gxl` / `meson-g12a` dt-bindings | `Name` exists, `Line` = binding value, `Chip` = the family's AO vs EE index (GXL: AO=0 EE=1; G12B/SM1: EE=0 AO=1) |
+| Rockchip | the pad name itself — `GPIO<b>_<X><n>` | `Chip` = bank `b`, `Line` = (X−A)·8 + n, `sysfs` = 32·b + `Line` |
+| Allwinner | the pad name itself — `P<X><n>` | `Line` = (bank − first)·32 + n inside its controller (main PIO A.., R_PIO L..); each controller's rows on one gpiochip, the two never sharing one |
 
-Non-GPIO rows (`LOLN`, `CVBS_IOUT`, power rails) are skipped.  
-H3 / Rockchip maps are format-checked only (no meson binding table).
+Non-GPIO rows (`LOLN`, `CVBS_IOUT`, power rails) are skipped.
+
+**Header position** — which pin carries which line — is invisible to all of the
+above: a map that swaps two pins passes every coordinate check. For the
+declared Raspberry Pi header it is checked against the Pi's fixed skeleton:
+`3.3V` on pins 1 and 17, `5V` on 2 and 4, `GND` on 6, 9, 14, 20, 25, 30, 34 and
+39, and **no** rail on any of the other 28 positions, which are BCM GPIO
+positions. The same pass checks `lgpio`'s own `BCM_GPIO2PIN` table against the
+Pi pinout. Every rule here has a must-fire arm in `--self-test`.
+
+### Live verification (`verify-gpio-map.py`, on the board)
+
+Everything above checks the file. `scripts/verify-gpio-map.py` checks it
+against the **running kernel**, which is the only authority for what the
+gpiochips actually became. Run it on the board as root:
+
+```bash
+scripts/verify-gpio-map.py --map libre-computer/<board>/gpio.map
+scripts/verify-gpio-map.py --self-test       # no hardware; part of make check
+```
+
+| Check | Authority | Catches |
+|---|---|---|
+| chip | `/sys/kernel/debug/gpio` | a `Chip` index that does not exist, a `Line` past the end of its chip |
+| pad | pinctrl `pins` (`pin N (PAD) <offset>:<chip>`) | wrong `Chip` (AO/EE probe order), wrong `Line`, a pad copied from the wrong row — **every row**, on every family |
+| header | DT `gpio-line-names` (`7J1 Header Pin19`) | a pin at the wrong **header position** — only where the DT names lines that way |
+| base | pinctrl `gpio-ranges` | legacy `sysfs` bases whose gaps differ from the kernel's |
+
+It reads plain files only — no libgpiod, no ioctls — because the fleet's board
+images carry Python but not the libgpiod tools. The gpio drivers on our SoCs
+set no line names of their own, so the pad check reads pinctrl rather than line
+names. It prints its coverage (rows checked by pad, by header label, and
+unverified), so a clean result is never mistaken for a checked one.
 
 ```bash
 make check
@@ -128,6 +182,23 @@ power or ground row, `Chip` carries the rail class and `Ref` the board's net
 name, and the two must describe the same net. Four boards published a 3.3 V
 supply as ground on header pin 17 for years because nothing compared them.
 
+`--rails` also checks **`Pad` on every board** against the ball the vendor's
+own pin table gives that pad, read from the claude repo's extracts. The kernel
+carries no balls, so this is the only authority `Pad` has. A wrong ball is a
+defect, not a candidate, so it fails `make check-rails` without `--strict`. It
+prints the rows compared, and a board whose extract carries no balls, or
+matches none of its rows, is reported `UNAUDITED`:
+
+| Board | `Pad` authority | Rows compared |
+|---|---|---|
+| `roc-rk3328-cc` | RK3328 datasheet Table 2-1, joined into `gpio_pinmux.json` | 29 |
+| `roc-rk3399-pc` | RK3399 datasheet Table 2-1, joined into `gpio_pinmux*.json` | 44 |
+| `aml-s905x-cc` | S905X `gpio_electrical.json` | 34 (7J1.15 `TEST_N` has no ball in the extract) |
+| `aml-s805x-ac` | S805X `gpio_electrical.json` | 28 |
+| `aml-a311d-cc`, `-v01` | A311D `gpio_electrical.json` | 30 |
+| `aml-s905d3-cc`, `-v01` | S905D3 `gpio_electrical.json` | 30 |
+| `all-h3-cc-h3`, `-h5` | H3 / H5 `gpio_electrical.json` | 30 |
+
 ```bash
 python3 scripts/check-pinmux.py --self-test        # what a clean run is worth
 python3 scripts/check-pinmux.py --rails --board roc-rk3328-cc
@@ -167,8 +238,8 @@ python3 scripts/check-lwt.py --self-test    # also runs inside make check
 **Limit:** self-consistency cannot see a wrong ball that collides with nothing.
 Eleven of `roc-rk3399-pc`'s twelve off-by-one `Pad` cells were only found by
 comparing against the RK3399 datasheet ball table; only the twelfth (the blank
-one) trips a rule here. A `Pad`-vs-ballmap check would need the per-SoC ball
-tables the way `check-pinmux --rk-pinmux` takes the mux table.
+one) trips a rule here. The external `Pad` check is `check-pinmux.py --rails`
+(above), which covers every board with a map.
 
 ### Desc completeness (`make check-pinmux`)
 

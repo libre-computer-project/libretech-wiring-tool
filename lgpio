@@ -145,6 +145,17 @@ LGPIO_getDefaultHeader(){
 	echo $(grep -v '^#' "$MAP_FILE" | head -n 1 | cut -f 1 -d "$TAB_CHAR")
 }
 
+# The board's Raspberry Pi-compatible header, as declared by the map's
+# '#rpi-header: <header>' line; empty when the map says 'none' or nothing.
+# BCM numbering is the Raspberry Pi's, so it only means something on that
+# header -- never on whichever header happens to be listed first.
+LGPIO_getRpiHeader(){
+	local h
+	h=$(sed -n 's/^#[[:space:]]*rpi-header:[[:space:]]*\([^[:space:]]*\).*/\1/p' "$MAP_FILE" | head -n 1)
+	[ "$h" = "none" ] && h=""
+	echo "$h"
+}
+
 LGPIO_infoHelp(){
 	echo "$0 info [HEADER] PIN [type=all,gpiod,chip,line,sysfs,name,pad,ref,desc]" >&2
 }
@@ -400,7 +411,11 @@ LGPIO_bcmLoadMap(){
 LGPIO_bcmCheck(){
 	LGPIO_bcmLoadMap
 	local header
-	header=$(LGPIO_getDefaultHeader)
+	header=$(LGPIO_getRpiHeader)
+	if [ -z "$header" ]; then
+		echo "$BOARD has no Raspberry Pi-compatible header; BCM numbering does not apply." >&2
+		return 0
+	fi
 	echo "# BCM completeness vs $header on $BOARD" >&2
 	printf '%-8s %-6s %-10s %s\n' "BCM" "PIN" "STATUS" "NAME"
 	local bcm pin status name chip line row missing=0
@@ -471,7 +486,11 @@ LGPIO_bcm(){
 	fi
 	local pin=${BCM_GPIO2PIN[$bcm_gpio]}
 	local header
-	header=$(LGPIO_getDefaultHeader)
+	header=$(LGPIO_getRpiHeader)
+	if [ -z "$header" ]; then
+		echo "$FUNCNAME: $BOARD has no Raspberry Pi-compatible header; BCM numbering does not apply." >&2
+		return 1
+	fi
 	if ! grep -qi "^$header$TAB_CHAR$pin$TAB_CHAR" "$MAP_FILE"; then
 		echo "WARNING: BCM $bcm_gpio → $header pin $pin has no row in gpio.map" >&2
 		return 1

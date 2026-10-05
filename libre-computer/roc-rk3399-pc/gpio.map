@@ -18,6 +18,7 @@
 #                   touch-panel circuit, so driving them from the header
 #                   disturbs the panel. Source:
 #                   tf-xd-rk3399-pc-v1.2a-20221109-changelog.pdf -- "expansion
+#rpi-header: none
 #                   header: remove the following two IO ports, used for the
 #                   eDP panel's TP".
 #   J20.30          ground on V0.1 only. On V1.1-A and V1.2A the wire and its

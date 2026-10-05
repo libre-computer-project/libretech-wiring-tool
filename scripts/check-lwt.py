@@ -417,32 +417,357 @@ SELF_TEST_CASES: list[tuple[str, list[str], str | None]] = [
 ]
 
 
-def self_test() -> int:
+# --------------------------------------------------------------------------
+# SoC formula: pad NAME -> (Chip, Line, sysfs), for SoCs whose pad names are
+# their own coordinates.  meson boards are checked against the dt-bindings
+# headers in check_gpio_map instead; until this existed, Rockchip and
+# Allwinner rows had no Chip/Line check at all.
+#
+#   Rockchip  GPIO<b>_<X><n>  one gpiochip per bank, registered in bank
+#                             order, so Chip = b and Line = (X-'A')*8 + n;
+#                             the legacy number is 32 per bank, so
+#                             sysfs = 32*b + Line.
+#   Allwinner P<X><n>         two gpiochips: the main PIO (banks A..K) and
+#                             R_PIO (L onwards); Line = (X-first)*32 + n
+#                             inside its own chip.  Which INDEX each chip
+#                             gets is probe order, invisible from this file,
+#                             so only "one controller, one chip" is checked.
+# --------------------------------------------------------------------------
+RK_PAD = re.compile(r"^GPIO([0-9])_([A-D])([0-7])$")
+SUNXI_PAD = re.compile(r"^P([A-Z])([0-9]{1,2})$")
+
+
+def soc_family(bname: str) -> str | None:
+    if bname.startswith("roc-rk"):
+        return "rockchip"
+    if bname.startswith("all-h"):
+        return "sunxi"
+    return None
+
+
+def soc_formula_warnings(bname: str, rows: list[dict],
+                         family: str | None) -> list[str]:
+    """Every row whose Chip/Line/sysfs disagrees with its own pad name."""
+    out: list[str] = []
+    if family is None:
+        return out
+    where = lambda r: f"{r['header']}.{r['pin']}"
+    gpio = [r for r in rows
+            if not r.get("_bad") and r["chip"].isdigit()
+            and r["line"].isdigit() and r["sysfs"].isdigit()]
+    if family == "rockchip":
+        for r in gpio:
+            name = r["name"].rstrip("*")
+            m = RK_PAD.match(name)
+            if not m:
+                out.append(f"{bname}: {where(r)}: Name={r['name']!r} is not a "
+                           f"Rockchip pad name (GPIO<bank>_<A-D><0-7>)")
+                continue
+            bank = int(m.group(1))
+            line = (ord(m.group(2)) - ord("A")) * 8 + int(m.group(3))
+            if int(r["chip"]) != bank:
+                out.append(f"{bname}: {where(r)} {name}: Chip={r['chip']} but "
+                           f"{name} is bank {bank}, i.e. gpiochip{bank}")
+            if int(r["line"]) != line:
+                out.append(f"{bname}: {where(r)} {name}: Line={r['line']} but "
+                           f"{name} is line {line} of its bank")
+            if int(r["sysfs"]) != 32 * bank + line:
+                out.append(f"{bname}: {where(r)} {name}: sysfs={r['sysfs']} "
+                           f"but {name} is legacy number {32 * bank + line} "
+                           f"(32 per bank)")
+    elif family == "sunxi":
+        chips: dict[str, set] = {"main PIO": set(), "R_PIO": set()}
+        for r in gpio:
+            name = r["name"].rstrip("*")
+            m = SUNXI_PAD.match(name)
+            if not m:
+                out.append(f"{bname}: {where(r)}: Name={r['name']!r} is not an "
+                           f"Allwinner pad name (P<bank><pin>)")
+                continue
+            bank, pin = m.group(1), int(m.group(2))
+            ctl, first = ("R_PIO", "L") if bank >= "L" else ("main PIO", "A")
+            line = (ord(bank) - ord(first)) * 32 + pin
+            if int(r["line"]) != line:
+                out.append(f"{bname}: {where(r)} {name}: Line={r['line']} but "
+                           f"{name} is line {line} of the {ctl}")
+            chips[ctl].add(r["chip"])
+        for ctl, cs in chips.items():
+            if len(cs) > 1:
+                out.append(f"{bname}: {ctl} rows are split across gpiochips "
+                           f"{', '.join(sorted(cs))} -- one controller is "
+                           f"one chip")
+        shared = chips["main PIO"] & chips["R_PIO"]
+        if shared:
+            out.append(f"{bname}: main PIO and R_PIO rows share gpiochip "
+                       f"{', '.join(sorted(shared))} -- they are two "
+                       f"controllers")
+    return out
+
+
+# --------------------------------------------------------------------------
+# Raspberry Pi 40-pin header.  "BCM" is Broadcom's GPIO numbering, i.e. the
+# Raspberry Pi pinout.  Nothing else in this file can see a HEADER POSITION
+# error -- a map that swaps two pins passes every identity and binding check
+# -- but a header declared Pi-compatible has a fixed skeleton: the power and
+# ground rails sit on the same twelve pins of every such header, and every
+# other pin is a GPIO position.  A map declares its Pi header with
+#     #rpi-header: 7J1          (or  #rpi-header: none)
+# as a comment line, so symlinked variant boards inherit it with the map.
+# --------------------------------------------------------------------------
+RPI_RAILS = {1: "3.3V", 17: "3.3V", 2: "5V", 4: "5V",
+             6: "GND", 9: "GND", 14: "GND", 20: "GND",
+             25: "GND", 30: "GND", 34: "GND", 39: "GND"}
+# BCM GPIO number -> physical pin.  BCM0/BCM1 are the HAT ID EEPROM pair.
+RPI_BCM = {0: 27, 1: 28, 2: 3, 3: 5, 4: 7, 5: 29, 6: 31, 7: 26, 8: 24,
+           9: 21, 10: 19, 11: 23, 12: 32, 13: 33, 14: 8, 15: 10, 16: 36,
+           17: 11, 18: 12, 19: 35, 20: 38, 21: 40, 22: 15, 23: 16, 24: 18,
+           25: 22, 26: 37, 27: 13}
+RAIL_CLASSES = {"3.3V", "5V", "GND"}
+RPI_DIRECTIVE = re.compile(r"^#\s*rpi-header:\s*(\S+)\s*$")
+
+
+def read_rpi_header(path: Path) -> str | None:
+    for line in path.read_text(errors="replace").splitlines():
+        m = RPI_DIRECTIVE.match(line)
+        if m:
+            return m.group(1)
+    return None
+
+
+def rpi_header_warnings(bname: str, rows: list[dict],
+                        decl: str | None) -> list[str]:
+    """Rails and GPIO positions of the declared Pi header vs the Pi's own."""
+    out: list[str] = []
+    pins: dict[str, dict[int, list[dict]]] = {}
+    for r in rows:
+        if r.get("_bad") or not r["pin"].isdigit():
+            continue
+        pins.setdefault(r["header"], {}).setdefault(int(r["pin"]), []).append(r)
+    full = set(range(1, 41))
+    if decl is None:
+        for h in sorted(pins):
+            if set(pins[h]) == full:
+                out.append(
+                    f"{bname}: header {h} has 40 positions but gpio.map has no "
+                    f"'#rpi-header:' line -- declare it ('#rpi-header: {h}' or "
+                    f"'#rpi-header: none') so lgpio bcm and this check know "
+                    f"whether the Raspberry Pi pinout applies")
+        return out
+    if decl == "none":
+        return out
+    if decl not in pins:
+        out.append(f"{bname}: '#rpi-header: {decl}' names a header that is "
+                   f"not in gpio.map")
+        return out
+    if set(pins[decl]) != full:
+        out.append(f"{bname}: '#rpi-header: {decl}' but {decl} has positions "
+                   f"{min(pins[decl])}..{max(pins[decl])} "
+                   f"({len(pins[decl])} distinct) -- a Raspberry Pi header is "
+                   f"exactly 1..40")
+        return out
+    bcm_of = {p: b for b, p in RPI_BCM.items()}
+    for p in sorted(full):
+        classes = {r["chip"] for r in pins[decl][p]}
+        want = RPI_RAILS.get(p)
+        if want:
+            if classes != {want}:
+                out.append(f"{bname}: {decl}.{p} is "
+                           f"{'/'.join(sorted(classes))} but every Raspberry "
+                           f"Pi-compatible header has {want} on pin {p}")
+        else:
+            rails = classes & RAIL_CLASSES
+            if rails:
+                out.append(f"{bname}: {decl}.{p} is a "
+                           f"{'/'.join(sorted(rails))} rail, but pin {p} is "
+                           f"BCM{bcm_of[p]} -- a GPIO position on a Raspberry "
+                           f"Pi header")
+    return out
+
+
+def rpi_table_warnings() -> list[str]:
+    """RPI_RAILS and RPI_BCM must partition positions 1..40 exactly."""
+    out: list[str] = []
+    gp = list(RPI_BCM.values())
+    if len(gp) != len(set(gp)):
+        out.append("RPI_BCM maps two BCM numbers to one pin")
+    both = set(gp) & set(RPI_RAILS)
+    if both:
+        out.append(f"RPI_BCM and RPI_RAILS overlap on pins {sorted(both)}")
+    gap = set(range(1, 41)) - set(gp) - set(RPI_RAILS)
+    if gap:
+        out.append(f"RPI_BCM + RPI_RAILS leave pins {sorted(gap)} unassigned")
+    return out
+
+
+LGPIO_BCM_LINE = re.compile(r"^\s*BCM_GPIO2PIN\[(\w+)\]=(\d+)\s*$")
+LGPIO_BCM_ALIASES = {"ID_SD": 0, "ID_SC": 1, "SDA0": 0, "SCL0": 1}
+
+
+def lgpio_bcm_warnings(lgpio_text: str) -> list[str]:
+    """lgpio's own BCM -> pin table, checked against the Pi pinout above."""
+    out: list[str] = []
+    numeric: set[int] = set()
+    for line in lgpio_text.splitlines():
+        m = LGPIO_BCM_LINE.match(line)
+        if not m:
+            continue
+        key, pin = m.group(1), int(m.group(2))
+        bcm = int(key) if key.isdigit() else LGPIO_BCM_ALIASES.get(key)
+        if bcm is None:
+            out.append(f"lgpio: BCM_GPIO2PIN[{key}] is not a BCM number or a "
+                       f"known alias")
+            continue
+        if key.isdigit():
+            numeric.add(bcm)
+        if RPI_BCM.get(bcm) != pin:
+            out.append(f"lgpio: BCM_GPIO2PIN[{key}]={pin} but BCM{bcm} is "
+                       f"Raspberry Pi pin {RPI_BCM.get(bcm)}")
+    if not numeric:
+        out.append("lgpio: no BCM_GPIO2PIN entries found -- the table moved "
+                   "or was renamed, so nothing checked it")
+        return out
+    missing = sorted(set(range(2, 28)) - numeric)
+    if missing:
+        out.append(f"lgpio: BCM_GPIO2PIN has no entry for BCM "
+                   f"{', '.join(map(str, missing))}")
+    return out
+
+
+FORMULA_CASES: list[tuple[str, str, list[str], str | None]] = [
+    # (label, board name -> SoC family, rows, substring that MUST appear;
+    #  None = no warning)
+    ("rockchip row as published (Renegade J1.3)", "roc-rk3328-cc",
+     ["J1\t3\t2\t25\t89\tGPIO2_D1\tR17\tI2C0_SDA\tI2C0_SDA"], None),
+    ("rockchip line off by one", "roc-rk3328-cc",
+     ["J1\t3\t2\t24\t88\tGPIO2_D1\tR17\tI2C0_SDA\tI2C0_SDA"],
+     "Line=24 but GPIO2_D1 is line 25"),
+    ("rockchip row on the wrong bank's chip", "roc-rk3399-pc",
+     ["J20\t25\t1\t1\t33\tGPIO0_A1\tR29\tGPIO0_A1\t-"],
+     "Chip=1 but GPIO0_A1 is bank 0"),
+    ("rockchip legacy number off", "roc-rk3328-cc",
+     ["J1\t3\t2\t25\t90\tGPIO2_D1\tR17\tI2C0_SDA\tI2C0_SDA"],
+     "sysfs=90 but GPIO2_D1 is legacy number 89"),
+    ("rockchip name that is not a pad", "roc-rk3328-cc",
+     ["J1\t3\t2\t25\t89\tGPIO2_E1\tR17\tI2C0_SDA\tI2C0_SDA"],
+     "is not a Rockchip pad name"),
+    ("allwinner rows as published (all-h3-cc 7J1.36/38)", "all-h3-cc-h3",
+     ["7J1\t36\t1\t15\t15\tPA15\tF14\tUART3-RTS\tSPI1_MOSI",
+      "7J1\t38\t1\t205\t205\tPG13\tB1\tBB-PCM-DIN\tPCM1_DIN"], None),
+    ("allwinner line off by one", "all-h3-cc-h3",
+     ["7J1\t38\t1\t204\t204\tPG13\tB1\tBB-PCM-DIN\tPCM1_DIN"],
+     "Line=204 but PG13 is line 205"),
+    ("allwinner main PIO split over two chips", "all-h3-cc-h3",
+     ["7J1\t36\t0\t15\t15\tPA15\tF14\tUART3-RTS\tSPI1_MOSI",
+      "7J1\t38\t1\t205\t205\tPG13\tB1\tBB-PCM-DIN\tPCM1_DIN"],
+     "main PIO rows are split across gpiochips"),
+    ("meson board is left to the binding check", "aml-s905x-cc",
+     ["7J1\t3\t0\t5\t506\tGPIOAO_5\tD13\tI2C_SDA_AO\tI2C_SDA_AO"], None),
+]
+
+
+def _rpi_rows(hdr: str = "7J1", swap: dict | None = None) -> list[str]:
+    """A clean Pi header; swap={pin: 'GND'|'3.3V'|'5V'|'gpio'} overrides."""
+    bcm_of = {p: b for b, p in RPI_BCM.items()}
+    rows = []
+    for p in range(1, 41):
+        c = (swap or {}).get(p) or RPI_RAILS.get(p)
+        if c in RAIL_CLASSES:
+            rows.append(f"{hdr}\t{p}\t{c}\t{c}\t{c}\t{c}\t-\t{c}\t{c}")
+        else:
+            rows.append(f"{hdr}\t{p}\t1\t{p}\t{p}\tGPIOX_{p}\tA{p}\t"
+                        f"BCM{bcm_of.get(p, 'x')}\t-")
+    return rows
+
+
+RPI_CASES: list[tuple[str, str | None, list[str], str | None]] = [
+    # (label, '#rpi-header:' value or None when absent, rows, expected)
+    ("clean Raspberry Pi header", "7J1", _rpi_rows(), None),
+    # four boards published this 2022..2026 (check-pinmux --rails history)
+    ("3.3V published as ground on pin 17", "7J1", _rpi_rows(swap={17: "GND"}),
+     "7J1.17 is GND but every Raspberry Pi-compatible header has 3.3V on "
+     "pin 17"),
+    ("signal on pin 39", "7J1", _rpi_rows(swap={39: "gpio"}),
+     "has GND on pin 39"),
+    ("ground on a GPIO position", "7J1", _rpi_rows(swap={7: "GND"}),
+     "pin 7 is BCM4 -- a GPIO position"),
+    ("40-pin header with no declaration", None, _rpi_rows(),
+     "has no '#rpi-header:' line"),
+    ("declared not a Pi header", "none", _rpi_rows(), None),
+    ("declaration names a missing header", "J9", _rpi_rows(),
+     "names a header that is not in gpio.map"),
+    # Renegade J1.33: two SoC lines on one position is still one position
+    ("two-line pin keeps the skeleton", "J1",
+     _rpi_rows("J1") + ["J1\t33\t1\t99\t99\tGPIOX_99\tB9\tBCM13\t-"], None),
+]
+
+
+def _lgpio_table(override: dict | None = None) -> str:
+    keys = {str(b): p for b, p in RPI_BCM.items() if b >= 2}
+    keys.update({"SDA0": 27, "SCL0": 28, "ID_SD": 27, "ID_SC": 28})
+    keys.update(override or {})
+    return "\n".join(f"\tBCM_GPIO2PIN[{k}]={v}" for k, v in keys.items())
+
+
+LGPIO_CASES: list[tuple[str, str, str | None]] = [
+    ("lgpio table matches the Pi", _lgpio_table(), None),
+    ("lgpio table with BCM19 on the wrong pin", _lgpio_table({"19": 37}),
+     "BCM_GPIO2PIN[19]=37 but BCM19 is Raspberry Pi pin 35"),
+    ("lgpio table missing an entry",
+     "\n".join(l for l in _lgpio_table().splitlines() if "[26]" not in l),
+     "has no entry for BCM 26"),
+    ("lgpio table renamed away", "", "no BCM_GPIO2PIN entries found"),
+]
+
+
+def _parse_rows(raw: list[str]) -> list[dict]:
     cols = ("header", "pin", "chip", "line", "sysfs", "name", "pad", "ref",
             "desc")
+    rows = []
+    for i, ln in enumerate(raw, 1):
+        r = {"_bad": False, "_line": i}
+        r.update(dict(zip(cols, ln.split("\t"))))
+        rows.append(r)
+    return rows
+
+
+def self_test() -> int:
+    """Every checker against cases that must fire and cases that must not."""
     failed = 0
-    for label, raw, expect in SELF_TEST_CASES:
-        rows = []
-        for i, ln in enumerate(raw, 1):
-            parts = ln.split("\t")
-            r = {"_bad": False, "_line": i}
-            r.update(dict(zip(cols, parts)))
-            rows.append(r)
-        got = map_identity_warnings("case", rows)
+    total = 0
+
+    def judge(suite: str, label: str, got: list[str],
+              expect: str | None) -> None:
+        nonlocal failed, total
+        total += 1
         if expect is None:
             if got:
                 failed += 1
-                print(f"FAIL [{label}]: expected no warning, got:",
+                print(f"FAIL [{suite}: {label}]: expected no warning, got:",
                       file=sys.stderr)
                 for g in got:
                     print(f"       {g}", file=sys.stderr)
         elif not any(expect in g for g in got):
             failed += 1
-            print(f"FAIL [{label}]: no warning contained {expect!r}; got "
-                  f"{got or 'nothing'}", file=sys.stderr)
-    total = len(SELF_TEST_CASES)
-    print(f"check-lwt --self-test: {total - failed}/{total} identity cases pass",
-          file=sys.stderr)
+            print(f"FAIL [{suite}: {label}]: no warning contained {expect!r}; "
+                  f"got {got or 'nothing'}", file=sys.stderr)
+
+    for label, raw, expect in SELF_TEST_CASES:
+        judge("identity", label,
+              map_identity_warnings("case", _parse_rows(raw)), expect)
+    for label, bname, raw, expect in FORMULA_CASES:
+        judge("formula", label,
+              soc_formula_warnings(bname, _parse_rows(raw), soc_family(bname)),
+              expect)
+    for label, decl, raw, expect in RPI_CASES:
+        judge("rpi-header", label,
+              rpi_header_warnings("case", _parse_rows(raw), decl), expect)
+    judge("rpi-header", "Pi tables partition pins 1..40",
+          rpi_table_warnings(), None)
+    for label, text, expect in LGPIO_CASES:
+        judge("lgpio-bcm", label, lgpio_bcm_warnings(text), expect)
+
+    print(f"check-lwt --self-test: {total - failed}/{total} cases pass "
+          f"(identity, formula, rpi-header, lgpio-bcm)", file=sys.stderr)
     return 1 if failed else 0
 
 
@@ -536,6 +861,35 @@ class Checker:
         if not rows:
             return
         for w in map_identity_warnings(board.name, rows):
+            self.warn(w)
+
+    def check_soc_formula(self, board: Path) -> None:
+        """Rockchip/Allwinner pad name vs Chip/Line/sysfs (meson: bindings)."""
+        gpath = board / "gpio.map"
+        if not gpath.exists():
+            return
+        rows = [r for r in load_gpio_map(gpath) if not r.get("_bad")]
+        for w in soc_formula_warnings(board.name, rows,
+                                      soc_family(board.name)):
+            self.warn(w)
+
+    def check_rpi_header(self, board: Path) -> None:
+        """The declared Raspberry Pi header must have the Pi's rail layout."""
+        gpath = board / "gpio.map"
+        if not gpath.exists():
+            return
+        rows = [r for r in load_gpio_map(gpath) if not r.get("_bad")]
+        for w in rpi_header_warnings(board.name, rows,
+                                     read_rpi_header(gpath)):
+            self.warn(w)
+
+    def check_lgpio_bcm(self) -> None:
+        """lgpio's BCM -> pin table vs the Raspberry Pi pinout."""
+        lgpio = ROOT / "lgpio"
+        if not lgpio.is_file():
+            self.warn("lgpio not found -- its BCM table was not checked")
+            return
+        for w in lgpio_bcm_warnings(lgpio.read_text(errors="replace")):
             self.warn(w)
 
     def check_dt_map(self, board: Path) -> None:
@@ -678,6 +1032,7 @@ class Checker:
             self.warn(f"no board dirs for filter={board_filter!r}")
             return 1 if board_filter else 0
 
+        self.check_lgpio_bcm()
         seen_maps: set = set()
         for board in boards:
             gpath = board / "gpio.map"
@@ -692,6 +1047,8 @@ class Checker:
                     continue
                 seen_maps.add(real)
             self.check_map_identity(board)
+            self.check_soc_formula(board)
+            self.check_rpi_header(board)
             self.check_gpio_map(board)
             self.check_dt_map(board)
             self.check_dt_deps(board)

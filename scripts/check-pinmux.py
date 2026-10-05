@@ -31,6 +31,11 @@ the two must describe the same net. Four boards published a 3.3V supply as
 ground on header pin 17 for four years because nothing compared them (--rails
 runs that check alone; it needs no kernel tree).
 
+--rails also checks the Pad (BGA ball) column of every board against the ball
+the vendor's pin table gives that pad -- Rockchip via the datasheet's Pin
+Number Order table, Amlogic and Allwinner via their gpio_electrical.json. The
+kernel carries no balls, so this is the only authority Pad has.
+
 Usage:
     scripts/check-pinmux.py [--board B] [--linux PATH] [--verbose] [--strict]
     scripts/check-pinmux.py --rails [--board B]
@@ -562,6 +567,133 @@ def check_rails(board: Path) -> tuple[int, int]:
     return bad, scope
 
 
+# --------------------------------------------------------------------- balls
+
+
+def rk_pad_balls(path: Path) -> dict[str, str]:
+    """pad name (GPIO2_D1) -> BGA ball (R17) from a gpio_extract.py JSON.
+
+    The TRM IOMUX tables carry no balls; gpio_extract.py joins them in from the
+    datasheet's Pin Number Order table. A pad with no ball is left out, so an
+    extract that predates the join yields {} and the check reports UNAUDITED
+    instead of a clean run.
+    """
+    import json
+
+    pads = {}
+    for ball in json.loads(path.read_text()).get("balls", []):
+        m = re.match(r"^(gpio\d_[a-d]\d)", ball.get("reset_function", ""), re.I)
+        if m and ball.get("ball_location"):
+            pads[m.group(1).upper()] = ball["ball_location"]
+    return pads
+
+
+def electrical_pad_balls(path: Path) -> dict[str, str]:
+    """pad name (GPIOX_8, PA0) -> ball from a gpio_electrical.json.
+
+    The Amlogic (gpio_extract_aml_ds.py) and Allwinner (gpio_extract.py
+    SUNXI_TEXT) extracts read each pad's ball from the vendor's own pin table.
+    """
+    import json
+
+    return {p["ball_name"]: p["ball_location"]
+            for p in json.loads(path.read_text()).get("pads", [])
+            if p.get("ball_location")}
+
+
+def ball_mismatches(rows: list[dict],
+                    pad_ball: dict[str, str]) -> tuple[list[str], int, list[str]]:
+    """(contradictions, rows compared, GPIO rows the authority has no ball for).
+
+    Pad is the one gpio.map column the kernel cannot check -- pinctrl knows pad
+    names and offsets, never package balls -- so the datasheet is the only
+    authority it has. Any row whose Name the authority knows is compared (that
+    includes dedicated pads such as TEST_N); a GPIO row -- numeric Chip -- whose
+    Name it does not know is counted, never passed.
+    """
+    bad, compared, unknown = [], 0, []
+    for row in rows:
+        if row["chip"] in POWER:
+            continue
+        want = pad_ball.get(row["name"])
+        if want is None:
+            if row["chip"].isdigit():
+                unknown.append(f"{row['header']}.{row['pin']}:{row['name']}")
+            continue
+        compared += 1
+        if row["pad"] != want:
+            bad.append(f"{row['header']}.{row['pin']} {row['name']}: Pad "
+                       f"'{row['pad']}', datasheet ball '{want}'")
+    return bad, compared, unknown
+
+
+def check_balls(board: Path) -> tuple[int, int, int]:
+    """(contradictions, rows compared, unaudited) for one board's Pad column.
+
+    Every board with a map is audited or reported UNAUDITED -- a family with no
+    ball authority must not read as a clean run.
+    """
+    soc = SOC_OF_BOARD.get(board.name)
+    pad_ball: dict[str, str] = {}
+    if soc in RK_PINMUX:
+        # The datasheet extract too: RK3399's TRM IOMUX tables omit pads that
+        # carry no alternate function (GPIO4_D2/D3, GPIO0_B2), which a board
+        # can still route to a header. Both take balls from the same table.
+        for path in RK_PINMUX[soc] + [RK_PINMUX[soc][0].with_name(
+                "gpio_pinmux_datasheet.json")]:
+            if path.is_file():
+                pad_ball.update(rk_pad_balls(path))
+    elif board.name in DATASHEET_JSON:
+        # Amlogic + Allwinner: the electrical extract beside the mux extract
+        # carries the balls. Keyed by board for the same reason DATASHEET_JSON
+        # is: S905X and S805X share a driver but not a package.
+        path = DATASHEET_JSON[board.name].with_name("gpio_electrical.json")
+        if path.is_file():
+            pad_ball = electrical_pad_balls(path)
+    if not pad_ball:
+        print(f"UNAUDITED: {board.name}: Pad -- no extract for "
+              f"{soc or 'this board'} carries balls")
+        return 0, 0, 1
+    bad, compared, unknown = ball_mismatches(load_map(board / "gpio.map"),
+                                             pad_ball)
+    for b in bad:
+        print(f"MISMATCH: {board.name} {b}")
+    if unknown:
+        print(f"NOTE: {board.name}: no datasheet ball for {' '.join(unknown)}")
+    if not compared:
+        print(f"UNAUDITED: {board.name}: Pad -- the extract matched no row")
+        return len(bad), 0, 1
+    return len(bad), compared, 0
+
+
+BALL_ROWS = [  # roc-rk3328-cc J1, verbatim Name/Pad
+    {"header": "J1", "pin": "7", "chip": "1", "name": "GPIO1_D4", "pad": "V14"},
+    {"header": "J1", "pin": "8", "chip": "2", "name": "GPIO2_D1", "pad": "R17"},
+    {"header": "J1", "pin": "6", "chip": "GND", "name": "GND", "pad": ""},
+]
+BALL_AUTH = {"GPIO1_D4": "V14", "GPIO2_D1": "R17"}
+BALL_TEST = [
+    # (description, authority, rows, want (contradictions, compared, unknown))
+    ("clean map agrees", BALL_AUTH, BALL_ROWS, (0, 2, 0)),
+    ("wrong ball fires", BALL_AUTH,
+     [dict(BALL_ROWS[0], pad="V15")] + BALL_ROWS[1:], (1, 2, 0)),
+    ("swapped pads fire twice", BALL_AUTH,
+     [dict(BALL_ROWS[0], pad="R17"), dict(BALL_ROWS[1], pad="V14")], (2, 2, 0)),
+    ("pad unknown to authority is counted, not passed",
+     {"GPIO1_D4": "V14"}, BALL_ROWS, (0, 1, 1)),
+    ("empty authority compares nothing", {}, BALL_ROWS, (0, 0, 2)),
+    # Allwinner names pads P<bank><n>; all-h3-cc-h3 7J1.16 once carried PG7's
+    # ball D3 on PG9 -- the defect that motivated the identity check
+    ("sunxi pad name, wrong ball fires", {"PG9": "D4", "PG7": "D3"},
+     [{"header": "7J1", "pin": "16", "chip": "1", "name": "PG9", "pad": "D3"}],
+     (1, 1, 0)),
+    # a dedicated (non-GPIO) pad the authority knows is compared, not skipped
+    ("dedicated pad compared", {"TEST_N": "B12"},
+     [{"header": "7J1", "pin": "15", "chip": "TEST", "name": "TEST_N",
+       "pad": "D12"}], (1, 1, 0)),
+]
+
+
 # Kept beside the rule it exercises, not in test/, because test/ holds
 # board-attached scripts (spi bench, gpio pattern) that cannot run on a build
 # host. Every no-fire case below is a real row from a real map: the check is
@@ -608,7 +740,16 @@ def self_test() -> int:
                   f"{'a mismatch' if want else 'no mismatch'}, got {got!r}")
     print(f"check-pinmux --self-test: {len(SELF_TEST) - fails}/{len(SELF_TEST)} "
           f"rail cases pass")
-    return 1 if fails else 0
+    bfails = 0
+    for what, auth, rows, want in BALL_TEST:
+        bad, compared, unknown = ball_mismatches(rows, auth)
+        got = (len(bad), compared, len(unknown))
+        if got != want:
+            bfails += 1
+            print(f"SELFTEST FAIL: ball case '{what}': expected {want}, got {got}")
+    print(f"check-pinmux --self-test: {len(BALL_TEST) - bfails}/{len(BALL_TEST)} "
+          f"ball cases pass")
+    return 1 if fails or bfails else 0
 
 
 # --------------------------------------------------------------------- check
@@ -815,8 +956,9 @@ def main() -> int:
                     help="report how much exposed IO each authority knows, "
                          "instead of checking Desc")
     ap.add_argument("--rails", action="store_true",
-                    help="only cross-check Chip (rail class) against Ref (net "
-                         "name) on supply/ground rows; needs no kernel tree")
+                    help="only the checks that need no kernel tree: Chip (rail "
+                         "class) against Ref (net name) on supply/ground rows, "
+                         "and Pad against the datasheet ball")
     ap.add_argument("--self-test", action="store_true",
                     help="run the rail cross-check against its case table")
     args = ap.parse_args()
@@ -842,6 +984,18 @@ def main() -> int:
         print(f"check-pinmux: {rails} rail contradiction(s) (Chip vs Ref) in "
               f"{sum(c[1] for c in counted)} supply/ground row(s) across "
               f"{len(boards)} board(s)")
+    # Same footing as the rails: needs no kernel tree, and a Pad that names
+    # another pad's ball is a defect, not a candidate, so it is not behind
+    # --strict either.
+    balls = 0
+    if not args.coverage:
+        counted = [check_balls(b) for b in boards]
+        balls = sum(c[0] for c in counted)
+        print(f"check-pinmux: {balls} Pad/ball contradiction(s) in "
+              f"{sum(c[1] for c in counted)} GPIO row(s) compared against a "
+              f"datasheet ball; {sum(c[2] for c in counted)} board(s) with no "
+              f"ball authority")
+    rails += balls
     if args.rails:
         return 1 if rails else 0
 
