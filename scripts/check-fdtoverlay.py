@@ -8,6 +8,9 @@ For each board under libre-computer/:
   2. Resolve a base .dtb from LWT_DTB_DIR / --dtb-dir / auto-search
   3. For each unique real .dtbo, expand providers from dt.deps and run:
        fdtoverlay -i base.dtb -o <tmp> <provider.dtbo>... <consumer.dtbo>
+  4. Check every /aliases entry the overlay adds is a path string naming a
+     node in that merged tree (a dangling alias applies cleanly and is then
+     dropped by the kernel, renumbering the device)
 
 Default: print WARNING on apply failure; SKIP when base DTB is missing
 (not a failure — CI hosts without a DTB tree stay green). Use --strict
@@ -242,6 +245,117 @@ def run_fdtoverlay(
     return r.returncode, err
 
 
+ALIAS_FRAG = re.compile(
+    r'target-path = "/aliases";\s*__overlay__ \{(.*?)\n\t\t\};', re.S)
+ALIAS_PROP = re.compile(r"^\s*([\w-]+) = (.+);$", re.M)
+
+
+def overlay_aliases(dts_text: str) -> dict[str, str | None]:
+    """Aliases an overlay adds: {name: path}, or None when the value is not
+    a string. An alias is a PATH string; the kernel's alias scan resolves it
+    with of_find_node_by_path(), so a phandle cell there is never an alias."""
+    out: dict[str, str | None] = {}
+    for body in ALIAS_FRAG.findall(dts_text):
+        for name, val in ALIAS_PROP.findall(body):
+            v = val.strip()
+            out[name] = v[1:-1] if v.startswith('"') and v.endswith('"') else None
+    return out
+
+
+def alias_problems(aliases: dict[str, str | None], node_exists) -> list[str]:
+    """Each alias must be a path string naming a node in the merged tree.
+
+    A path that names no node is dropped by the kernel without a word, so the
+    device silently gets the next free number (serial1 becomes serial2, spi0
+    becomes spi1) -- which an apply-only check never sees.
+    """
+    bad = []
+    for name, path in sorted(aliases.items()):
+        if path is None:
+            bad.append(f"alias {name} is not a path string")
+        elif not node_exists(path):
+            bad.append(f"alias {name} = \"{path}\" names no node in the merged tree")
+    return bad
+
+
+def dtb_to_dts(path: Path) -> str:
+    r = subprocess.run(["dtc", "-q", "-I", "dtb", "-O", "dts", str(path)],
+                       capture_output=True, text=True, timeout=60)
+    return r.stdout
+
+
+BOARD_VENDORS = ("libre-computer,", "libretech,")
+
+
+def root_compatible(dtb: Path) -> list[str]:
+    r = subprocess.run(["fdtget", "-t", "s", str(dtb), "/", "compatible"],
+                       capture_output=True, text=True, timeout=60)
+    return r.stdout.split() if r.returncode == 0 else []
+
+
+def claims_board(overlay_compat: list[str], base_compat: list[str]) -> bool:
+    """Does the overlay's root compatible claim this base board?
+
+    Only the board-level entries (our vendor prefixes) decide: SoC fallbacks
+    like "amlogic,meson-gxl" match every board of the family. An overlay that
+    lists no board entry at all claims nothing specific and is tested.
+    """
+    board = [c for c in overlay_compat if c.startswith(BOARD_VENDORS)]
+    return not board or bool(set(board) & set(base_compat))
+
+
+def dtb_node_exists(dtb: Path, node: str) -> bool:
+    r = subprocess.run(["fdtget", "-l", str(dtb), node],
+                       capture_output=True, text=True, timeout=60)
+    return r.returncode == 0
+
+
+SELF_TEST = [
+    # (description, dtbo-as-dts text, nodes present in the merged tree, want)
+    ("path alias that resolves passes",
+     '\t\ttarget-path = "/aliases";\n\t\t__overlay__ {\n\t\t\tspi0 = "/soc/bus@c1100000/spi@8d80";\n\t\t};',
+     {"/soc/bus@c1100000/spi@8d80"}, 0),
+    ("pre-mainline node name fires (GXL cbus@ -> bus@)",
+     '\t\ttarget-path = "/aliases";\n\t\t__overlay__ {\n\t\t\tserial1 = "/soc/cbus@c1100000/serial@84c0";\n\t\t};',
+     {"/soc/bus@c1100000/serial@84c0"}, 1),
+    ("phandle cell instead of a path fires (roc-rk3399-pc mezzanine)",
+     '\t\ttarget-path = "/aliases";\n\t\t__overlay__ {\n\t\t\tmmc2 = <0xffffffff>;\n\t\t};',
+     {"/mmc@fe310000"}, 1),
+    ("no aliases fragment, nothing to check",
+     '\t\ttarget = <0xffffffff>;\n\t\t__overlay__ {\n\t\t\tstatus = "okay";\n\t\t};',
+     set(), 0),
+]
+
+
+CLAIM_TEST = [
+    # (description, overlay compatible, base compatible, claims?)
+    ("board listed", ["libre-computer,aml-s905x-cc", "libretech,aml-s905x-cc",
+                      "amlogic,meson-gxl"],
+     ["libretech,aml-s905x-cc", "amlogic,s905x", "amlogic,meson-gxl"], True),
+    ("SoC fallback alone does not claim another board (cvbs-disable on cc-v2)",
+     ["libre-computer,aml-s905x-cc", "libretech,aml-s905x-cc", "amlogic,meson-gxl"],
+     ["libretech,aml-s905x-cc-v2", "amlogic,s905x", "amlogic,meson-gxl"], False),
+    ("no board entry: claims nothing specific, so tested",
+     ["amlogic,meson-gxl"], ["libretech,aml-s905x-cc-v2", "amlogic,meson-gxl"], True),
+]
+
+
+def self_test() -> int:
+    fails = 0
+    for what, text, nodes, want in SELF_TEST:
+        got = len(alias_problems(overlay_aliases(text), lambda p: p in nodes))
+        if got != want:
+            fails += 1
+            print(f"SELFTEST FAIL: {what}: expected {want} problem(s), got {got}")
+    for what, ov, base, want in CLAIM_TEST:
+        if claims_board(ov, base) != want:
+            fails += 1
+            print(f"SELFTEST FAIL: {what}: expected claims={want}")
+    n = len(SELF_TEST) + len(CLAIM_TEST)
+    print(f"check-fdtoverlay --self-test: {n - fails}/{n} cases pass (alias, claim)")
+    return 1 if fails else 0
+
+
 def unique_overlays(dt_dir: Path) -> list[tuple[str, Path]]:
     """Return (canonical_stem, dtbo_path) unique by realpath of content.
 
@@ -295,6 +409,9 @@ class Stats:
         self.skip_empty = 0
         self.missing_dtbo = 0
         self.no_symbols = 0
+        self.aliases = 0
+        self.alias_bad = 0
+        self.unclaimed = 0
         self.warnings = 0
 
 
@@ -349,6 +466,7 @@ def check_board(
         # still try — path-based fragments may work
 
     edges = load_deps(board / "dt.deps")
+    base_compat = root_compatible(base)
     overlays = unique_overlays(dt_dir)
     if not overlays:
         stats.skip_empty += 1
@@ -368,6 +486,15 @@ def check_board(
                     rel = dtbo
                 warn(f"{name}: missing {rel} (run make BOARD_NAME={name})")
                 stats.warnings += 1
+                continue
+
+            if not claims_board(root_compatible(dtbo), base_compat):
+                # In this board's dt/ only through a shared directory, and
+                # its compatible says it is for another board: not a failure
+                # to apply here, but counted and listed so it never vanishes.
+                stats.unclaimed += 1
+                if verbose:
+                    skip(f"{name}: {stem} does not claim {base_compat[:1]}")
                 continue
 
             chain_names = expand_chain(stem, edges)
@@ -402,6 +529,13 @@ def check_board(
                 stats.ok += 1
                 if verbose:
                     print(f"OK {name}: {' + '.join(chain_names)}", file=sys.stderr)
+                aliases = overlay_aliases(dtb_to_dts(chain_paths[-1]))
+                stats.aliases += len(aliases)
+                for problem in alias_problems(
+                        aliases, lambda p, o=out: dtb_node_exists(o, p)):
+                    stats.alias_bad += 1
+                    stats.warnings += 1
+                    warn(f"{name}: {stem}: {problem}")
             else:
                 stats.fail += 1
                 stats.warnings += 1
@@ -444,7 +578,12 @@ def main() -> int:
         default=os.environ.get("FDTOVERLAY", "fdtoverlay"),
         help="fdtoverlay binary (default: PATH or $FDTOVERLAY)",
     )
+    ap.add_argument("--self-test", action="store_true",
+                    help="run the alias check against its case table")
     args = ap.parse_args()
+
+    if args.self_test:
+        return self_test()
 
     if not shutil.which(args.fdtoverlay) and not Path(args.fdtoverlay).is_file():
         warn(f"fdtoverlay not found ({args.fdtoverlay!r}); install device-tree-compiler")
@@ -479,8 +618,9 @@ def main() -> int:
         )
 
     info(
-        f"{stats.ok} ok, {stats.fail} fail, "
+        f"{stats.ok} ok, {stats.fail} fail, {stats.unclaimed} not-for-board, "
         f"{stats.skip_base} skip(no-base), {stats.missing_dtbo} missing-dtbo, "
+        f"{stats.aliases} alias(es) checked / {stats.alias_bad} bad, "
         f"{stats.warnings} warning(s)"
         + (f" (board={args.board})" if args.board else "")
     )

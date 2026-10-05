@@ -44,7 +44,7 @@ else
   DEPS_FILES := $(addprefix libre-computer/,$(addsuffix /dt.deps,$(DEPS_BOARDS)))
 endif
 
-.PHONY : clean install-lgpio install-ldto install deps check check-strict check-fdtoverlay check-conflicts check-pinmux check-rails check-self-test
+.PHONY : clean install-lgpio install-ldto install deps check check-strict check-fdtoverlay check-conflicts check-pinmux check-rails check-self-test check-overlay-pins check-overlay-schema
 
 # Integrity + gpio.map accuracy (lgpio pinout). Warnings only — does not fail the build.
 # Use `make check-strict` or scripts/* --strict in CI if desired.
@@ -60,7 +60,17 @@ endif
 # ground for four years because no checker ran on those rows at all. It also
 # checks every board's Pad against the datasheet ball in the claude repo's
 # extracts (reported UNAUDITED, not failed, when an extract is absent).
+# check-overlay-pins: what each overlay actually muxes (pinctrl groups, GPIO
+# and interrupt specifiers, resolved on the applied DTB) against its Pins:
+# header, and against the SoC package's real pads. Needs base DTBs and, for
+# Amlogic pinctrl group tables, a kernel tree -- so like check-pinmux it is
+# not in `check`; its self-test is.
 CHECK_LWT := python3 scripts/check-lwt.py
+CHECK_OVERLAY_PINS := python3 scripts/check-overlay-pins.py
+# check-overlay-schema: dt-validate (dtschema) per overlay against the kernel's
+# bindings, reporting only errors the overlay adds. Needs SCHEMA=<processed
+# schema json>; reports, never gates (much of it is binding hygiene).
+CHECK_OVERLAY_SCHEMA := python3 scripts/check-overlay-schema.py
 CHECK_FDT := python3 scripts/check-fdtoverlay.py
 CHECK_CONFLICTS := bash scripts/check-conflicts.sh
 CHECK_PINMUX := python3 scripts/check-pinmux.py
@@ -95,6 +105,9 @@ check: check-self-test check-maps check-rails check-fdtoverlay check-conflicts
 check-self-test:
 	$(CHECK_LWT) --self-test
 	$(CHECK_PINMUX) --self-test
+	$(CHECK_FDT) --self-test
+	$(CHECK_OVERLAY_PINS) --self-test
+	$(CHECK_OVERLAY_SCHEMA) --self-test
 	$(VERIFY_GPIO) --self-test
 
 check-maps:
@@ -112,6 +125,12 @@ check-pinmux:
 check-rails:
 	$(CHECK_PINMUX) $(CHECK_PINMUX_ARGS) --rails
 
+check-overlay-pins:
+	$(CHECK_OVERLAY_PINS) $(CHECK_PINMUX_ARGS)
+
+check-overlay-schema:
+	$(CHECK_OVERLAY_SCHEMA) $(CHECK_PINMUX_ARGS) --schema "$(SCHEMA)"
+
 check-strict:
 	$(CHECK_LWT) $(CHECK_LWT_ARGS) --strict
 	$(CHECK_PINMUX) $(CHECK_PINMUX_ARGS) --rails
@@ -121,7 +140,11 @@ check-strict:
 deps: $(DEPS_FILES)
 
 # dt.deps is generated from .dts (not .dtbo); rebuild when sources change.
-libre-computer/%/dt.deps: scripts/overlay-deps.py
+# The .dts files must be prerequisites for that to hold: with only the script
+# listed, a new Resource-requires/-provides token never reached dt.deps.
+# Secondary expansion lets the pattern stem name the board's dt/ directory.
+.SECONDEXPANSION:
+libre-computer/%/dt.deps: scripts/overlay-deps.py $$(wildcard libre-computer/$$*/dt/*.dts)
 	@dt=libre-computer/$*/dt; 	if [ -L "$$dt" ]; then dt=$$(readlink -f "$$dt"); fi; 	python3 scripts/overlay-deps.py "$$dt" -o $@
 
 ifneq ($(strip $(DTOS_SYM)),)

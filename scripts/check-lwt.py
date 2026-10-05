@@ -69,8 +69,11 @@ SKIP_NAMES = {
     "LORN",
     "CVBS_IOUT",
 }
+# Header names are "7J1" on the Amlogic/Allwinner boards but plain "J1" /
+# "J12" on the Rockchip ones; requiring a leading digit skipped every Pins row
+# in every Rockchip overlay without a word. Group 4 is the row's Pad column.
 PIN_ROW_RE = re.compile(
-    r"^\s*\*?\s*(\d+[Jj]\d+)\.(\d+)\s+(\S+)\s+"
+    r"^\s*\*?\s*(\d*[Jj]\d+)\.(\d+)\s+(\S+)(?:\s+(\S+))?"
 )
 PAD_TOKEN = re.compile(
     r"\b(GPIO[A-Z][A-Z0-9_]*|GPIODV_[0-9]+|TEST_N|RK_P[A-Z0-9_]+|"
@@ -730,6 +733,47 @@ def _parse_rows(raw: list[str]) -> list[dict]:
     return rows
 
 
+def pins_row_warnings(where: str, header: str,
+                      by_pin: dict[tuple[str, str], list[str]],
+                      pad_of: dict[str, str]) -> list[str]:
+    """An overlay header's Pins rows against gpio.map: the position must
+    exist, carry the Name, and -- when the row gives one -- the Pad."""
+    out = []
+    for line in header.splitlines():
+        m = PIN_ROW_RE.match(line.replace("—", "-"))
+        if not m:
+            continue
+        h, pin, name, pad = m.group(1), m.group(2), m.group(3), m.group(4)
+        if name in ("Name", "Pad", "cross-ref", "Ref"):
+            continue
+        key = (h, pin)
+        if key not in by_pin:
+            out.append(f"{where}: Pins {h}.{pin} {name} not in gpio.map")
+            continue
+        map_names = by_pin[key]
+        bare = name.rstrip("*")
+        if bare not in [n.rstrip("*") for n in map_names]:
+            out.append(f"{where}: Pins {h}.{pin} says {name} but gpio.map has "
+                       f"{' / '.join(map_names)}")
+        elif pad and BALL_RE.match(pad) and pad != pad_of.get(bare, pad):
+            out.append(f"{where}: Pins {h}.{pin} {name} says Pad {pad} but "
+                       f"gpio.map has {pad_of[bare]}")
+    return out
+
+
+PINS_MAP = ({("7J1", "16"): ["PG9"], ("J1", "19"): ["GPIO3_A1"]},
+            {"PG9": "E3", "GPIO3_A1": "D2"})
+PINS_CASES = [
+    # (label, header text, expected substring or None)
+    ("7J1 row matching the map", " *   7J1.16   PG9           E3      AP-UART1-CTS", None),
+    ("stale Pad fires (all-h3-cc-h5 uart-1-rts-cts PG9 D3)",
+     " *   7J1.16   PG9           D3      AP-UART1-CTS", "says Pad D3"),
+    ("Rockchip J1 row is read at all (was skipped by a 7J1-only regex)",
+     " *   J1.19   GPIO3_A2      D2      SPI_TXD", "says GPIO3_A2"),
+    ("Rockchip J1 row matching the map", " *   J1.19   GPIO3_A1      D2      SPI_TXD", None),
+]
+
+
 def self_test() -> int:
     """Every checker against cases that must fire and cases that must not."""
     failed = 0
@@ -765,9 +809,11 @@ def self_test() -> int:
           rpi_table_warnings(), None)
     for label, text, expect in LGPIO_CASES:
         judge("lgpio-bcm", label, lgpio_bcm_warnings(text), expect)
+    for label, text, expect in PINS_CASES:
+        judge("overlay-pins", label, pins_row_warnings("case", text, *PINS_MAP), expect)
 
     print(f"check-lwt --self-test: {total - failed}/{total} cases pass "
-          f"(identity, formula, rpi-header, lgpio-bcm)", file=sys.stderr)
+          f"(identity, formula, rpi-header, lgpio-bcm, overlay-pins)", file=sys.stderr)
     return 1 if failed else 0
 
 
@@ -962,11 +1008,13 @@ class Checker:
         gpath = board / "gpio.map"
         by_pin: dict[tuple[str, str], list[str]] = {}
         by_name: dict[str, tuple[str, str]] = {}
+        pad_of: dict[str, str] = {}
         if gpath.is_file():
             for r in load_gpio_map(gpath):
                 if r.get("_bad") or r["chip"] in POWER_CHIPS:
                     continue
                 bare = r["name"].rstrip("*")
+                pad_of[bare] = r.get("pad", "")
                 # One header pin may have several rows when two SoC lines are
                 # wired to it, so keep every name; a Pins: row naming any of
                 # them is correct. A plain dict would silently keep the last.
@@ -988,28 +1036,10 @@ class Checker:
                 )
 
             # Pins rows must match gpio.map
-            for line in header.splitlines():
-                m = PIN_ROW_RE.match(line.replace("—", "-"))
-                if not m:
-                    continue
-                h, pin, name = m.group(1), m.group(2), m.group(3)
-                if name in ("Name", "Pad", "cross-ref", "Ref"):
-                    continue
-                if not by_pin:
-                    continue
-                key = (h, pin)
-                if key not in by_pin:
-                    self.warn(
-                        f"{board.name}/{dts.name}: Pins {h}.{pin} {name} "
-                        f"not in gpio.map"
-                    )
-                    continue
-                map_names = by_pin[key]
-                if name.rstrip("*") not in [m.rstrip("*") for m in map_names]:
-                    self.warn(
-                        f"{board.name}/{dts.name}: Pins {h}.{pin} says "
-                        f"{name} but gpio.map has {' / '.join(map_names)}"
-                    )
+            if by_pin:
+                for w in pins_row_warnings(f"{board.name}/{dts.name}", header,
+                                           by_pin, pad_of):
+                    self.warn(w)
 
             # DTS body pad names: if known to map, OK; unknown meson pads warn lightly
             body = text.split("/dts-v1/", 1)[-1]
