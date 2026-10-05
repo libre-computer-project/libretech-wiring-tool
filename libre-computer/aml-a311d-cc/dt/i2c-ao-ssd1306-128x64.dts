@@ -1,0 +1,47 @@
+// SPDX-License-Identifier: (GPL-2.0-or-later OR MIT)
+/*
+ * Copyright (c) 2022 Da Xue
+ * Author: Da Xue <da@libre.computer>
+ */
+/*
+ * Summary: SSD1306 128x64 OLED on I2C_AO (40P header pins 3/5)
+ *
+ * Requires: i2c-ao
+ * Resource-provides: i2c:i2c_AO@0x3c
+ * Resource-requires: bus:i2c_AO
+ */
+/dts-v1/;
+/plugin/;
+
+/ {
+	compatible = "libre-computer,aml-a311d-cc",
+		"libretech,aml-a311d-cc",
+		"libre-computer,aml-a311d-cc-v01",
+		"libretech,aml-a311d-cc-v01",
+		"libre-computer,aml-s905d3-cc",
+		"libretech,aml-s905d3-cc",
+		"libre-computer,aml-s905d3-cc-v01",
+		"libretech,aml-s905d3-cc-v01",
+		"amlogic,a311d",
+		"amlogic,g12b",
+		"amlogic,s905d3",
+		"amlogic,sm1";
+
+	fragment@0 {
+		target = <&i2c_AO>;
+
+		__overlay__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			ssd1306@3c {
+				compatible = "solomon,ssd1306";
+				reg = <0x3c>;
+				solomon,width = <128>;
+				solomon,height = <64>;
+				solomon,com-invdir;
+				solomon,page-offset = <8>;
+			};
+		};
+	};
+};

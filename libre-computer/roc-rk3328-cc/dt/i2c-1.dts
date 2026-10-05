@@ -1,0 +1,38 @@
+// SPDX-License-Identifier: (GPL-2.0-or-later OR MIT)
+/*
+ * Copyright (c) 2024 Da Xue
+ * Author: Da Xue <da@libre.computer>
+ */
+/*
+ * Summary: I2C1 on 40P header J1 pins 27 (SDA) and 28 (SCL)
+ *
+ * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
+ *   J1.27    GPIO2_A4      N19     I2C1_SDA_PMIC
+ *   J1.28    GPIO2_A5      N20     I2C1_SCL_PMIC
+ *
+ * Resource-provides: bus:i2c1
+ *
+ * Notes:
+ * The base DTB already enables i2c1: it is the RK805 PMIC bus (0x18), and
+ * the board routes it to pins 27/28. This overlay changes nothing on the
+ * bus; it gives the H40P_I2C_1 slot and its devices the same overlay chain
+ * as on other boards. A device on this bus must not use address 0x18.
+ */
+/dts-v1/;
+/plugin/;
+
+/ {
+	compatible = "libre-computer,roc-rk3328-cc",
+		"libretech,roc-rk3328-cc",
+		"libre-computer,roc-rk3328-cc-v2",
+		"libretech,roc-rk3328-cc-v2",
+		"firefly,roc-rk3328-cc",
+		"rockchip,rk3328";
+
+	fragment@0 {
+		target = <&i2c1>;
+		__overlay__ {
+			status = "okay";
+		};
+	};
+};

@@ -1,0 +1,70 @@
+// SPDX-License-Identifier: (GPL-2.0-or-later OR MIT)
+/*
+ * Copyright (c) 2022 Da Xue
+ * Author: Da Xue <da@libre.computer>
+ */
+/*
+ * Summary: ST7789V 240x240 SPI LCD on 40P header SPI0 CS0
+ *
+ * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
+ *   7J1.22   PA14          G12     UART3-RX
+ *   7J1.29   PA20          A13     I2S0-SDO
+ *   7J1.31   PA21          A14     I2S0-SDI
+ *
+ * Requires: spi-0-1cs
+ *
+ * Notes:
+ * Display stack: mixed. Shared SPI/GPIO fields serve tinydrm when the
+ * compatible matches a DRM driver; properties tagged "fbtft/legacy" are only
+ * for staging fbtft (CONFIG_FB_TFT_*).
+ * regulator-fixed (no GPIO) satisfies panel-sitronix-st7789v + schema.
+ * Enable/disable is a software refcount only — does not gate real power.
+ */
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/gpio/gpio.h>
+
+/ {
+	compatible = "libre-computer,all-h3-cc-h3",
+		"libretech,all-h3-cc-h3",
+		"libre-computer,all-h3-cc-h5",
+		"libretech,all-h3-cc-h5",
+		"allwinner,sun8i-h3",
+		"allwinner,sun50i-h5";
+
+	fragment@0 {
+		target-path = "/";
+
+		__overlay__ {
+			st7789v_power: regulator-st7789v-power {
+				compatible = "regulator-fixed";
+				regulator-name = "st7789v-power";
+				regulator-min-microvolt = <3300000>;
+				regulator-max-microvolt = <3300000>;
+			};
+		};
+	};
+
+	fragment@1 {
+		target = <&spi0>;
+
+		__overlay__ {
+			st7789v@0 {
+				compatible = "sitronix,st7789v";
+				reg = <0>;
+				power-supply = <&st7789v_power>;
+				led-gpios = <&pio 0 14 GPIO_ACTIVE_HIGH>; /* fbtft/legacy */
+				dc-gpios = <&pio 0 20 GPIO_ACTIVE_HIGH>;
+				reset-gpios = <&pio 0 21 GPIO_ACTIVE_LOW>;
+				height = <240>; /* fbtft/legacy */
+				width = <240>; /* fbtft/legacy */
+				buswidth = <16>; /* fbtft/legacy */
+				spi-cpol;
+				spi-cpha;
+				spi-max-frequency = <41666666>;
+				status = "okay";
+			};
+		};
+	};
+};

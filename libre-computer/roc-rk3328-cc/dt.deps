@@ -4,12 +4,17 @@
 # Applied automatically by ldto enable/merge and U-Boot nor-config
 # when the provider is not already in the request list.
 
+i2c-0-ssd1306-128x64	i2c-0
+i2c-1-ssd1306-128x32	i2c-1
+i2c-1-ssd1306-128x64	i2c-1
 pwm-2-fan	pwm-2
 spi-0-1cs-spidev	spi-0-1cs
+spi-0-1cs-st7789v-240x240	spi-0-1cs
 spi-0-2cs-ili9486-xpt2046	spi-0-2cs
 spi-0-2cs-mhs3528	spi-0-2cs
 spi-0-2cs-mpi3501	spi-0-2cs
 spi-0-2cs-spidev	spi-0-2cs
+spi-0-2cs-waveshare35a	spi-0-2cs
 spi0-cs1-ili9486-xpt2046	spi-0-2cs
 spi0-cs1-mhs3528	spi-0-2cs
 spi0-cs1-mpi3501	spi-0-2cs

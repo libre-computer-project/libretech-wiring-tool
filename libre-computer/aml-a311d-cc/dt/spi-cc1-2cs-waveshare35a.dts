@@ -1,0 +1,79 @@
+// SPDX-License-Identifier: (GPL-2.0-or-later OR MIT)
+/*
+ * Copyright (c) 2024 Da Xue
+ * Author: Da Xue <da@libre.computer>
+ */
+/*
+ * Summary: Waveshare 3.5" (A) LCD, ILI9486 + XPT2046 touch, on 40P header SPI0 2CS
+ *
+ * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
+ *   7J1.11   GPIOAO_7      AV46    GPIOAO_7/JTAG_TMS
+ *   7J1.18   GPIOA_5       J13     GPIOA_5
+ *   7J1.22   GPIOA_6       E15     GPIOA_6
+ *
+ * Requires: spi-cc1-2cs
+ *
+ * Notes:
+ * Display stack: tinydrm (DRM tiny / panel) preferred; staging fbtft is the
+ * legacy fallback when both are built. Compatible order is tinydrm-first.
+ * Properties tagged "fbtft/legacy" are ignored by tinydrm (CONFIG_FB_TFT_* only).
+ */
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/gpio/meson-g12a-gpio.h>
+#include <dt-bindings/interrupt-controller/irq.h>
+#include <dt-bindings/interrupt-controller/amlogic,meson-g12a-gpio-intc.h>
+
+/ {
+	compatible = "libre-computer,aml-a311d-cc",
+		"libretech,aml-a311d-cc",
+		"libre-computer,aml-a311d-cc-v01",
+		"libretech,aml-a311d-cc-v01",
+		"libre-computer,aml-s905d3-cc",
+		"libretech,aml-s905d3-cc",
+		"libre-computer,aml-s905d3-cc-v01",
+		"libretech,aml-s905d3-cc-v01",
+		"amlogic,a311d",
+		"amlogic,g12b",
+		"amlogic,s905d3",
+		"amlogic,sm1";
+	
+	fragment@0 {
+		target = <&spicc1>;
+		
+		__overlay__ {
+
+			display@0 {
+				compatible = "waveshare,rpi-lcd-35",	/* tinydrm: drm/tiny/ili9486 */
+					"ilitek,ili9486";	/* fbtft/legacy: staging/fbtft/fb_ili9486 */
+				reg = <0>;
+				spi-max-frequency = <40000000>;
+				rotation = <270>;
+				reset-gpios = <&gpio GPIOA_6 GPIO_ACTIVE_HIGH>;
+				dc-gpios = <&gpio GPIOA_5 GPIO_ACTIVE_HIGH>;
+				status = "okay";
+			};
+
+			touchscreen@1 {
+				compatible = "ti,ads7846";
+				reg = <1>;
+				spi-max-frequency = <2000000>;
+				interrupt-parent = <&gpio_intc>;
+				interrupts = <IRQID_GPIOAO_7 IRQ_TYPE_EDGE_FALLING>;
+				pendown-gpio = <&gpio_ao GPIOAO_7 GPIO_ACTIVE_LOW>;
+				ti,x-plate-ohms = /bits/ 16 <20>;
+				ti,pressure-max = /bits/ 16 <255>;
+				touchscreen-swapped-x-y;
+				touchscreen-inverted-x;
+				touchscreen-min-x = <180>;
+				touchscreen-size-x = <3880>;
+				touchscreen-min-y = <240>;
+				touchscreen-size-y = <3940>;
+				wakeup-source;
+				status = "okay";
+			};
+		};
+	};
+};

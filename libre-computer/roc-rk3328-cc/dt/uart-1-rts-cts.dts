@@ -4,17 +4,19 @@
  * Author: Da Xue <da@libre.computer>
  */
 /*
- * Summary: UART1 on 40P header J1 pins 8 (TX) and 10 (RX)
+ * Summary: UART1 on 40P header J1 pins 8 (TX), 10 (RX), 16 (CTS), 18 (RTS)
  *
  * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
  *   J1.8     GPIO3_A4      E2      UART1_TX
  *   J1.10    GPIO3_A6      F2      UART1_RX
+ *   J1.16    GPIO3_A7      F1      UART1_CTSN
+ *   J1.18    GPIO3_A5      D1      UART1_RTSN
  *
  * Resource-provides: bus:uart1
  *
  * Notes:
- * TX/RX only, like H40P_UART_0 on every other board. The base DTB's uart1
- * pinctrl-0 also muxes CTS/RTS onto pins 16/18; uart-1-rts-cts keeps those.
+ * What uart-1 did before it became TX/RX only: the base DTB's uart1
+ * pinctrl-0 (xfer + cts + rts), with hardware flow control enabled.
  */
 /dts-v1/;
 /plugin/;
@@ -32,7 +34,8 @@
 		__overlay__ {
 			status = "okay";
 			pinctrl-names = "default";
-			pinctrl-0 = <&uart1_xfer>;
+			pinctrl-0 = <&uart1_xfer &uart1_cts &uart1_rts>;
+			uart-has-rtscts;
 		};
 	};
 };

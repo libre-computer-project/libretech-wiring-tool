@@ -4,7 +4,5 @@
 # Values MUST name a real .dts/.dtbo under this board's dt/ (canonical name,
 # not a same-dir legacy alias). Consumed by ldto (MAP_ALIAS_DT).
 # v01 stub tree (opp + spifc only); header accessories use aml-a311d-cc map/overlays
-
-CPU_B_OPP_2304	cpu-b-opp-2304
-CPU_L_OPP_2208	cpu-l-opp-2208
-SPIFC_NOR	spifc-nor
+# No H40P slot is served here: enable cpu-b-opp-2304 / cpu-l-opp-2208 /
+# spifc-nor by their overlay names.

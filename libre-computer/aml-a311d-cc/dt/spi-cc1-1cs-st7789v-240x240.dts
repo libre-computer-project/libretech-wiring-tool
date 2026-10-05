@@ -1,0 +1,77 @@
+// SPDX-License-Identifier: (GPL-2.0-or-later OR MIT)
+/*
+ * Copyright (c) 2022 Da Xue
+ * Author: Da Xue <da@libre.computer>
+ */
+/*
+ * Summary: ST7789V 240x240 SPI LCD on 40P header SPI0 CS0
+ *
+ * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
+ *   7J1.22   GPIOA_6       E15     GPIOA_6
+ *   7J1.29   GPIOA_1       C19     GPIOA_1
+ *   7J1.31   GPIOA_2       E17     GPIOA_2
+ *
+ * Requires: spi-cc1-1cs
+ *
+ * Notes:
+ * Display stack: mixed. Shared SPI/GPIO fields serve tinydrm when the
+ * compatible matches a DRM driver; properties tagged "fbtft/legacy" are only
+ * for staging fbtft (CONFIG_FB_TFT_*).
+ * regulator-fixed (no GPIO) satisfies panel-sitronix-st7789v + schema.
+ * Enable/disable is a software refcount only — does not gate real power.
+ */
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/gpio/meson-g12a-gpio.h>
+
+/ {
+	compatible = "libre-computer,aml-a311d-cc",
+		"libretech,aml-a311d-cc",
+		"libre-computer,aml-a311d-cc-v01",
+		"libretech,aml-a311d-cc-v01",
+		"libre-computer,aml-s905d3-cc",
+		"libretech,aml-s905d3-cc",
+		"libre-computer,aml-s905d3-cc-v01",
+		"libretech,aml-s905d3-cc-v01",
+		"amlogic,a311d",
+		"amlogic,g12b",
+		"amlogic,s905d3",
+		"amlogic,sm1";
+
+	fragment@0 {
+		target-path = "/";
+
+		__overlay__ {
+			st7789v_power: regulator-st7789v-power {
+				compatible = "regulator-fixed";
+				regulator-name = "st7789v-power";
+				regulator-min-microvolt = <3300000>;
+				regulator-max-microvolt = <3300000>;
+			};
+		};
+	};
+
+	fragment@1 {
+		target = <&spicc1>;
+
+		__overlay__ {
+			st7789v@0 {
+				compatible = "sitronix,st7789v";
+				reg = <0>;
+				power-supply = <&st7789v_power>;
+				led-gpios = <&gpio GPIOA_6 GPIO_ACTIVE_HIGH>; /* fbtft/legacy */
+				dc-gpios = <&gpio GPIOA_1 GPIO_ACTIVE_HIGH>;
+				reset-gpios = <&gpio GPIOA_2 GPIO_ACTIVE_LOW>;
+				height = <240>; /* fbtft/legacy */
+				width = <240>; /* fbtft/legacy */
+				buswidth = <16>; /* fbtft/legacy */
+				spi-cpol;
+				spi-cpha;
+				spi-max-frequency = <41666666>;
+				status = "okay";
+			};
+		};
+	};
+};

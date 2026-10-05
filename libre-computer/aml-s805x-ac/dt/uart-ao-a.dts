@@ -1,0 +1,40 @@
+// SPDX-License-Identifier: (GPL-2.0-or-later OR MIT)
+/*
+ * Copyright (c) 2024 Da Xue
+ * Author: Da Xue <da@libre.computer>
+ */
+/*
+ * Summary: UART_AO_A on 40P header 7J1 pins 5 (TX) and 3 (RX) -- the Linux console
+ *
+ * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
+ *   7J1.3    GPIOAO_1      C8      LINUX_RX
+ *   7J1.5    GPIOAO_0      C9      LINUX_TX
+ *
+ * Resource-provides: bus:uart_AO
+ *
+ * Notes:
+ * The base DTB already enables uart_AO on these pins as serial0, the
+ * Linux console (stdout-path). This overlay changes nothing; it gives the
+ * H40P_UART_P5_P3 slot the same overlay chain as on other boards.
+ */
+/dts-v1/;
+/plugin/;
+
+/ {
+	compatible = "libre-computer,aml-s805x-ac",
+		"libretech,aml-s805x-ac",
+		"libre-computer,aml-s805x-ac-v2",
+		"libretech,aml-s805x-ac-v2",
+		"amlogic,s805x",
+		"amlogic,meson-gxl";
+
+	fragment@0 {
+		target = <&uart_AO>;
+
+		__overlay__ {
+			status = "okay";
+			pinctrl-0 = <&uart_ao_a_pins>;
+			pinctrl-names = "default";
+		};
+	};
+};

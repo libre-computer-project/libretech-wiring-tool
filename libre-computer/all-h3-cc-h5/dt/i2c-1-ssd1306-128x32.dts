@@ -1,0 +1,42 @@
+// SPDX-License-Identifier: (GPL-2.0-or-later OR MIT)
+/*
+ * Copyright (c) 2024 Da Xue
+ * Author: Da Xue <da@libre.computer>
+ */
+/*
+ * Summary: SSD1306 128x32 OLED on I2C1 (40P header pins 27/28)
+ *
+ * Requires: i2c-1
+ * Resource-provides: i2c:i2c1@0x3c
+ * Resource-requires: bus:i2c1
+ */
+/dts-v1/;
+/plugin/;
+
+/ {
+	compatible = "libre-computer,all-h3-cc-h3",
+		"libretech,all-h3-cc-h3",
+		"libre-computer,all-h3-cc-h5",
+		"libretech,all-h3-cc-h5",
+		"allwinner,sun8i-h3",
+		"allwinner,sun50i-h5";
+
+	fragment@0 {
+		target = <&i2c1>;
+
+		__overlay__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			ssd1306@3c {
+				compatible = "solomon,ssd1306";
+				reg = <0x3c>;
+				solomon,width = <128>;
+				solomon,height = <32>;
+				solomon,com-invdir;
+				solomon,com-seq;
+				solomon,page-offset = <0>;
+			};
+		};
+	};
+};

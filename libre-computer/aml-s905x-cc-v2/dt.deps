@@ -15,6 +15,8 @@ i2c-ao-rv3028	i2c-ao
 i2c-ao-ssd1306-128x64	i2c-ao
 i2c-b-at24c32	i2c-b
 i2c-b-ds3231	i2c-b
+i2c-b-ssd1306-128x32	i2c-b
+i2c-b-ssd1306-128x64	i2c-b
 pitft22-overlay	spi-cc-1cs
 pwm-a-fan	pwm-a
 pwm-a-fan-auto	pwm-a-fan

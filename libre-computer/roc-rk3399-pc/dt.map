@@ -4,5 +4,5 @@
 # Values MUST name a real .dts/.dtbo under this board's dt/ (canonical name,
 # not a same-dir legacy alias). Consumed by ldto (MAP_ALIAS_DT).
 # minimal board tree
-
-MEZZANINE	mezzanine
+# The four 30-pin connectors are not a 40-pin header, so no H40P slot exists
+# here; enable the mezzanine overlay by its name.
