@@ -761,6 +761,76 @@ def pins_row_warnings(where: str, header: str,
     return out
 
 
+# dt.map slots: header pins in Raspberry Pi numbering. One code copy of the
+# table in docs/ldto.md "Aliases (dt.map)"; check-overlay-pins.py imports it to
+# check what each alias's overlay chain actually muxes.
+H40P_SLOTS: dict[str, frozenset[int]] = {
+    "I2C_0": frozenset({3, 5}),
+    "I2C_1": frozenset({27, 28}),
+    "SPI_0_1CS": frozenset({19, 21, 23, 24}),
+    "SPI_0_2CS": frozenset({19, 21, 23, 24, 26}),
+    "SPI_1_1CS": frozenset({38, 35, 40, 12}),
+    "UART_0": frozenset({8, 10}),
+}
+_UART_PINS = re.compile(r"^UART_P(\d+)_P(\d+)$")
+_PWM_PIN = re.compile(r"^PWM_P(\d+)$")
+
+
+def h40p_slot(key: str) -> tuple[str, frozenset[int], bool] | None:
+    """(slot, pins, has_device_suffix) for a dt.map key, or None when the key
+    is outside the grammar H40P_<SLOT>[_<DEVICE>]."""
+    if not key.startswith("H40P_"):
+        return None
+    rest = key[len("H40P_"):]
+    for slot in sorted(H40P_SLOTS, key=len, reverse=True):
+        if rest == slot or rest.startswith(slot + "_"):
+            return slot, H40P_SLOTS[slot], rest != slot
+    head = "_".join(rest.split("_")[:3])
+    m = _UART_PINS.match(head)
+    if m:
+        return head, frozenset({int(m.group(1)), int(m.group(2))}), rest != head
+    head = "_".join(rest.split("_")[:2])
+    m = _PWM_PIN.match(head)
+    if m:
+        return head, frozenset({int(m.group(1))}), rest != head
+    return None
+
+
+SLOT_CASES = [
+    # (key, expected slot or None)
+    ("H40P_SPI_0_2CS_LCD_35_MHS3528", "SPI_0_2CS"),
+    ("H40P_I2C_0", "I2C_0"),
+    ("H40P_UART_P5_P3", "UART_P5_P3"),
+    ("H40P_PWM_P38", "PWM_P38"),
+    ("H40P_UART_DEBUG", None),
+    ("SPIFC_NOR", None),
+    ("CSI_0_I2C", None),
+    ("H40P_I2S_1", None),
+    ("H40P_I2S_0", None),   # audio is not a header slot (/lwt H40P policy rule 4)
+]
+
+
+def requires_warning(where: str, header: str, deps: list[str]) -> str | None:
+    """An overlay header's Requires: line must name exactly the providers
+    dt.deps applies -- it is what a reader sees, dt.deps is what ldto does.
+    A fan-auto overlay whose header said nothing still pulled in its fan."""
+    m = re.search(r"^\s*\*\s*Requires:\s*(.+)$", header, re.M)
+    said = set(re.split(r"[,\s]+", m.group(1).strip())) - {""} if m else set()
+    if said != set(deps):
+        return (f"{where}: Requires: says {sorted(said) or 'nothing'}, dt.deps "
+                f"applies {sorted(deps) or 'nothing'}")
+    return None
+
+
+REQUIRES_CASES = [
+    ("matching Requires:", " * Requires: pwm-2\n", ["pwm-2"], None),
+    ("dt.deps provider missing from the header",
+     " * Summary: x\n", ["pwm-a-fan"], "dt.deps applies ['pwm-a-fan']"),
+    ("header names a provider dt.deps lacks", " * Requires: spi-cc-1cs\n", [],
+     "Requires: says ['spi-cc-1cs']"),
+]
+
+
 PINS_MAP = ({("7J1", "16"): ["PG9"], ("J1", "19"): ["GPIO3_A1"]},
             {"PG9": "E3", "GPIO3_A1": "D2"})
 PINS_CASES = [
@@ -811,9 +881,19 @@ def self_test() -> int:
         judge("lgpio-bcm", label, lgpio_bcm_warnings(text), expect)
     for label, text, expect in PINS_CASES:
         judge("overlay-pins", label, pins_row_warnings("case", text, *PINS_MAP), expect)
+    for label, text, deps, expect in REQUIRES_CASES:
+        w = requires_warning("case", text, deps)
+        judge("requires", label, [w] if w else [], expect)
+    for key, want in SLOT_CASES:
+        got = h40p_slot(key)
+        got_slot = got[0] if got else None
+        judge("dt.map-grammar", key,
+              [] if got_slot == want else [f"slot {got_slot!r} != {want!r}"], None)
 
     print(f"check-lwt --self-test: {total - failed}/{total} cases pass "
-          f"(identity, formula, rpi-header, lgpio-bcm, overlay-pins)", file=sys.stderr)
+          f"(identity, formula, rpi-header, lgpio-bcm, overlay-pins, requires, "
+          f"dt.map-grammar)",
+          file=sys.stderr)
     return 1 if failed else 0
 
 
@@ -955,6 +1035,11 @@ class Checker:
             if not alias or not target:
                 self.warn(f"{board.name}: dt.map L{i}: empty key/value")
                 continue
+            if h40p_slot(alias) is None:
+                self.warn(
+                    f"{board.name}: dt.map {alias} is not an H40P slot key "
+                    f"(docs/ldto.md 'Aliases'); enable {target} by name instead"
+                )
             if target not in basenames:
                 self.warn(
                     f"{board.name}: dt.map {alias} → {target} "
@@ -1005,6 +1090,13 @@ class Checker:
         if (board / "dt").is_symlink():
             return
 
+        deps: dict[str, list[str]] = {}
+        if (board / "dt.deps").is_file():
+            for line in (board / "dt.deps").read_text(errors="replace").splitlines():
+                if line.strip() and not line.startswith("#"):
+                    parts = line.split()
+                    deps[parts[0]] = parts[1:]
+
         gpath = board / "gpio.map"
         by_pin: dict[tuple[str, str], list[str]] = {}
         by_name: dict[str, tuple[str, str]] = {}
@@ -1040,6 +1132,12 @@ class Checker:
                 for w in pins_row_warnings(f"{board.name}/{dts.name}", header,
                                            by_pin, pad_of):
                     self.warn(w)
+
+            # Requires: is the human-readable copy of dt.deps
+            w = requires_warning(f"{board.name}/{dts.name}", header,
+                                 deps.get(dts.stem, []))
+            if w:
+                self.warn(w)
 
             # DTS body pad names: if known to map, OK; unknown meson pads warn lightly
             body = text.split("/dts-v1/", 1)[-1]

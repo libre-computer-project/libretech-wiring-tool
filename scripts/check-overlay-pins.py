@@ -319,6 +319,41 @@ def overwrites(dtbo_tree: Tree, before: Tree) -> list[tuple[str, list[str]]]:
     return out
 
 
+def slot_finding(key: str, pins: set[int]) -> str | None:
+    """dt.map positional rule (docs/ldto.md 'Aliases'): a bare slot key muxes
+    exactly the slot's pins; a device key muxes at least them."""
+    s = lwt.h40p_slot(key)
+    if s is None:
+        return None  # grammar is check-lwt's job
+    slot, want, device = s
+    if device and not want <= pins:
+        return f"needs {sorted(want)} (slot {slot}), muxes {sorted(pins)}"
+    if not device and pins != want:
+        return f"is slot {slot} = pins {sorted(want)}, muxes {sorted(pins)}"
+    return None
+
+
+def shared_findings(keypins: dict[str, dict[str, frozenset[int]]]) -> list[str]:
+    """dt.map cross-board rule (docs/ldto.md 'Aliases'): every key is served
+    by at least two boards, and they mux identical header pin positions.
+    A board is one dt/ tree -- revisions and SKUs whose dt/ is a symlink are
+    the same board here."""
+    out = []
+    for key in sorted(keypins):
+        by = keypins[key]
+        if len(by) < 2:
+            out.append(f"{key}: only {', '.join(sorted(by))} has it")
+            continue
+        layouts: dict[frozenset[int], list[str]] = {}
+        for b, pins in by.items():
+            layouts.setdefault(pins, []).append(b)
+        if len(layouts) > 1:
+            out.append(f"{key}: pin positions differ: " + "; ".join(
+                f"{sorted(p)} on {', '.join(sorted(bs))}"
+                for p, bs in sorted(layouts.items(), key=lambda kv: sorted(kv[0]))))
+    return out
+
+
 def touched(dtbo_tree: Tree, base_symbols: dict[str, str]) -> list[str]:
     """Merged-tree paths of every node an overlay's fragments write."""
     out = []
@@ -493,11 +528,56 @@ FAMILY = {"gxl": "meson", "g12a": "meson", "h3": "sunxi", "h5": "sunxi",
 BINDING = {"gxl": "meson-gxl-gpio.h", "g12a": "meson-g12a-gpio.h"}
 
 
+def check_slots(board: Path, base: Path, family: str, groups, bindings, irqids,
+                edges, stats: dict) -> None:
+    """Every dt.map key (this board's, symlinked maps included) against the
+    header pins its overlay chain muxes, in Raspberry Pi numbering."""
+    gmap, mp = board / "gpio.map", board / "dt.map"
+    hdr = lwt.read_rpi_header(gmap) if gmap.is_file() else None
+    if not hdr or not mp.is_file():
+        return
+    pin_of = {}
+    for r in lwt.load_gpio_map(gmap):
+        if r["header"] == hdr and not r.get("_bad"):
+            pin_of.setdefault(r["name"].rstrip("*"), int(r["pin"]))
+    with tempfile.TemporaryDirectory(prefix=f"lwt-slots-{board.name}-") as tmp:
+        for line in mp.read_text().splitlines():
+            if not line.strip() or line.startswith("#"):
+                continue
+            key, ov = line.split()[:2]
+            chain = [board / "dt" / f"{c}.dtbo" for c in fdt.expand_chain(ov, edges)]
+            out = Path(tmp) / "a.dtb"
+            if fdt.run_fdtoverlay("fdtoverlay", base, chain, out)[0] != 0:
+                continue  # check-fdtoverlay reports apply failures
+            t = Tree(parse_dts(dts_of(out)))
+            res = Resolver(family, t, groups, bindings, irqids)
+            pads: set[str] = set()
+            for c in chain:
+                for p in touched(Tree(parse_dts(dts_of(c))), t.symbols):
+                    pads |= res.node_pads(p)
+            stats["slots"] += 1
+            pins = {pin_of[p] for p in pads if p in pin_of}
+            stats["keypins"].setdefault(key, {})[board.name] = frozenset(pins)
+            why = slot_finding(key, pins)
+            if why:
+                stats["slot_bad"] += 1
+                print(f"SLOT: {board.name}: dt.map {key} -> {ov} {why}")
+
+
 def check_board(board: Path, roots, linux: Path, stats: dict) -> None:
     soc = pinmux.SOC_OF_BOARD.get(board.name)
     family = FAMILY.get(soc or "")
-    if (board / "dt").is_symlink() or not family:
+    if (board / "dt").is_symlink():
+        owner = (board / "dt").resolve().parent
+        mine, theirs = board / "dt.map", owner / "dt.map"
+        if (mine.is_file() and theirs.is_file()
+                and mine.read_text() != theirs.read_text()):
+            stats["slot_bad"] += 1
+            print(f"SLOT: {board.name}: dt.map differs from {owner.name}'s, "
+                  f"which owns its dt/ and is the map that gets checked")
         return  # checked under the board that owns the files
+    if not family:
+        return
     base = fdt.resolve_base(fdt.parse_dt_config(board / "dt.config") or "", roots)
     if base is None:
         stats["skip"] += 1
@@ -521,6 +601,7 @@ def check_board(board: Path, roots, linux: Path, stats: dict) -> None:
     base_compat = fdt.root_compatible(base)
     edges = fdt.load_deps(board / "dt.deps")
     dt_dir = board / "dt"
+    check_slots(board, base, family, groups, bindings, irqids, edges, stats)
     with tempfile.TemporaryDirectory(prefix=f"lwt-pins-{board.name}-") as tmp:
         for stem, dtbo in fdt.unique_overlays(dt_dir):
             dts = dt_dir / f"{stem}.dts"
@@ -717,6 +798,20 @@ def self_test() -> int:
              '\t\t\tmap-fan {\n\t\t\t\ttrip = <0x09>;\n\t\t\t};\n\t\t};\n\t};\n};\n')),
              Tree(parse_dts('/ {\n\tmaps {\n\t\tmap1 {\n\t\t\ttrip = <0x03>;\n'
                             '\t\t};\n\t};\n};\n'))), [("/maps/map1", ["trip"])]),
+        ("SLOT: bare UART_0 that also takes RTS/CTS (16/18) fires",
+         slot_finding("H40P_UART_0", {8, 10, 16, 18}) is not None, True),
+        ("SLOT: H3-style SPI_1 on 22/32/36/37 fires",
+         slot_finding("H40P_SPI_1_1CS", {22, 32, 36, 37}) is not None, True),
+        ("SLOT: device key may add its own pins",
+         slot_finding("H40P_SPI_0_2CS_LCD_35", {11, 18, 19, 21, 22, 23, 24, 26}), None),
+        ("SHARED: a key only one board has fires",
+         len(shared_findings({"H40P_PWM_P7": {"a": frozenset({7})}})), 1),
+        ("SHARED: two boards at different pins fire",
+         len(shared_findings({"H40P_I2C_0_X": {"a": frozenset({3, 5}),
+                                               "b": frozenset({3, 5, 7})}})), 1),
+        ("SHARED: two boards at identical pins pass",
+         shared_findings({"H40P_I2C_0": {"a": frozenset({3, 5}),
+                                         "b": frozenset({3, 5})}}), []),
         ("rockchip pins cells decode",
          Resolver("rockchip", Tree(parse_dts(
              '/ {\n\tp {\n\t\trockchip,pins = <0x03 0x19 0x01 0x08>;\n\t};\n};\n')),
@@ -754,18 +849,24 @@ def main() -> int:
     roots = [Path(d) for d in a.dtb_dir] + fdt.home_paths()
     stats = {"overlays": 0, "with_pads": 0, "undocumented": 0, "stale": 0, "skip": 0,
              "missing": 0, "collide": 0, "merge": 0, "explain": a.explain, "fix": a.fix,
-             "fixed": 0}
+             "fixed": 0, "slots": 0, "slot_bad": 0, "keypins": {}}
     for board in fdt.board_dirs(a.board):
         check_board(board, roots, linux, stats)
+    shared = [] if a.board else shared_findings(stats["keypins"])
+    for f in shared:
+        print(f"SHARED: dt.map {f}")
     print(f"check-overlay-pins: {stats['overlays']} overlays resolved, "
           f"{stats['with_pads']} mux header pads; {stats['undocumented']} undocumented, "
           f"{stats['stale']} stale, {stats['missing']} on no package pad, "
           f"{stats['collide']} colliding with an enabled node, "
           f"{stats['merge']} rewriting an existing node, "
           f"{stats.get('residue', 0)} with Notes residue; "
+          f"{stats['slots']} dt.map keys checked, {stats['slot_bad']} off their slot, "
+          f"{len(shared)} not shared by 2+ boards at identical pins; "
           f"{stats['skip']} board(s) without a base DTB")
     return 1 if (stats["undocumented"] or stats["stale"] or stats["missing"]
-                 or stats["collide"] or stats["merge"] or stats.get("residue")) else 0
+                 or stats["collide"] or stats["merge"] or stats.get("residue")
+                 or stats["slot_bad"] or shared) else 0
 
 
 if __name__ == "__main__":

@@ -138,17 +138,37 @@ upgrades if you rely on permanent overlays.
 ## Aliases (dt.map)
 
 Board-agnostic names for common 40-pin functions (values are **canonical**
-overlay basenames):
+overlay basenames). A key names a **position**, not a SoC controller: it
+means the same header pins on every board that has it, so a HAT that works
+with `H40P_SPI_0_1CS` on one board works with it on all of them.
 
-```text
-H40P_I2C_0              I2C on pins 3, 5
-H40P_I2C_1              I2C on pins 27, 28
-H40P_SPI_0_1CS          SPI + CS on pin 24
-H40P_SPI_0_2CS          SPI + CS on pins 24, 26
-H40P_SPI_0_*_DEV        … + spidev
-H40P_UART_0             UART on pins 8, 10
-H40P_PWM_P*             PWM on pin *
-```
+| Slot | Header pins (Raspberry Pi numbering) |
+|---|---|
+| `H40P_I2C_0` | 3 (SDA), 5 (SCL) |
+| `H40P_I2C_1` | 27 (SDA), 28 (SCL) |
+| `H40P_SPI_0_1CS` | 19 (MOSI), 21 (MISO), 23 (SCLK), 24 (CS0) |
+| `H40P_SPI_0_2CS` | as `_1CS`, plus 26 (CS1) |
+| `H40P_SPI_1_1CS` | 38 (MOSI), 40 (MISO), 12 (SCLK), 35 (CS0) -- the Pi's SPI1 pins, but not its signal order (Pi: 35 MISO, 40 SCLK, 12 CE0); a Pi SPI1 HAT does not work here |
+| `H40P_UART_0` | 8 (TX), 10 (RX) -- no flow control |
+| `H40P_UART_P<tx>_P<rx>` | a UART on the two named pins |
+| `H40P_PWM_P<n>` | PWM on pin n |
+
+Grammar: `H40P_<SLOT>[_<DEVICE>]`, where `<SLOT>` is a row above and
+`_<DEVICE>` names what sits on that slot (`_DEV` for spidev, a panel or
+sensor). Three rules follow, and `make check` enforces all of them:
+
+- **Shared by at least two boards, at identical pins.** A key exists only
+  when two or more boards (two `dt/` trees -- revisions sharing one `dt/`
+  count once) map it, and every one of them muxes the same header pin
+  positions. An overlay only one board has is enabled by its name.
+
+- **Position, not controller.** A board whose controller cannot reach a
+  slot's pins does not get that key. Its overlay is still there under its own
+  name. For example, H3's SPI1 is on pins 22/32/36/37, so it has no
+  `H40P_SPI_1_1CS`; `ldto enable spi-1-1cs` still works.
+- **Nothing outside the grammar.** CPU operating points, NOR flash, a carrier
+  board, a debug UART, a camera bus or audio (I2S) are not 40-pin header
+  slots. They are enabled by overlay name and never get a `dt.map` key.
 
 Use `ldto list` / `ldto info <alias>` for the board’s actual mapping.
 Some PWM controllers expose two outputs via different overlays — only
