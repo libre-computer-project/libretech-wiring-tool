@@ -4,7 +4,7 @@
  * Author: Da Xue <da@libre.computer>
  */
 /*
- * Summary: spi-0-2cs-spidev
+ * Summary: spidev on SPI0 CS0 and CS1 (40P header 7J1 pins 24 and 26)
  *
  * Requires: spi-0-2cs
  */

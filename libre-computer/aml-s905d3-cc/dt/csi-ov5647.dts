@@ -9,7 +9,7 @@
  * 25MHz crystal oscillator.
  */
 /*
- * Summary: csi-ov5647
+ * Summary: OV5647 camera on the MIPI CSI connector (sensor on I2C3)
  *
  * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
  *   ?.?    GPIOAO_10     ?       (not in gpio.map)

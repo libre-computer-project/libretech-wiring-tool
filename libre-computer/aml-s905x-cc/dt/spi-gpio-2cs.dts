@@ -4,7 +4,7 @@
  * Author: Da Xue <da@libre.computer>
  */
 /*
- * Summary: spi-gpio-2cs
+ * Summary: Bit-banged SPI (spi-gpio) on 40P header 7J1 pins 19 (MOSI), 21 (MISO), 23 (SCLK), 24 (CS0), 26 (CS1)
  *
  * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
  *   7J1.19   GPIOX_8       B4      BTPCM_DOUT
@@ -51,7 +51,6 @@
 				num-chipselects = <2>;
 				status = "okay";
 			};
-
 		};
 	};
 };

@@ -4,7 +4,7 @@
  * Author: Thomas McKahan <tonymckahan@gmail.com>
  */
 /*
- * Summary: spi-cc-1cs-mcp2515-can0
+ * Summary: MCP2515 CAN controller on 40P header SPI0 CS0, interrupt on pin 22
  *
  * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
  *   7J1.22   GPIOX_0       A2      WIFI_SD_D0

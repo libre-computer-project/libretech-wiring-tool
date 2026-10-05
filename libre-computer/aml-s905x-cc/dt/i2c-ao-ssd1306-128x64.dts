@@ -4,7 +4,7 @@
  * Author: Da Xue <da@libre.computer>
  */
 /*
- * Summary: i2c-ao-ssd1306-128x64
+ * Summary: SSD1306 128x64 OLED on I2C_AO (40P header pins 3/5)
  *
  * Requires: i2c-ao
  * Resource-provides: i2c:i2c_AO@0x3c

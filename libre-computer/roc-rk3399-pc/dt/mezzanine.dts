@@ -3,7 +3,7 @@
  * Copyright (c) Libre Computer Project
  */
 /*
- * Summary: mezzanine
+ * Summary: Firefly ROC-RK3399-PC Mezzanine: M.2 PCIe x4, M.2 SDIO WiFi, Bluetooth UART, PoE
  *
  * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
  *   J12.3    GPIO4_D3      AK3     GPIO4_D3

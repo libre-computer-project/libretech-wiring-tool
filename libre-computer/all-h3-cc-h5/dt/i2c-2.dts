@@ -4,7 +4,7 @@
  * Author: Da Xue <da@libre.computer>
  */
 /*
- * Summary: DVP
+ * Summary: I2C2 on the DVP camera connector (PE12 SCL, PE13 SDA)
  *
  * Notes:
  * PE12 SCL

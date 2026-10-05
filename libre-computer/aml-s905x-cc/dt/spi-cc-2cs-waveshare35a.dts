@@ -4,7 +4,7 @@
  * Author: Da Xue <da@libre.computer>
  */
 /*
- * Summary: spi-cc-2cs-waveshare35a
+ * Summary: Waveshare 3.5" (A) LCD, ILI9486 + XPT2046 touch, on 40P header SPI0 2CS
  *
  * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
  *   7J1.11   GPIOAO_8*     F17     I2SOUT-CH23

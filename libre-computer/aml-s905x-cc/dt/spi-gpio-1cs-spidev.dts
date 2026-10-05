@@ -3,7 +3,7 @@
  * Copyright (c) Libre Computer Project
  */
 /*
- * Summary: spi-gpio-1cs-spidev
+ * Summary: spidev on the bit-banged SPI bus (spi-gpio) CS0
  *
  * Requires: spi-gpio-1cs
  */

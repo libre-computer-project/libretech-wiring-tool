@@ -4,7 +4,7 @@
  * Author: Jerome Brunet <jbrunet@baylibre.com>
  */
 /*
- * Summary: spdif
+ * Summary: S/PDIF output on header 9J1 pin 2
  * Resource-provides: pin:9J1-2
  *
  * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):

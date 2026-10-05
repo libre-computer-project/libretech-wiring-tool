@@ -4,7 +4,7 @@
  * Author: Da Xue <da@libre.computer>
  */
 /*
- * Summary: spi-cc-1cs-st7735r-128x128
+ * Summary: Okaya RH128128T (ST7735R) 128x128 SPI LCD on 40P header SPI0 CS0, backlight on pin 22
  *
  * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
  *   7J1.22   GPIOX_0       A2      WIFI_SD_D0

@@ -4,7 +4,7 @@
  * Author: Da Xue <da@libre.computer>
  */
 /*
- * Summary: spifc-nor
+ * Summary: SPI NOR flash on the SPIFC; eMMC drops to a 4-bit bus to free the pads they share
  */
 /dts-v1/;
 /plugin/;

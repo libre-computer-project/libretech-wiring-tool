@@ -49,6 +49,7 @@ spi-cc-1cs-st7789v-240x320-fbdev	spi-cc-1cs
 spi-cc-1cs2-ads7846-irq-22	spi-cc-1cs-cs1
 spi-cc-2cs-ili9486-ads7846-irq-22	spi-cc-2cs
 spi-cc-2cs-ili9486-xpt2046	spi-cc-2cs
+spi-cc-2cs-mcp2515-can-dual	spi-cc-2cs
 spi-cc-2cs-mhs3528	spi-cc-2cs
 spi-cc-2cs-mpi3501	spi-cc-2cs
 spi-cc-2cs-spidev	spi-cc-2cs

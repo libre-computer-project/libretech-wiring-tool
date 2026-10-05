@@ -4,7 +4,7 @@
  * Author: Da Xue <da@libre.computer>
  */
 /*
- * Summary: spi-cc1-2cs-mhs3528
+ * Summary: MHS-3.5" (MHS3528) LCD, ILI9486 + XPT2046 touch, on 40P header SPI0 2CS
  *
  * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
  *   7J1.11   GPIOAO_7      AV46    GPIOAO_7/JTAG_TMS

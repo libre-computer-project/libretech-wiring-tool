@@ -4,7 +4,7 @@
  * Author: Da Xue <da@libre.computer>
  */
 /*
- * Summary: 40P GPIO
+ * Summary: I2S0 on 40P header 7J1 pins 27 (BCLK), 28 (LRCK), 29 (DOUT), 31 (DIN)
  *
  * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
  *   7J1.27   PA19          B14     I2S0-SCLK

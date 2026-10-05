@@ -4,7 +4,7 @@
  * Author: Da Xue <da@libre.computer>
  */
 /*
- * Summary: 40P GPIO
+ * Summary: UART1 on 40P header 7J1 pins 8 (TX), 10 (RX), 16 (CTS), 18 (RTS)
  *
  * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
  *   7J1.8    PG6           G4      AP-UART1-TX

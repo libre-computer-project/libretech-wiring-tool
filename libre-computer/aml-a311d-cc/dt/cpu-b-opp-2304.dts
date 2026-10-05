@@ -4,7 +4,7 @@
  * Author: Da Xue <da@libre.computer>
  */
 /*
- * Summary: cpu-b-opp-2304
+ * Summary: Add the 2.304 GHz operating point to the big (Cortex-A73) CPU cluster
  */
 /dts-v1/;
 /plugin/;

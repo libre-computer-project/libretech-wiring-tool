@@ -3,7 +3,7 @@
  * Copyright (c) Libre Computer Project
  */
 /*
- * Summary: spi-gpio-1cs-ili9486
+ * Summary: 3.5" ILI9486 LCD (no touch) on the bit-banged SPI bus (spi-gpio) CS0
  *
  * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
  *   7J1.18   GPIOX_15      C7      UART_A_RTS_N

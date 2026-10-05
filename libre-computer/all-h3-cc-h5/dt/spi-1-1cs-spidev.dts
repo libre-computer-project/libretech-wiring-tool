@@ -3,7 +3,7 @@
  * Copyright (c) Libre Computer Project
  */
 /*
- * Summary: spi-1-1cs-spidev
+ * Summary: spidev on SPI1 CS0 (40P header 7J1 pin 32)
  *
  * Requires: spi-1-1cs
  */
@@ -23,7 +23,7 @@
 		__overlay__ {
 			#address-cells = <1>;
 			#size-cells = <0>;
-			spidev {
+			spidev@0 {
 				compatible = "rohm,dh2228fv";
 				reg = <0>;
 				spi-max-frequency = <30000000>;

@@ -4,7 +4,7 @@
  * Author: Da Xue <da@libre.computer>
  */
 /*
- * Summary: cpu-l-opp-2208
+ * Summary: Add the 2.208 GHz operating point to the little (Cortex-A53) CPU cluster
  */
 /dts-v1/;
 /plugin/;

@@ -4,7 +4,7 @@
  * Author: Da Xue <da@libre.computer>
  */
 /*
- * Summary: spi-cc-1cs-cs1
+ * Summary: SPI0 on 40P header 7J1 pins 19 (MOSI), 21 (MISO), 23 (SCLK), with its one CS on pin 26
  *
  * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
  *   7J1.19   GPIOX_8       B4      BTPCM_DOUT

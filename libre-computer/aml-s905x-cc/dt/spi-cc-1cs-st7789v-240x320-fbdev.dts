@@ -4,7 +4,7 @@
  * Author: Da Xue <da@libre.computer>
  */
 /*
- * Summary: spi-cc-1cs-st7789v-240x320-fbdev
+ * Summary: ST7789V 240x320 SPI LCD on 40P header SPI0 CS0, fbtft driver
  *
  * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
  *   7J1.22   GPIOX_0       A2      WIFI_SD_D0

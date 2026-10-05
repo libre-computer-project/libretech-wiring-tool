@@ -4,7 +4,7 @@
  * Author: Da Xue <da@libre.computer>
  */
 /*
- * Summary: 40P GPIO
+ * Summary: UART2 on 40P header 7J1 pins 13 (TX) and 11 (RX)
  *
  * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
  *   7J1.11   PA1           D5      CPUX-TCK

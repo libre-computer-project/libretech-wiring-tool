@@ -4,7 +4,7 @@
  * Author: Da Xue <da@libre.computer>
  */
 /*
- * Summary: spi-gpio-2cs-spidev
+ * Summary: spidev on the bit-banged SPI bus (spi-gpio) CS0 and CS1
  *
  * Requires: spi-gpio-2cs
  */

@@ -50,7 +50,6 @@
 				num-chipselects = <1>;
 				status = "okay";
 			};
-
 		};
 	};
 };

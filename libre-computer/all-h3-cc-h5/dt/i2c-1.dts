@@ -4,7 +4,7 @@
  * Author: Da Xue <da@libre.computer>
  */
 /*
- * Summary: 40P GPIO
+ * Summary: I2C1 on 40P header 7J1 pins 27 (SDA) and 28 (SCL)
  *
  * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
  *   7J1.27   PA19          B14     I2S0-SCLK
