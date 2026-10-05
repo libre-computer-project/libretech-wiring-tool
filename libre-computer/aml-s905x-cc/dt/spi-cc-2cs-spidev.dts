@@ -23,7 +23,7 @@
 
 	fragment@0 {
 		target = <&spicc>;
-		
+
 		__overlay__ {
 			spidev@0 {
 				compatible = "rohm,dh2228fv";

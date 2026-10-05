@@ -24,12 +24,11 @@
 		"libretech,aml-s905x-cc-v3",
 		"amlogic,s905x",
 		"amlogic,meson-gxl";
-fragment@0 {
+	fragment@0 {
 		target-path = "/cvbs-connector";
-		
+
 		__overlay__ {
 			status = "disabled";
 		};
 	};
 };
-

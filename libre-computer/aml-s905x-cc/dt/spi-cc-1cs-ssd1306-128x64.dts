@@ -30,7 +30,7 @@
 
 	fragment@0 {
 		target = <&spicc>;
-		
+
 		__overlay__ {
 			ssd1306@0 {
 				compatible = "solomon,ssd1306";

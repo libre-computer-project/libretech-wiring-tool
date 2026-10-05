@@ -36,7 +36,7 @@
 
 	fragment@0 {
 		target = <&spicc>;
-		
+
 		__overlay__ {
 			st7735r@0 {
 				compatible = "sitronix,st7735r";
@@ -48,7 +48,7 @@
 				height = <128>;	/* fbtft/legacy */
 				width = <128>;	/* fbtft/legacy */
 				buswidth = <16>;	/* fbtft/legacy */
-				
+
 				spi-max-frequency = <41666666>;
 				status = "okay";
 			};

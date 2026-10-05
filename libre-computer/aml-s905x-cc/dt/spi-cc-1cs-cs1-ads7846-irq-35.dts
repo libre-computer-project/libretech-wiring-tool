@@ -28,12 +28,11 @@
 		"libretech,aml-s905x-cc-v3",
 		"amlogic,s905x",
 		"amlogic,meson-gxl";
-	
+
 	fragment@0 {
 		target = <&spicc>;
-		
-		__overlay__ {
 
+		__overlay__ {
 			touchscreen@0 {
 				compatible = "ti,ads7846";
 				reg = <0>;

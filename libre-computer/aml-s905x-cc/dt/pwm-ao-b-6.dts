@@ -24,9 +24,9 @@
 		"libretech,aml-s905x-cc-v3",
 		"amlogic,s905x",
 		"amlogic,meson-gxl";
-fragment@0 {
+	fragment@0 {
 		target = <&pwm_AO_ab>;
-		
+
 		__overlay__ {
 			status = "okay";
 			pinctrl-0 = <&pwm_ao_b_6_pins>;

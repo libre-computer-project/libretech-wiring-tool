@@ -22,7 +22,7 @@
 
 	fragment@0 {
 		target = <&pwm_ef>;
-		
+
 		__overlay__ {
 			status = "okay";
 			pinctrl-0 = <&pwm_e_pins>;

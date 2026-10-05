@@ -32,7 +32,7 @@
 		"libretech,aml-s905x-cc-v3",
 		"amlogic,s905x",
 		"amlogic,meson-gxl";
-fragment@0 {
+	fragment@0 {
 		target = <&fan0>;
 		__overlay__ {
 			cooling-levels = <0 100 150 200 255>;

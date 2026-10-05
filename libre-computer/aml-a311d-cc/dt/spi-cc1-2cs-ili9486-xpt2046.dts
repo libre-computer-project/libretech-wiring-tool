@@ -39,12 +39,11 @@
 		"amlogic,g12b",
 		"amlogic,s905d3",
 		"amlogic,sm1";
-	
+
 	fragment@0 {
 		target = <&spicc1>;
-		
-		__overlay__ {
 
+		__overlay__ {
 			display@0 {
 				compatible = "waveshare,rpi-lcd-35",	/* tinydrm: drm/tiny/ili9486 */
 					"ilitek,ili9486";	/* fbtft/legacy: staging/fbtft/fb_ili9486 */

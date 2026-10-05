@@ -34,7 +34,7 @@
 
 	fragment@0 {
 		target = <&spicc>;
-		
+
 		__overlay__ {
 			display@0 {
 				compatible = "waveshare,rpi-lcd-35",	/* tinydrm: drm/tiny/ili9486 */

@@ -55,7 +55,7 @@
 		__overlay__ {
 			#address-cells = <1>;
 			#size-cells = <0>;
-			
+
 			display@0 {
 				compatible = "waveshare,rpi-lcd-35",	/* tinydrm: drm/tiny/ili9486 */
 					"ilitek,ili9486";	/* fbtft/legacy: staging/fbtft/fb_ili9486 */

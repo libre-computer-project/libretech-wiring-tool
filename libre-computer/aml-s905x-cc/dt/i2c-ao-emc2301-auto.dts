@@ -25,14 +25,14 @@
 
 / {
 	compatible = "libre-computer,aml-s905x-cc",
-		     "libretech,aml-s905x-cc",
-		     "libre-computer,aml-s905x-cc-v2",
-		     "libretech,aml-s905x-cc-v2",
+		"libretech,aml-s905x-cc",
+		"libre-computer,aml-s905x-cc-v2",
+		"libretech,aml-s905x-cc-v2",
 		"libre-computer,aml-s905x-cc-v3",
 		"libretech,aml-s905x-cc-v3",
-		     "amlogic,s905x",
-		     "amlogic,meson-gxl";
-fragment@0 {
+		"amlogic,s905x",
+		"amlogic,meson-gxl";
+	fragment@0 {
 		target-path = "/thermal-zones/cpu-thermal/trips";
 
 		__overlay__ {

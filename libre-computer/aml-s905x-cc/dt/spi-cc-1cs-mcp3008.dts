@@ -28,7 +28,7 @@
 	 * vref-supply the driver gets the dummy regulator, raw reads work and
 	 * in_voltage_scale fails (regulator_get_voltage on the dummy).
 	 */
-	fragment@1 {
+	fragment@0 {
 		target-path = "/";
 
 		__overlay__ {
@@ -42,7 +42,7 @@
 		};
 	};
 
-	fragment@0 {
+	fragment@1 {
 		target = <&spicc>;
 
 		__overlay__ {

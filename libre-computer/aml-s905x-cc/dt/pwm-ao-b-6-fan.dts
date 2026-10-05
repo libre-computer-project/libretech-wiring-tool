@@ -32,7 +32,7 @@
 		"libretech,aml-s905x-cc-v3",
 		"amlogic,s905x",
 		"amlogic,meson-gxl";
-fragment@0 {
+	fragment@0 {
 		target = <&spdif_out_h_pins>;
 		__overlay__ {
 			mux {
@@ -40,7 +40,7 @@ fragment@0 {
 			};
 		};
 	};
-	
+
 	fragment@1 {
 		target-path = "/";
 		__overlay__ {

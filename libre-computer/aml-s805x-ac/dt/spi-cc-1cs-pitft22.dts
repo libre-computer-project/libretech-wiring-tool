@@ -41,7 +41,7 @@
 
 	fragment@0 {
 		target = <&spicc>;
-		
+
 		__overlay__ {
 			display@0 {
 				compatible = "adafruit,yx240qv29",	/* tinydrm: drm/tiny/ili9341 */

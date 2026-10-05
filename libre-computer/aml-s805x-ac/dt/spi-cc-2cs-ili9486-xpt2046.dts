@@ -36,12 +36,12 @@
 
 	fragment@0 {
 		target = <&cec_AO>;
-		
+
 		__overlay__ {
 			status = "disabled";
 		};
 	};
-	
+
 	fragment@1 {
 		target = <&pinctrl_aobus>;
 
@@ -59,9 +59,8 @@
 
 	fragment@2 {
 		target = <&spicc>;
-		
-		__overlay__ {
 
+		__overlay__ {
 			display@0 {
 				compatible = "waveshare,rpi-lcd-35",	/* tinydrm: drm/tiny/ili9486 */
 					"ilitek,ili9486";	/* fbtft/legacy: staging/fbtft/fb_ili9486 */

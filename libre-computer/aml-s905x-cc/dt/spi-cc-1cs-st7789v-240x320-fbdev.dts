@@ -36,7 +36,7 @@
 
 	fragment@0 {
 		target = <&spicc>;
-		
+
 		__overlay__ {
 			st7789v@0 {
 				compatible = "sitronix,st7789v";

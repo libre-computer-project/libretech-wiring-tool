@@ -22,7 +22,7 @@
 		"libretech,aml-s905x-cc-v3",
 		"amlogic,s905x",
 		"amlogic,meson-gxl";
-fragment@0 {
+	fragment@0 {
 		target = <&pwm_ef>;
 
 		__overlay__ {

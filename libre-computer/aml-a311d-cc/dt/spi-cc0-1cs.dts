@@ -19,37 +19,36 @@
 #include <dt-bindings/gpio/meson-g12a-gpio.h>
 
 / {
-        compatible = "libre-computer,aml-a311d-cc",
-            "libretech,aml-a311d-cc",
-            "libre-computer,aml-a311d-cc-v01",
-            "libretech,aml-a311d-cc-v01",
-            "libre-computer,aml-s905d3-cc",
-            "libretech,aml-s905d3-cc",
-            "libre-computer,aml-s905d3-cc-v01",
-            "libretech,aml-s905d3-cc-v01",
-            "amlogic,a311d",
-            "amlogic,g12b",
-            "amlogic,s905d3",
-            "amlogic,sm1";
+	compatible = "libre-computer,aml-a311d-cc",
+		"libretech,aml-a311d-cc",
+		"libre-computer,aml-a311d-cc-v01",
+		"libretech,aml-a311d-cc-v01",
+		"libre-computer,aml-s905d3-cc",
+		"libretech,aml-s905d3-cc",
+		"libre-computer,aml-s905d3-cc-v01",
+		"libretech,aml-s905d3-cc-v01",
+		"amlogic,a311d",
+		"amlogic,g12b",
+		"amlogic,s905d3",
+		"amlogic,sm1";
 
-        fragment@0 {
-                target-path = "/aliases";
+	fragment@0 {
+		target-path = "/aliases";
 
-                __overlay__ {
-                        spi2 = "/soc/bus@ffd00000/spi@13000";
-                };
-        };
+		__overlay__ {
+			spi2 = "/soc/bus@ffd00000/spi@13000";
+		};
+	};
 
-        fragment@1 {
-                target = <&spicc0>;
+	fragment@1 {
+		target = <&spicc0>;
 
-                __overlay__ {
-                        status = "okay";
-                        pinctrl-0 = <&spicc0_x_pins>, <&spicc0_ss0_x_pins>;
-                        pinctrl-names = "default", "default";
+		__overlay__ {
+			status = "okay";
+			pinctrl-0 = <&spicc0_x_pins>, <&spicc0_ss0_x_pins>;
+			pinctrl-names = "default", "default";
 
-                        cs-gpios = <&gpio GPIOX_10 GPIO_ACTIVE_LOW>;
-                };
-        };
+			cs-gpios = <&gpio GPIOX_10 GPIO_ACTIVE_LOW>;
+		};
+	};
 };
-

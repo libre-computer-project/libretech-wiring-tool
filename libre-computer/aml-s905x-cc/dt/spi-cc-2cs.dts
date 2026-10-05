@@ -39,7 +39,7 @@
 
 	fragment@1 {
 		target = <&spicc>;
-		
+
 		__overlay__ {
 			status = "okay";
 			pinctrl-0 = <&spi_pins>;

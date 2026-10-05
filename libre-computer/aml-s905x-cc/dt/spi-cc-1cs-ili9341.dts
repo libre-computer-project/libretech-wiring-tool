@@ -45,7 +45,7 @@
 
 	fragment@0 {
 		target = <&spicc>;
-		
+
 		__overlay__ {
 			/*
 			 * The display signals are connected to :

@@ -33,7 +33,7 @@
 		"libretech,roc-rk3328-cc-v2",
 		"firefly,roc-rk3328-cc",
 		"rockchip,rk3328";
-	
+
 	/*
 	 * The tach is an open-collector output and needs a pull-up. Rockchip
 	 * configures a pin through "rockchip,pins" cells; the Amlogic-style

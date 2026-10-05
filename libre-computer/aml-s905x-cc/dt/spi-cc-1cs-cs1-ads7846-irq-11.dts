@@ -31,17 +31,16 @@
 
 	fragment@0 {
 		target = <&cec_AO>;
-		
+
 		__overlay__ {
 			status = "disabled";
 		};
 	};
-	
+
 	fragment@1 {
 		target = <&spicc>;
-		
-		__overlay__ {
 
+		__overlay__ {
 			touchscreen@0 {
 				compatible = "ti,ads7846";
 				reg = <0>;

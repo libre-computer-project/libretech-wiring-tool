@@ -30,7 +30,7 @@
 
 	fragment@0 {
 		target-path = "/";
-		
+
 		__overlay__ {
 			spigpio0: spigpio@0 {
 				compatible = "spi-gpio";
@@ -54,4 +54,3 @@
 		};
 	};
 };
-

@@ -28,7 +28,7 @@
 
 	fragment@0 {
 		target-path = "/aliases";
-		
+
 		__overlay__ {
 			spi0 = "/spi@ff190000";
 		};
@@ -36,7 +36,7 @@
 
 	fragment@1 {
 		target = <&spi0>;
-		
+
 		__overlay__ {
 			status = "okay";
 			num-cs = <1>;

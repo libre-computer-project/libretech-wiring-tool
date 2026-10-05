@@ -21,7 +21,7 @@
 
 	fragment@0 {
 		target = <&sd_emmc_b>;
-		
+
 		__overlay__ {
 			max-frequency = <200000000>;
 		};

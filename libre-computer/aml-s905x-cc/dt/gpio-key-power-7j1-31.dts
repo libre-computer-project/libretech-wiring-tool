@@ -35,7 +35,7 @@
 				#address-cells = <1>;
 				#size-cells = <0>;
 				autorepeat;
-				
+
 				power-button {
 					label = "Power Button";
 					linux,code = <116>;
@@ -47,4 +47,3 @@
 		};
 	};
 };
-
