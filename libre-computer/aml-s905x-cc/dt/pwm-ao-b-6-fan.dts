@@ -9,6 +9,9 @@
  * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
  *   7J1.12   GPIOAO_6      C11     PWM_F
  *   9J1.2    GPIOH_4       G19     SPDIF_OUT
+ *
+ * Requires: pwm-ao-b-6
+ *
  * Resource-provides: label:fan0, pin:9J1-2
  * Resource-requires: pwm_AO_ab.ch1@7J1-12
  */

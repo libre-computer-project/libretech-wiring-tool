@@ -9,6 +9,9 @@
  * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
  *   7J1.35   GPIOX_7       C1      WIFI_WAKE_HOST
  *   9J1.2    GPIOH_4       G19     SPDIF_OUT
+ *
+ * Requires: pwm-f
+ *
  * Resource-provides: label:fan0, pin:9J1-2
  * Resource-requires: pwm_ef.ch1@7J1-35
  */

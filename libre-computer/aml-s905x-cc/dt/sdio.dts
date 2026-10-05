@@ -21,6 +21,8 @@
  *   7J1.38   GPIOX_3       B1      WIFI_SD_D3
  *   7J1.40   GPIOX_4       B2      WIFI_SD_CLK
  *
+ * Requires: pwm-e
+ *
  * Resource-provides: bus:uart_C
  * Resource-requires: pwm_ef.ch0@7J1-32
  *

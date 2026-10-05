@@ -6,6 +6,8 @@
 /*
  * Summary: Raspberry Pi Sense HAT sensors on I2C_AO.
  *
+ * Requires: i2c-ao
+ *
  * Resource-provides: i2c:i2c_AO@0x46
  * Resource-requires: bus:i2c_AO
  * Notes:

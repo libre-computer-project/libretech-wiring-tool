@@ -10,6 +10,8 @@
  *   7J1.3    GPIOAO_3      BF13    I2C_AO_M0_SDA
  *   7J1.5    GPIOAO_2      AU40    I2C_AO_M0_SCL
  *
+ * Requires: i2c-ao-emc2301
+ *
  * Resource-requires: emc2301-fan
  * Notes:
  *   Requires i2c-ao-emc2301 (device + fan0). Maps cpu-thermal trips to fan0.

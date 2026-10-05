@@ -11,6 +11,8 @@
  *   7J1.18   GPIOX_15      C7      UART_A_RTS_N
  *   7J1.22   GPIOX_0       A2      WIFI_SD_D0
  *
+ * Requires: spi-gpio-2cs
+ *
  * Notes:
  * Display stack: tinydrm (DRM tiny / panel) preferred; staging fbtft is the
  * legacy fallback when both are built. Compatible order is tinydrm-first.

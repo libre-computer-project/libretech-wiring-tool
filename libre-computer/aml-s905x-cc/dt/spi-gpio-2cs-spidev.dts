@@ -5,6 +5,8 @@
  */
 /*
  * Summary: spi-gpio-2cs-spidev
+ *
+ * Requires: spi-gpio-2cs
  */
 /dts-v1/;
 /plugin/;
