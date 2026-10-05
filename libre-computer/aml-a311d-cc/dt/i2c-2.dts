@@ -8,6 +8,7 @@
  *
  * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
  *   7J1.27   GPIOX_17      BF31    I2C_EE_M2_SDA
+ *   7J1.28   GPIOX_18      BM24    I2C_EE_M2_SCL
  */
 /dts-v1/;
 /plugin/;

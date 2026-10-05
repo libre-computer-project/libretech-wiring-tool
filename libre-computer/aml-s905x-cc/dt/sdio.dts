@@ -4,21 +4,35 @@
  * Author: Nicolas Belin <nbelin@baylibre.com>
  */
 /*
- * Summary: SDIO on emmc_a. This includes enabling pwm-e and
+ * Summary: SDIO on emmc_a. This includes enabling pwm-e (the WiFi 32k
+ * clock) and uart_C (Bluetooth).
  *
  * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
+ *   7J1.19   GPIOX_8       B4      BTPCM_DOUT
+ *   7J1.21   GPIOX_9       B3      BTPCM_DIN
+ *   7J1.22   GPIOX_0       A2      WIFI_SD_D0
+ *   7J1.23   GPIOX_11      C4      BTPCM_CLK
+ *   7J1.24   GPIOX_10      C5      BTPCM_SYNC
+ *   7J1.26   GPIOX_1       C3      WIFI_SD_D1
+ *   7J1.32   GPIOX_16      A3      WIFI_32K
  *   7J1.33   GPIOX_6       D2      WIFI_PWREN
+ *   7J1.36   GPIOX_2       C2      WIFI_SD_D2
+ *   7J1.37   GPIOX_5       D3      WIFI_SD_CMD
+ *   7J1.38   GPIOX_3       B1      WIFI_SD_D3
+ *   7J1.40   GPIOX_4       B2      WIFI_SD_CLK
  *
  * Resource-provides: bus:uart_C
+ * Resource-requires: pwm_ef.ch0@7J1-32
+ *
  * Notes:
- * uartc.
+ * Its pwm_ef fragment is pwm-e's, verbatim: the requirement records that the
+ * two share 7J1.32 by design, not by collision.
  */
 /dts-v1/;
 /plugin/;
 
 #include <dt-bindings/gpio/gpio.h>
 #include <dt-bindings/gpio/meson-gxl-gpio.h>
-#include <dt-bindings/clock/gxbb-clkc.h>
 
 / {
 	compatible = "libre-computer,aml-s905x-cc",
@@ -36,8 +50,6 @@ fragment@0 {
 			status = "okay";
 			pinctrl-0 = <&pwm_e_pins>;
 			pinctrl-names = "default";
-			clocks = <&clkc CLKID_FCLK_DIV4>;
-			clock-names = "clkin0";
 		};
 	};
 
@@ -77,6 +89,22 @@ fragment@0 {
 				clocks = <&wifi32k>;
 				clock-names = "ext_clock";
 			};
+
+			/*
+			 * The header's 3.3V rail. This dt/ serves Le Potato and,
+			 * via symlink, Sweet and Das Potato, whose base DTBs name
+			 * that rail differently (vcc_3v3 vs vddio_ao3v3) -- a
+			 * reference to either label fails to apply on the other.
+			 * Both are always-on fixed 3.3V supplies, so describing it
+			 * here changes nothing electrically.
+			 */
+			sdio_3v3: regulator-sdio-3v3 {
+				compatible = "regulator-fixed";
+				regulator-name = "SDIO_3V3";
+				regulator-min-microvolt = <3300000>;
+				regulator-max-microvolt = <3300000>;
+				regulator-always-on;
+			};
 		};
 	};
 
@@ -100,8 +128,8 @@ fragment@0 {
 
 			mmc-pwrseq = <&sdio_pwrseq>;
 
-			vmmc-supply = <&vcc_3v3>;
-			vqmmc-supply = <&vcc_3v3>;
+			vmmc-supply = <&sdio_3v3>;
+			vqmmc-supply = <&sdio_3v3>;
 		};
 	};
 };

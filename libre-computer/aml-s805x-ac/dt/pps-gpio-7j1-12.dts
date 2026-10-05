@@ -11,15 +11,16 @@
  *
  * Notes:
  * This requires an GPIO to IRQ enabled kernel and will not work without one.
- * Note: Level interrupt is more stable on the s805x than rising edge.
+ * pps-gpio takes its IRQ from the gpio (gpiod_to_irq) and asserts on the
+ * rising edge unless assert-falling-edge is set; it reads no interrupts or
+ * pinctrl property. (An earlier note here preferred a level interrupt; the
+ * driver never read that setting.)
  */
 /dts-v1/;
 /plugin/;
 
 #include <dt-bindings/gpio/gpio.h>
 #include <dt-bindings/gpio/meson-gxl-gpio.h>
-#include <dt-bindings/interrupt-controller/irq.h>
-#include <dt-bindings/interrupt-controller/amlogic,meson-gxl-gpio-intc.h>
 
 / {
 	compatible = "libre-computer,aml-s805x-ac",
@@ -34,10 +35,7 @@
 		__overlay__ {
 			pps_gpio: pps-gpio {
 				compatible = "pps-gpio";
-				pinctrl-names = "default";
-				pinctrl-o = <&i2s_out_ao_clk_pins>;
 				gpios = <&gpio GPIOH_7 GPIO_ACTIVE_HIGH>;
-				interrupts = <&gpio_intc IRQID_GPIOH_7 IRQ_TYPE_LEVEL_HIGH>;
 				status = "okay";
 			};
 		};

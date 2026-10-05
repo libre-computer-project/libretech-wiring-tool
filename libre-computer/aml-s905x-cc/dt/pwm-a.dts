@@ -13,8 +13,6 @@
 /dts-v1/;
 /plugin/;
 
-#include <dt-bindings/clock/gxbb-clkc.h>
-
 / {
 	compatible = "libre-computer,aml-s905x-cc",
 		"libretech,aml-s905x-cc",
@@ -31,8 +29,6 @@ fragment@0 {
 			status = "okay";
 			pinctrl-0 = <&pwm_a_pins>;
 			pinctrl-names = "default";
-			clocks = <&clkc CLKID_FCLK_DIV4>;
-			clock-names = "clkin0";
 		};
 	};
 };

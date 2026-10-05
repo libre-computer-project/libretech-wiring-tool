@@ -9,6 +9,13 @@
  * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
  *   7J1.33   GPIOX_5       BK38    GPIOX_5
  *   7J1.35   GPIOX_10      BD31    PCM_SYNC
+ *
+ * Requires: pwm-c-x5
+ *
+ * Resource-requires: bus:pwm_cd
+ *
+ * Notes:
+ *   pwm_cd is disabled in the base DTB; without pwm-c-x5 the fan has no PWM.
  */
 /dts-v1/;
 /plugin/;

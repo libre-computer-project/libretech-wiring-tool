@@ -4,25 +4,136 @@
  */
 /*
  * Summary: mezzanine
+ *
+ * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
+ *   J12.3    GPIO4_D3      AK3     GPIO4_D3
+ *   J12.5    GPIO4_D1      AK4     GPIO4_D1
+ *   J12.6    GPIO1_C1      M27     GPIO1_C1
+ *   J15.4    GPIO2_D0      AH6     SDIO0_CMD
+ *   J15.5    GPIO2_D1      AF7     SDIO0_CLK
+ *   J15.6    GPIO2_C7      AE8     SDIO0_D3
+ *   J15.7    GPIO2_C6      AG7     SDIO0_D2
+ *   J15.8    GPIO2_C4      AD8     SDIO0_D0
+ *   J15.9    GPIO2_C5      AK5     SDIO0_D1
+ *   J15.25   GPIO2_C3      AL5     UART0_RTS
+ *
+ * Notes:
+ *   The Firefly ROC-RK3399-PC Mezzanine board: M.2 SDIO (WiFi) on sdio0,
+ *   Bluetooth UART on uart0, M.2 PCIe x4 on pcie0, and the MP8009 PoE PD
+ *   feeding SYS_12V. Mirrors arch/arm64/boot/dts/rockchip/
+ *   rk3399-roc-pc-mezzanine.dts in linux-6.18.y-lc, which defines the two
+ *   gated 3.3V rails (vcc3v3_ngff on GPIO4_D3, vcc3v3_pcie on GPIO1_C1) the
+ *   base board DTB does not -- the overlay has to carry them itself.
  */
 /dts-v1/;
 /plugin/;
+
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/pinctrl/rockchip.h>
 
 / {
 	compatible = "libre-computer,roc-rk3399-pc",
 		"libretech,roc-rk3399-pc",
 		"rockchip,rk3399";
-	
-	
+
 	fragment@0 {
 		target-path = "/aliases";
-		
 		__overlay__ {
-			mmc2 = <&sdio0>;
+			mmc2 = "/mmc@fe310000";	/* sdio0 */
 		};
 	};
-	
+
 	fragment@1 {
+		target-path = "/";
+		__overlay__ {
+			/* MP8009 PoE PD */
+			poe_12v: regulator-poe-12v {
+				compatible = "regulator-fixed";
+				regulator-name = "poe_12v";
+				regulator-always-on;
+				regulator-boot-on;
+				regulator-min-microvolt = <12000000>;
+				regulator-max-microvolt = <12000000>;
+			};
+
+			vcc3v3_ngff: regulator-vcc3v3-ngff {
+				compatible = "regulator-fixed";
+				regulator-name = "vcc3v3_ngff";
+				enable-active-high;
+				gpio = <&gpio4 RK_PD3 GPIO_ACTIVE_HIGH>;
+				pinctrl-names = "default";
+				pinctrl-0 = <&vcc3v3_ngff_en>;
+				regulator-always-on;
+				regulator-boot-on;
+				regulator-min-microvolt = <3300000>;
+				regulator-max-microvolt = <3300000>;
+				vin-supply = <&sys_12v>;
+			};
+
+			vcc3v3_pcie: regulator-vcc3v3-pcie {
+				compatible = "regulator-fixed";
+				regulator-name = "vcc3v3_pcie";
+				enable-active-high;
+				gpio = <&gpio1 RK_PC1 GPIO_ACTIVE_HIGH>;
+				pinctrl-names = "default";
+				pinctrl-0 = <&vcc3v3_pcie_en>;
+				regulator-min-microvolt = <3300000>;
+				regulator-max-microvolt = <3300000>;
+				vin-supply = <&sys_12v>;
+			};
+		};
+	};
+
+	fragment@2 {
+		target = <&sys_12v>;
+		__overlay__ {
+			vin-supply = <&poe_12v>;
+		};
+	};
+
+	fragment@3 {
+		target = <&pinctrl>;
+		__overlay__ {
+			ngff {
+				vcc3v3_ngff_en: vcc3v3-ngff-en {
+					rockchip,pins = <4 RK_PD3 RK_FUNC_GPIO &pcfg_pull_none>;
+				};
+			};
+
+			pcie {
+				vcc3v3_pcie_en: vcc3v3-pcie-en {
+					rockchip,pins = <1 RK_PC1 RK_FUNC_GPIO &pcfg_pull_none>;
+				};
+
+				pcie_perst: pcie-perst {
+					rockchip,pins = <4 RK_PD1 RK_FUNC_GPIO &pcfg_pull_none>;
+				};
+			};
+		};
+	};
+
+	fragment@4 {
+		target = <&pcie_phy>;
+		__overlay__ {
+			status = "okay";
+		};
+	};
+
+	fragment@5 {
+		target = <&pcie0>;
+		__overlay__ {
+			ep-gpios = <&gpio4 RK_PD1 GPIO_ACTIVE_HIGH>;
+			num-lanes = <4>;
+			pinctrl-names = "default";
+			pinctrl-0 = <&pcie_perst>;
+			vpcie3v3-supply = <&vcc3v3_pcie>;
+			vpcie1v8-supply = <&vcc1v8_pmu>;
+			vpcie0v9-supply = <&vcca_0v9>;
+			status = "okay";
+		};
+	};
+
+	fragment@6 {
 		target = <&sdio0>;
 		__overlay__ {
 			bus-width = <4>;
@@ -30,6 +141,7 @@
 			cap-sdio-irq;
 			keep-power-in-suspend;
 			mmc-pwrseq = <&sdio_pwrseq>;
+			non-removable;
 			pinctrl-names = "default";
 			pinctrl-0 = <&sdio0_bus4 &sdio0_cmd &sdio0_clk>;
 			sd-uhs-sdr104;
@@ -39,7 +151,7 @@
 		};
 	};
 
-	fragment@2 {
+	fragment@7 {
 		target = <&uart0>;
 		__overlay__ {
 			pinctrl-names = "default";
@@ -47,5 +159,4 @@
 			status = "okay";
 		};
 	};
-	
 };

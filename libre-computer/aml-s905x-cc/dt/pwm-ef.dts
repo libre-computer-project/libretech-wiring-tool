@@ -8,12 +8,11 @@
  *
  * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
  *   7J1.32   GPIOX_16      A3      WIFI_32K
+ *   7J1.35   GPIOX_7       C1      WIFI_WAKE_HOST
  * Resource-provides: pwm_ef.ch0@7J1-32, pwm_ef.ch1@7J1-35
  */
 /dts-v1/;
 /plugin/;
-
-#include <dt-bindings/clock/gxbb-clkc.h>
 
 / {
 	compatible = "libre-computer,aml-s905x-cc",
@@ -30,9 +29,7 @@ fragment@0 {
 		__overlay__ {
 			status = "okay";
 			pinctrl-0 = <&pwm_e_pins>, <&pwm_f_x_pins>;
-			pinctrl-names = "default", "default";
-			clocks = <&clkc CLKID_FCLK_DIV4>;
-			clock-names = "clkin0";
+			pinctrl-names = "default";
 		};
 	};
 };

@@ -7,6 +7,9 @@
  * Summary: SPICC on header 7J1 pins
  *
  * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
+ *   7J1.19   GPIOX_8       A5      UART_C_TX
+ *   7J1.21   GPIOX_9       B5      UART_C_RX
+ *   7J1.23   GPIOX_11      B6      UART_C_RTS_N
  *   7J1.24   GPIOX_10      A4      UART_C_CTS_N
  *   7J1.26   GPIOX_1       B3      WIFI_D1
  *
@@ -31,7 +34,7 @@
 		target-path = "/aliases";
 
 		__overlay__ {
-			spi0 = "/soc/cbus@c1100000/spi@8d80";
+			spi0 = "/soc/bus@c1100000/spi@8d80";
 		};
 	};
 

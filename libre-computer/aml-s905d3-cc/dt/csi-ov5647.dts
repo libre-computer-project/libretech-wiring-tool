@@ -14,12 +14,6 @@
  * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
  *   ?.?    GPIOAO_10     ?       (not in gpio.map)
  *   ?.?    GPIOA_12      ?       (not in gpio.map)
- *
- * Notes:
- *  ?.?    GPIOAO_10     ?       (not in gpio.map)
- *  ?.?    GPIOA_12      ?       (not in gpio.map)
- * ?.?    GPIOAO_10     ?       (not in gpio.map)
- * ?.?    GPIOA_12      ?       (not in gpio.map)
  */
 /dts-v1/;
 /plugin/;

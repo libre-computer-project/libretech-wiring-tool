@@ -24,7 +24,7 @@
 		target = <&spdif>;
 		__overlay__ {
 			pinctrl-names = "default";
-			pinctrl-0 = <&spdif_tx_pins_a>;
+			pinctrl-0 = <&spdif_tx_pin>;	/* PA17, sunxi-h3-h5.dtsi */
 			status = "okay";
 		};
 	};

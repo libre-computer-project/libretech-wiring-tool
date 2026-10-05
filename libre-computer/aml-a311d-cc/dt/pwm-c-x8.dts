@@ -9,8 +9,12 @@
  * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
  *   7J1.38   GPIOX_8       BB34    PCM_DIN
  *
+ * Resource-provides: bus:pwm_cd
+ *
  * Notes:
- * pwm_c on GPIOX_8, pwm_d is potentially used by GPIOX_3 as LED
+ * pwm_c on GPIOX_8. pwm_d's pin, GPIOX_3, is left alone: the base DTB drives
+ * the green status LED on it as a gpio-led, and muxing it to PWM_D (as this
+ * once did) took the LED off its GPIO.
  */
 /dts-v1/;
 /plugin/;
@@ -34,10 +38,8 @@
 		
 		__overlay__ {
 			status = "okay";
-			pinctrl-0 = <&pwm_c_x8_pins>, <&pwm_d_x3_pins>;
+			pinctrl-0 = <&pwm_c_x8_pins>;
 			pinctrl-names = "default";
-			clocks = <&xtal>;
-			clock-names = "clkin1";
 		};
 	};
 };

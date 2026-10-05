@@ -12,7 +12,6 @@
  *   7J1.22   GPIOX_0       A2      WIFI_D0
  *   7J1.23   GPIOX_11      B6      UART_C_RTS_N
  *   7J1.24   GPIOX_10      A4      UART_C_CTS_N
- *   ?.?    GPIOX_18      ?       (not in gpio.map)
  *
  * Requires: spi-cc-1cs
  *
@@ -20,8 +19,9 @@
  * Display stack: tinydrm (DRM tiny / panel) preferred; staging fbtft is the
  * legacy fallback when both are built. Compatible order is tinydrm-first.
  * Properties tagged "fbtft/legacy" are ignored by tinydrm (CONFIG_FB_TFT_* only).
- *  ?.?    GPIOX_18      ?       (not in gpio.map)
- * ?.?    GPIOX_18      ?       (not in gpio.map)
+ * No reset-gpios: the PiTFT hats do not wire the panel reset (D/C is Pi
+ * GPIO25, pin 22), and the GPIOX_18 this once named, copied from Le Potato,
+ * is a pad the S805X package does not have. The reset line is optional.
  * - Adafruit 2.4" TFT LCD with Touchscreen Hat
  * - Adafruit 2.8" TFT LCD with Touchscreen Hat
  */
@@ -50,7 +50,6 @@
 				buswidth = <8>;	/* fbtft/legacy */
 				spi-max-frequency = <30000000>;
 				dc-gpios = <&gpio GPIOX_0 GPIO_ACTIVE_HIGH>;
-				reset-gpios = <&gpio GPIOX_18 GPIO_ACTIVE_HIGH>;
 				rotation = <90>;
 				status = "okay";
 			};

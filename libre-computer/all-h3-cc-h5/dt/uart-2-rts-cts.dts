@@ -10,7 +10,7 @@
  *   7J1.7    PA2           D6      CPUX-TDO
  *   7J1.11   PA1           D5      CPUX-TCK
  *   7J1.13   PA0           D11     CPUX-TMS
- *   7J1.15   PA3           D13     CPUX-TDI
+ *   7J1.15   PA3           E13     CPUX-TDI
  */
 /dts-v1/;
 /plugin/;

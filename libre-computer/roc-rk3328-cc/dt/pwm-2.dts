@@ -9,9 +9,7 @@
  * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
  *   J1.12   GPIO2_A6      M19     GPIO2_A6_U/PWM2
  *
- * Notes:
- *  J1.12   GPIO2_A6      M19     GPIO2_A6_U/PWM2
- * J1.12   GPIO2_A6      M19     GPIO2_A6_U/PWM2
+ * Resource-provides: bus:pwm2
  */
 /dts-v1/;
 /plugin/;

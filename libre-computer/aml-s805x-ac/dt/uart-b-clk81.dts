@@ -9,6 +9,8 @@
  * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
  *   7J1.27   GPIODV_24     F3      I2C_SDA_A
  *   7J1.28   GPIODV_25     D1      I2C_SCK_A
+ *
+ * Resource-provides: bus:uart_B
  */
 /dts-v1/;
 /plugin/;
@@ -27,7 +29,7 @@
 		target-path = "/aliases";
 
 		__overlay__ {
-			serial2 = "/soc/cbus@c1100000/serial@84dc";
+			serial2 = "/soc/bus@c1100000/serial@84dc";
 		};
 	};
 

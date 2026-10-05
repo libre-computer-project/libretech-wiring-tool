@@ -4,21 +4,26 @@
  * Author: Nicolas Belin <nbelin@baylibre.com>
  */
 /*
- * Summary: SDIO on emmc_a. This includes enabling pwm-e and
+ * Summary: RTL8822CS Bluetooth on uart_C, for the WiFi/BT module the sdio
+ * overlay brings up
  *
  * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
  *   7J1.8    GPIOX_12      B4      BT_EN
  *   7J1.10   GPIOX_13      A6      BT_WAKE_HOST
  *
+ * Requires: sdio
+ *
+ * Resource-requires: bus:uart_C
+ *
  * Notes:
- * uartc.
+ * The bluetooth node sits under uart_C, which is disabled in the base DTB;
+ * sdio enables it with RTS/CTS. Without sdio the node never probes.
  */
 /dts-v1/;
 /plugin/;
 
 #include <dt-bindings/gpio/gpio.h>
 #include <dt-bindings/gpio/meson-gxl-gpio.h>
-#include <dt-bindings/clock/gxbb-clkc.h>
 
 / {
 	compatible = "libre-computer,aml-s805x-ac",

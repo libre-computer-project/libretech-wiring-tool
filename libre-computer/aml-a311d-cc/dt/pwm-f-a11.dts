@@ -36,8 +36,6 @@
 			status = "okay";
 			pinctrl-0 = <&pwm_e_pins>, <&pwm_f_a_pins>;
 			pinctrl-names = "default";
-			clocks = <&xtal>;
-			clock-names = "clkin1";
 		};
 	};
 };

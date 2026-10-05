@@ -10,17 +10,18 @@
  *   J1.11   GPIO2_C4      V18     GPIO2_C4_U/I2S1_SDO1
  *   J1.12   GPIO2_A6      M19     GPIO2_A6_U/PWM2
  *
+ * Requires: pwm-2
+ *
+ * Resource-requires: bus:pwm2
+ *
  * Notes:
- *  J1.11   GPIO2_C4      V18     GPIO2_C4_U/I2S1_SDO1
- *  J1.12   GPIO2_A6      M19     GPIO2_A6_U/PWM2
- * J1.11   GPIO2_C4      V18     GPIO2_C4_U/I2S1_SDO1
- * J1.12   GPIO2_A6      M19     GPIO2_A6_U/PWM2
+ *  pwm2 is disabled in the base DTB; without pwm-2 the fan has no PWM.
  */
 /dts-v1/;
 /plugin/;
 
-#include <dt-bindings/clock/gxbb-clkc.h>
 #include <dt-bindings/interrupt-controller/irq.h>
+#include <dt-bindings/pinctrl/rockchip.h>
 /*
  * 11 TPIRQ GPIO2_C4
  */
@@ -33,20 +34,30 @@
 		"firefly,roc-rk3328-cc",
 		"rockchip,rk3328";
 	
+	/*
+	 * The tach is an open-collector output and needs a pull-up. Rockchip
+	 * configures a pin through "rockchip,pins" cells; the Amlogic-style
+	 * "mux { bias-pull-up; }" node this used to add to &i2s1_sdio1 was
+	 * ignored by the rockchip pinctrl driver.
+	 */
 	fragment@0 {
-		target = <&i2s1_sdio1>;
+		target = <&pinctrl>;
 		__overlay__ {
-			mux {
-				bias-pull-up;
+			fan {
+				fan_tach: fan-tach {
+					rockchip,pins = <2 RK_PC4 RK_FUNC_GPIO &pcfg_pull_up>;
+				};
 			};
 		};
 	};
-	
+
 	fragment@1 {
 		target-path = "/";
 		__overlay__ {
 			fan0: pwm-fan {
 				compatible = "pwm-fan";
+				pinctrl-names = "default";
+				pinctrl-0 = <&fan_tach>;
 				pwms = <&pwm2 0 25000 0>;
 				interrupt-parent = <&gpio2>;
 				interrupts = <20 IRQ_TYPE_EDGE_FALLING>;

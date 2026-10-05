@@ -54,11 +54,17 @@ fragment@0 {
 		target-path = "/thermal-zones/cpu-thermal/cooling-maps";
 
 		__overlay__ {
-			map2 {
+			/*
+			 * Fan maps get their own names: a "mapN" the base DTB also
+			 * has is MERGED, replacing the base's cooling-device and trip
+			 * (on S905X that was the passive-trip map2, on A311D the
+			 * CPUs' hot-trip map1).
+			 */
+			map-fan-active {
 				trip = <&cpu_active>;
 				cooling-device = <&fan0 THERMAL_NO_LIMIT 1>;
 			};
-			map3 {
+			map-fan-warm {
 				trip = <&cpu_warm>;
 				cooling-device = <&fan0 2 THERMAL_NO_LIMIT>;
 			};

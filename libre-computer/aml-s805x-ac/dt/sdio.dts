@@ -4,20 +4,30 @@
  * Author: Nicolas Belin <nbelin@baylibre.com>
  */
 /*
- * Summary: SDIO on emmc_a. This includes enabling pwm-e and
+ * Summary: SDIO on emmc_a. This includes enabling pwm-e (the WiFi 32k
+ * clock) and uart_C with RTS/CTS (Bluetooth).
  *
  * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
+ *   7J1.19   GPIOX_8       A5      UART_C_TX
+ *   7J1.21   GPIOX_9       B5      UART_C_RX
+ *   7J1.22   GPIOX_0       A2      WIFI_D0
+ *   7J1.23   GPIOX_11      B6      UART_C_RTS_N
+ *   7J1.24   GPIOX_10      A4      UART_C_CTS_N
+ *   7J1.26   GPIOX_1       B3      WIFI_D1
+ *   7J1.32   GPIOX_16      A3      WIFI_32K
  *   7J1.33   GPIOX_6       D2      WIFI_PWREN
+ *   7J1.36   GPIOX_2       C2      WIFI_D2
+ *   7J1.37   GPIOX_5       C3      WIFI_CMD
+ *   7J1.38   GPIOX_3       B1      WIFI_D3
+ *   7J1.40   GPIOX_4       B2      WIFI_SD_CLK
  *
- * Notes:
- * uartc.
+ * Resource-provides: bus:uart_C
  */
 /dts-v1/;
 /plugin/;
 
 #include <dt-bindings/gpio/gpio.h>
 #include <dt-bindings/gpio/meson-gxl-gpio.h>
-#include <dt-bindings/clock/gxbb-clkc.h>
 
 / {
 	compatible = "libre-computer,aml-s805x-ac",
@@ -34,8 +44,6 @@
 			status = "okay";
 			pinctrl-0 = <&pwm_e_pins>;
 			pinctrl-names = "default";
-			clocks = <&clkc CLKID_FCLK_DIV4>;
-			clock-names = "clkin0";
 		};
 	};
 

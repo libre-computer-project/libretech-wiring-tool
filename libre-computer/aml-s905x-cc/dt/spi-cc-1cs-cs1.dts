@@ -7,6 +7,9 @@
  * Summary: spi-cc-1cs-cs1
  *
  * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
+ *   7J1.19   GPIOX_8       B4      BTPCM_DOUT
+ *   7J1.21   GPIOX_9       B3      BTPCM_DIN
+ *   7J1.23   GPIOX_11      C4      BTPCM_CLK
  *   7J1.26   GPIOX_1       C3      WIFI_SD_D1
  */
 /dts-v1/;
@@ -31,7 +34,7 @@
 		target-path = "/aliases";
 
 		__overlay__ {
-			spi0 = "/soc/cbus@c1100000/spi@8d80";
+			spi0 = "/soc/bus@c1100000/spi@8d80";
 		};
 	};
 

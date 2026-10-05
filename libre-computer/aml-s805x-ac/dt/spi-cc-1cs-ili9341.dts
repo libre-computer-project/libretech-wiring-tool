@@ -13,8 +13,6 @@
  *   7J1.24   GPIOX_10      A4      UART_C_CTS_N
  *   7J1.29   GPIODV_27     G3      SYS_LED
  *   7J1.31   GPIOAO_2      B7      PWR_KEY_DET
- *   ?.?    GPIOX_17      ?       (not in gpio.map)
- *   ?.?    GPIOX_18      ?       (not in gpio.map)
  *
  * Requires: spi-cc-1cs
  *
@@ -22,10 +20,9 @@
  * Display stack: tinydrm (DRM tiny / panel) preferred; staging fbtft is the
  * legacy fallback when both are built. Compatible order is tinydrm-first.
  * Properties tagged "fbtft/legacy" are ignored by tinydrm (CONFIG_FB_TFT_* only).
- *  ?.?    GPIOX_17      ?       (not in gpio.map)
- *  ?.?    GPIOX_18      ?       (not in gpio.map)
- * ?.?    GPIOX_17      ?       (not in gpio.map)
- * ?.?    GPIOX_18      ?       (not in gpio.map)
+ * D/C and RESET follow the panel wiring to header pins 29 and 31, which on
+ * La Frite are GPIODV_27 and GPIOAO_2. (Le Potato's are GPIOX_17/18; the
+ * S805X package has no GPIOX_17/18 at all.)
  * - Adafruit 2.2" SPI display
  * - Adafruit 2.8" Touch Shield V2 (SPI)
  * - Adafruit 2.4" TFT LCD with Touchscreen Breakout w/MicroSD Socket
@@ -57,8 +54,8 @@
 			 * - LED/Backlight to Pin2 (5v)
 			 * - SCK to Pin23 (SPI_CLK)
 			 * - SDI(MOSI) to Pin19 (SPI_MOSI)
-			 * - D/C to Pin29 (GPIOX_17)
-			 * - RESET to Pin31 (GPIOX_18)
+			 * - D/C to Pin29 (GPIODV_27)
+			 * - RESET to Pin31 (GPIOAO_2)
 			 * - (LCD) CS to Pin24 (GPIOX_10)
 			 * - GND to Pin25 (GND)
 			 * - VCC/VIN to Pin17 (3.3V)
@@ -69,8 +66,8 @@
 				reg = <0>;
 				buswidth = <8>;	/* fbtft/legacy */
 				spi-max-frequency = <30000000>;
-				dc-gpios = <&gpio GPIOX_17 GPIO_ACTIVE_HIGH>;
-				reset-gpios = <&gpio GPIOX_18 GPIO_ACTIVE_HIGH>;
+				dc-gpios = <&gpio GPIODV_27 GPIO_ACTIVE_HIGH>;
+				reset-gpios = <&gpio_ao GPIOAO_2 GPIO_ACTIVE_HIGH>;
 				status = "okay";
 			};
 		};

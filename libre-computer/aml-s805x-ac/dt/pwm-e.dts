@@ -12,8 +12,6 @@
 /dts-v1/;
 /plugin/;
 
-#include <dt-bindings/clock/gxbb-clkc.h>
-
 / {
 	compatible = "libre-computer,aml-s805x-ac",
 		"libretech,aml-s805x-ac",
@@ -29,8 +27,6 @@
 			status = "okay";
 			pinctrl-0 = <&pwm_e_pins>;
 			pinctrl-names = "default";
-			clocks = <&clkc CLKID_FCLK_DIV4>;
-			clock-names = "clkin0";
 		};
 	};
 };

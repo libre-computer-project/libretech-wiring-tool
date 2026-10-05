@@ -6,6 +6,9 @@
 /*
  * Summary: spdif
  * Resource-provides: pin:9J1-2
+ *
+ * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
+ *   9J1.2    GPIOH_4       G19     SPDIF_OUT
  */
 /dts-v1/;
 /plugin/;

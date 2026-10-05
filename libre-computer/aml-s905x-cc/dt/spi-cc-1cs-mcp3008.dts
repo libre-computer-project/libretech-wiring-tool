@@ -23,14 +23,34 @@
 		"amlogic,s905x",
 		"amlogic,meson-gxl";
 
+	/*
+	 * VREF is tied to the header's 3.3V on the usual breakouts. Without a
+	 * vref-supply the driver gets the dummy regulator, raw reads work and
+	 * in_voltage_scale fails (regulator_get_voltage on the dummy).
+	 */
+	fragment@1 {
+		target-path = "/";
+
+		__overlay__ {
+			mcp3008_vref: regulator-mcp3008-vref {
+				compatible = "regulator-fixed";
+				regulator-name = "MCP3008_VREF";
+				regulator-min-microvolt = <3300000>;
+				regulator-max-microvolt = <3300000>;
+				regulator-always-on;
+			};
+		};
+	};
+
 	fragment@0 {
 		target = <&spicc>;
-		
+
 		__overlay__ {
 			mcp3008@0 {
 				compatible = "microchip,mcp3008";
 				reg = <0>;
 				spi-max-frequency = <1600000>;
+				vref-supply = <&mcp3008_vref>;
 				status = "okay";
 			};
 		};

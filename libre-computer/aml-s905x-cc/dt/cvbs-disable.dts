@@ -12,10 +12,14 @@
 /plugin/;
 
 / {
+	/*
+	 * Not aml-s905x-cc-v2: Sweet Potato has no composite output (no AV jack
+	 * on the V2.0-C PCB, no cvbs-connector in its base DTB). It sees this
+	 * file only because its dt/ is a symlink to this one. Das Potato V3
+	 * does carry one (AV jack 10J1, net CVBSO).
+	 */
 	compatible = "libre-computer,aml-s905x-cc",
 		"libretech,aml-s905x-cc",
-		"libre-computer,aml-s905x-cc-v2",
-		"libretech,aml-s905x-cc-v2",
 		"libre-computer,aml-s905x-cc-v3",
 		"libretech,aml-s905x-cc-v3",
 		"amlogic,s905x",

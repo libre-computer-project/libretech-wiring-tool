@@ -31,7 +31,7 @@ fragment@0 {
 		target-path = "/aliases";
 
 		__overlay__ {
-			serial1 = "/soc/cbus@c1100000/serial@84c0";
+			serial1 = "/soc/bus@c1100000/serial@84c0";
 		};
 	};
 

@@ -4,10 +4,11 @@
  * Author: Da Xue <da@libre.computer>
  */
 /*
- * Summary: 3P UART
+ * Summary: PWM0 on the 3-pin debug UART header 2J3 pin 3 (PA5); takes the
+ * pin from UART0, so the serial console is disabled
  *
  * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
- *   7J1.3    PA12          C13     TWI0-SDA
+ *   2J3.3    PA5           H6      CPUX-RX
  */
 /dts-v1/;
 /plugin/;

@@ -56,11 +56,16 @@ fragment@0 {
 	fragment@2 {
 		target = <&cpu_cooling_maps>;
 		__overlay__ {
-			map2 {
+			/*
+			 * Fan maps get their own names: "map2" is the base DTB's
+			 * passive-trip map, and writing it here replaced its cooling
+			 * device with the fan.
+			 */
+			map-fan-active {
 				trip = <&cpu_active>;
 				cooling-device = <&fan0 THERMAL_NO_LIMIT 1>;
 			};
-			map3 {
+			map-fan-warm {
 				trip = <&cpu_warm>;
 				cooling-device = <&fan0 2 THERMAL_NO_LIMIT>;
 			};

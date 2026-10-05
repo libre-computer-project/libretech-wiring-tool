@@ -12,6 +12,8 @@
  *   7J1.23   GPIOX_11      B6      UART_C_RTS_N
  *   7J1.24   GPIOX_10      A4      UART_C_CTS_N
  *
+ * Resource-provides: bus:uart_C
+ *
  * Notes:
  * with CLK81 for additional baud rates
  */
@@ -32,7 +34,7 @@
 		target-path = "/aliases";
 
 		__overlay__ {
-			serial3 = "/soc/cbus@c1100000/serial@8700";
+			serial3 = "/soc/bus@c1100000/serial@8700";
 		};
 	};
 

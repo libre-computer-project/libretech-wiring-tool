@@ -9,12 +9,6 @@
  * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
  *   J1.36   GPIO2_A0      P19     DEBUG_TX
  *   J1.38   GPIO2_A1      P20     DEBUG_RX
- *
- * Notes:
- *  J1.36   GPIO2_A0      P19     DEBUG_TX
- *  J1.38   GPIO2_A1      P20     DEBUG_RX
- * J1.36   GPIO2_A0      P19     DEBUG_TX
- * J1.38   GPIO2_A1      P20     DEBUG_RX
  */
 /dts-v1/;
 /plugin/;

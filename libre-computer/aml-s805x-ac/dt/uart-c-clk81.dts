@@ -9,6 +9,8 @@
  * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
  *   7J1.19   GPIOX_8       A5      UART_C_TX
  *   7J1.21   GPIOX_9       B5      UART_C_RX
+ *
+ * Resource-provides: bus:uart_C
  */
 /dts-v1/;
 /plugin/;
@@ -27,7 +29,7 @@
 		target-path = "/aliases";
 
 		__overlay__ {
-			serial3 = "/soc/cbus@c1100000/serial@8700";
+			serial3 = "/soc/bus@c1100000/serial@8700";
 		};
 	};
 

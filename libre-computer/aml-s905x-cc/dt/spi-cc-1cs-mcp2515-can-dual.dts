@@ -9,6 +9,10 @@
 /*
  * Summary: spi-cc-1cs-mcp2515-can-dual
  *
+ * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
+ *   7J1.16   GPIOX_14      C6      UART_A_CTS_N
+ *   7J1.22   GPIOX_0       A2      WIFI_SD_D0
+ *
  * Requires: spi-cc-2cs
  */
 /dts-v1/;

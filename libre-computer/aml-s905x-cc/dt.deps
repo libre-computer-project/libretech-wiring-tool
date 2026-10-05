@@ -24,6 +24,7 @@ pwm-ao-b-9-fan	pwm-ao-b-9
 pwm-e-fan	pwm-e
 pwm-f-fan	pwm-f
 rpi-sense	i2c-ao
+sdio	pwm-e
 spi-cc-1cs-cs1-ads7846-irq-11	spi-cc-1cs-cs1
 spi-cc-1cs-cs1-ads7846-irq-13	spi-cc-1cs-cs1
 spi-cc-1cs-cs1-ads7846-irq-22	spi-cc-1cs-cs1

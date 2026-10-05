@@ -11,14 +11,15 @@
  *
  * Notes:
  * This requires an GPIO to IRQ enabled kernel and will not work without one.
+ * pps-gpio takes its IRQ from the gpio (gpiod_to_irq) and asserts on the
+ * rising edge unless assert-falling-edge is set; it reads no interrupts or
+ * pinctrl property.
  */
 /dts-v1/;
 /plugin/;
 
 #include <dt-bindings/gpio/gpio.h>
 #include <dt-bindings/gpio/meson-gxl-gpio.h>
-#include <dt-bindings/interrupt-controller/irq.h>
-#include <dt-bindings/interrupt-controller/amlogic,meson-gxl-gpio-intc.h>
 
 / {
 	compatible = "libre-computer,aml-s905x-cc",
@@ -35,11 +36,7 @@
 		__overlay__ {
 			pps_gpio: pps-gpio {
 				compatible = "pps-gpio";
-				pinctrl-names = "default";
-				pinctrl-o = <&spdif_out_ao_6_pins>;
 				gpios = <&gpio_ao GPIOAO_6 GPIO_ACTIVE_HIGH>;
-				interrupts = <&gpio_intc IRQID_GPIOAO_6 IRQ_TYPE_EDGE_RISING>;
-				assert-rising-edge;
 				status = "okay";
 			};
 		};

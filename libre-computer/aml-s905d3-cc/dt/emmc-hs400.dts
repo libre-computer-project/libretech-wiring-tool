@@ -5,9 +5,6 @@
 /*
  * Summary: EMMC HS400 (200 MHz DDR, ~400 MB/s) for AML-S905D3-CC.
  *
- * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
- *   7J1.5    GPIOAO_2      AU40    I2C_AO_M0_SCL
- *
  * Notes:
  * !!! REQUIRES THE ON-BOARD SPI NOR TO BE PHYSICALLY DE-POPULATED !!!
  * The NOR (GD25LQ128E, 1.8 V) shares eMMC 8-bit data lines d4/d5/d6

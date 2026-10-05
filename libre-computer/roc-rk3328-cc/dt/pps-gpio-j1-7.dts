@@ -1,0 +1,44 @@
+// SPDX-License-Identifier: (GPL-2.0-or-later OR MIT)
+/*
+ * Copyright (c) 2023 Jaime Jackson-Block
+ * Author: Jaime Jackson-Block
+ */
+/*
+ * Summary: Soft PPS on 40P header J1 pin 7
+ *
+ * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
+ *   J1.7     GPIO1_D4      V14     GPIO1_D4/CLKOUT
+ */
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/pinctrl/rockchip.h>
+/*
+ * 7 1-28 CLKOUT GPIO1_D4
+ *
+ * Header pin 7, Linux gpio "1-28" (gpiochip 1, line 28). The "28" in the
+ * old name pps-gpio-j1-28 is that line number, not a header pin; J1.28 is
+ * the PMIC's I2C1 SCL. Canonical name: pps-gpio-j1-7.
+ */
+
+/ {
+	compatible = "libre-computer,roc-rk3328-cc",
+		"libretech,roc-rk3328-cc",
+		"libre-computer,roc-rk3328-cc-v2",
+		"libretech,roc-rk3328-cc-v2",
+		"firefly,roc-rk3328-cc",
+		"rockchip,rk3328";
+
+	fragment@0 {
+		target-path = "/";
+
+		__overlay__ {
+			pps_gpio: pps-gpio {
+				compatible = "pps-gpio";
+				gpios = <&gpio1 RK_PD4 GPIO_ACTIVE_HIGH>;
+				status = "okay";
+			};
+		};
+	};
+};

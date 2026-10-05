@@ -23,7 +23,22 @@
 		"allwinner,sun8i-h3",
 		"allwinner,sun50i-h5";
 
+	/*
+	 * Mainline sunxi-h3-h5.dtsi defines no I2S pin group, so the overlay
+	 * carries its own: PA18..PA21 = SYNC, CLK, DOUT, DIN on mux "i2s0" in
+	 * both pinctrl-sun8i-h3.c and pinctrl-sun50i-h5.c.
+	 */
 	fragment@0 {
+		target = <&pio>;
+		__overlay__ {
+			i2s0_pins: i2s0-pins {
+				pins = "PA18", "PA19", "PA20", "PA21";
+				function = "i2s0";
+			};
+		};
+	};
+
+	fragment@1 {
 		target = <&i2s0>;
 		__overlay__ {
 			pinctrl-names = "default";

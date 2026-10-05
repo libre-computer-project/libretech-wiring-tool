@@ -7,14 +7,10 @@
  * Summary: UART1 on 40P header J1 pins 8 (TX) and 10 (RX)
  *
  * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
- *   J1.8    GPIO3_A4      E2      UART1_TX
- *   J1.10   GPIO3_A6      F2      UART1_RX
- *
- * Notes:
- *  J1.8    GPIO3_A4      E2      UART1_TX
- *  J1.10   GPIO3_A6      F2      UART1_RX
- * J1.8    GPIO3_A4      E2      UART1_TX
- * J1.10   GPIO3_A6      F2      UART1_RX
+ *   J1.8     GPIO3_A4      E2      UART1_TX
+ *   J1.10    GPIO3_A6      F2      UART1_RX
+ *   J1.16    GPIO3_A7      F1      UART1_CTSN
+ *   J1.18    GPIO3_A5      D1      UART1_RTSN
  */
 /dts-v1/;
 /plugin/;

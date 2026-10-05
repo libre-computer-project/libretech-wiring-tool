@@ -9,8 +9,14 @@
  * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
  *   7J1.27   GPIODV_24     F3      I2C_SDA_A
  *
+ * Requires: uart-b
+ *
+ * Resource-requires: bus:uart_B
+ *
  * Notes:
  * This overlay must be merged and will only take effect after reboot.
+ * uart_B is disabled in the base DTB; alone this sets a property on a
+ * disabled port.
  */
 /dts-v1/;
 /plugin/;

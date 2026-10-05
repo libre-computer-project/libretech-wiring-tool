@@ -26,7 +26,7 @@
 	fragment@0 {
 		target-path = "/";
 		__overlay__ {
-			onewire@0 {
+			onewire {
 				compatible = "w1-gpio";
 				gpios = <&gpio GPIOH_6 GPIO_ACTIVE_HIGH>;
 				status = "okay";
