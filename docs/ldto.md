@@ -45,7 +45,7 @@ ldto disable OVERLAY...
 ldto info OVERLAY|ALIAS...
 ldto conflicts [OVERLAY|ALIAS]...
 ldto current
-ldto merge [--dry-run|-n] [--force] OVERLAY...
+ldto merge [--dry-run|-n] [--force] [--no-check] OVERLAY...
 ldto show [OVERLAY]
 ldto diff
 ldto edit
@@ -156,6 +156,8 @@ changes to the built-in DT (or to the NOR overlays U-Boot applies to it).
 
 **Merge record:** every override ldto writes carries `/chosen` properties:
 `libretech,ldto-merged` (the overlays merged, in order),
+`libretech,ldto-u-boot` (the U-Boot version whose built-in DT the override
+started from, carried across later merges),
 `libretech,ldto-base` (`builtin:<u-boot version>`, `override:<id>`, or
 `override-unstamped` when it was merged onto an override with no record --
 then the list holds only what ldto added), `libretech,ldto-edited` after
@@ -173,6 +175,25 @@ existing override -- or, with none, of this boot's DT with its per-boot
 `linux,uefi-*` and kexec entries). Only if **every** step succeeds is the
 stamped result installed to the ESP; otherwise `WARNING: merge aborted — ESP
 override not modified`.
+
+**After-check:** before installing, merge replays the new steps one at a
+time and refuses (`WARNING: after-check: …`) if
+
+- an overlay writes a node **below** its fragment target that the tree
+  already has and changes its properties -- it meant to add a node and
+  rewrote a live one (properties set on the target node itself are the
+  normal way to adjust a node and are allowed);
+- a pinctrl group (of a node's live state: the first `default`, then
+  `init`) or a GPIO line (controller + cells, flags ignored) ends up held by
+  two **enabled** nodes when it was not shared before -- this also catches
+  clashes with the board's own devices (an LED, the console UART), which the
+  header-pin gate cannot see.
+
+`--no-check` skips it. Runtime `enable` and `edit` do not run it.
+
+When U-Boot now reports a different `u-boot,version` than the one recorded
+in `libretech,ldto-u-boot`, `status` and `merge` warn that the override
+still shadows the newer built-in DT.
 
 **Next boot vs this boot:** `status`, `merge` and `enable` compare the booted
 DT's `libretech,ldto-id` with the override file:

@@ -893,6 +893,9 @@ LDTO_status()
 	if [ -n "$LDTO_STATE_MSG" ]; then
 		echo "WARNING: $LDTO_STATE_MSG" >&2
 	fi
+	if [ -n "$LDTO_STATE_NOTE" ]; then
+		echo "WARNING: $LDTO_STATE_NOTE" >&2
+	fi
 	return 0
 }
 
@@ -1026,6 +1029,7 @@ LDTO_PROP_ID=libretech,ldto-id          # sha256 of the DTB (as DTS) minus this 
 LDTO_PROP_MERGED=libretech,ldto-merged  # overlays merged, in apply order
 LDTO_PROP_BASE=libretech,ldto-base      # builtin:<u-boot,version> | override:<id> | override-unstamped | override-modified
 LDTO_PROP_EDITED=libretech,ldto-edited  # present after `ldto edit`: record is advisory
+LDTO_PROP_UBOOT=libretech,ldto-u-boot   # u-boot,version whose built-in DT the override started from
 # Per-boot values the bootloader and EFI stub write into /chosen; merged
 # onto /sys/firmware/fdt they would be frozen into the override.
 LDTO_VOLATILE_CHOSEN=(kaslr-seed rng-seed linux,initrd-start linux,initrd-end
@@ -1061,13 +1065,19 @@ LDTO_bootedChosen()
 	tr '\0' ' ' < "$f" | sed 's/ *$//'
 }
 
-# Write the record into DTB $1: base kind $2, edited flag $3 (0/1), then the
-# merged overlay names; the stamp goes last, over everything else.
+# Write the record into DTB $1: base kind $2, edited flag $3 (0/1), the
+# U-Boot version of the built-in base $4 ("" = unknown), then the merged
+# overlay names; the stamp goes last, over everything else.
 LDTO_stampDTB()
 {
-	local f="$1" base="$2" edited="$3" id
-	shift 3
+	local f="$1" base="$2" edited="$3" uboot="$4" id
+	shift 4
 	fdtput -p -ts "$f" /chosen "$LDTO_PROP_BASE" "$base" || return 1
+	if [ -n "$uboot" ]; then
+		fdtput -p -ts "$f" /chosen "$LDTO_PROP_UBOOT" "$uboot" || return 1
+	else
+		fdtput -d "$f" /chosen "$LDTO_PROP_UBOOT" 2>/dev/null || true
+	fi
 	if [ $# -gt 0 ]; then
 		fdtput -p -ts "$f" /chosen "$LDTO_PROP_MERGED" "$@" || return 1
 	else
@@ -1116,6 +1126,7 @@ LDTO_nextBootState()
 {
 	LDTO_STATE=unknown
 	LDTO_STATE_MSG=
+	LDTO_STATE_NOTE=
 	[ -d "$PATH_OF_PROC_DT" ] || return 0
 	LDTO_importDTConfig 2>/dev/null || return 0
 	LDTO_findEFIDTBPath 2>/dev/null || return 0
@@ -1167,6 +1178,16 @@ LDTO_nextBootState()
 	tampered)
 		LDTO_STATE_MSG="$file was modified outside ldto; its merged-overlay record is advisory" ;;
 	esac
+	# The override shadows U-Boot's built-in DT; say so when U-Boot (and with
+	# it the built-in DT) is not the one the override was built from.
+	local fu bu
+	if [ -f "$file" ]; then
+		fu=$(LDTO_dtbChosen "$file" "$LDTO_PROP_UBOOT")
+		bu=$(LDTO_bootedChosen u-boot,version)
+		if [ -n "$fu" ] && [ -n "$bu" ] && [ "$fu" != "$bu" ]; then
+			LDTO_STATE_NOTE="U-Boot is now $bu but this override was built on the built-in DT of $fu; it still shadows the newer built-in DT -- reset, reboot and merge again to pick it up"
+		fi
+	fi
 	return 0
 }
 
@@ -1175,7 +1196,211 @@ LDTO_warnNextBoot()
 {
 	LDTO_nextBootState
 	[ -n "$LDTO_STATE_MSG" ] && echo "WARNING: $LDTO_STATE_MSG" >&2
+	[ -n "$LDTO_STATE_NOTE" ] && echo "WARNING: $LDTO_STATE_NOTE" >&2
 	return 0
+}
+
+# --------------------------------------------------------------------------
+# After-check: what a merge does to the tree, read from the DTBs themselves.
+#
+# Flatten a DTB: "N<TAB>path" per node, "P<TAB>path<TAB>prop<TAB>value" per
+# property, from dtc's decompile (one property per line, phandles as cells).
+LDTO_dtbFlat()
+{
+	dtc -q -I dtb -O dts "$1" 2>/dev/null | awk '
+	/^[ \t]*\/dts-v1\/;/ || /^[ \t]*\/memreserve\// { next }
+	/^[ \t]*\/ \{[ \t]*$/ { depth = 0; path[0] = "/"; print "N\t/"; next }
+	/\{[ \t]*$/ {
+		name = $0
+		sub(/^[ \t]+/, "", name); sub(/[ \t]*\{[ \t]*$/, "", name)
+		p = (path[depth] == "/") ? "/" name : path[depth] "/" name
+		path[++depth] = p
+		print "N\t" p
+		next
+	}
+	/^[ \t]*\};[ \t]*$/ { depth--; next }
+	/;[ \t]*$/ {
+		line = $0
+		sub(/^[ \t]+/, "", line); sub(/;[ \t]*$/, "", line)
+		eq = index(line, " = ")
+		if (eq) print "P\t" path[depth] "\t" substr(line, 1, eq - 1) "\t" substr(line, eq + 3)
+		else print "P\t" path[depth] "\t" line "\t"
+	}'
+}
+
+# "claim<TAB>holder" for every pin resource an ENABLED node (itself and all
+# ancestors not disabled) holds: the pinctrl groups of its live state (the
+# first "default", then "init", as the pinctrl core applies them) and each
+# GPIO line in a *-gpios property (controller phandle + cells but the flags).
+LDTO_dtbClaims()
+{
+	LDTO_dtbFlat "$1" | awk -F'\t' '
+	function hex(s,   i, c, v) {
+		s = tolower(s); sub(/^0x/, "", s); v = 0
+		for (i = 1; i <= length(s); i++) {
+			c = index("0123456789abcdef", substr(s, i, 1)); if (!c) break
+			v = v * 16 + c - 1
+		}
+		return v
+	}
+	function cells(v, a,   n) { gsub(/[<>,]/, " ", v); return split(v, a, " ") }
+	function parent(p) { if (p == "/") return ""; sub(/\/[^\/]+$/, "", p); return p == "" ? "/" : p }
+	function enabled(p) {
+		while (p != "") { if (st[p] == "\"disabled\"") return 0; p = parent(p) }
+		return 1
+	}
+	$1 == "N" { nodes[++nn] = $2; next }
+	$1 != "P" { next }
+	{
+		p = $2; n = $3; v = $4
+		if (n == "status") st[p] = v
+		else if (n == "phandle") { cells(v, t); phpath[hex(t[1])] = p }
+		else if (n == "#gpio-cells") { cells(v, t); gc[p] = hex(t[1]) }
+		else if (n == "pinctrl-names") pn[p] = v
+		else if (n ~ /^pinctrl-[0-9]+$/) { k = n; sub(/^pinctrl-/, "", k); pcs[p, k] = v }
+		else if (n ~ /(^|-)gpios?$/) gv[p, ++gn[p]] = v
+	}
+	END {
+		for (i = 1; i <= nn; i++) {
+			p = nodes[i]
+			if (p ~ /^\/__/ || !enabled(p)) continue
+			if (p in pn) {
+				m = split(pn[p], nm, ",")
+				d = -1; it = -1
+				for (j = 1; j <= m; j++) {
+					s = nm[j]; gsub(/[" ]/, "", s)
+					if (s == "default" && d < 0) d = j - 1
+					if (s == "init" && it < 0) it = j - 1
+				}
+				for (j = 0; j <= 1; j++) {
+					k = (j == 0) ? d : it
+					if (k < 0 || !((p, k) in pcs)) continue
+					c = cells(pcs[p, k], t)
+					for (x = 1; x <= c; x++) print "pinctrl group " phpath[hex(t[x])] "\t" p
+				}
+			}
+			for (g = 1; g <= gn[p]; g++) {
+				c = cells(gv[p, g], t)
+				x = 1
+				while (x <= c) {
+					ph = hex(t[x])
+					if (ph == 0) { x++; continue }
+					ctrl = phpath[ph]
+					nc = (ctrl in gc) ? gc[ctrl] : 2
+					key = "GPIO " ctrl
+					for (y = 1; y < nc; y++) key = key " " hex(t[x + y])
+					print key "\t" p
+					x += 1 + nc
+				}
+			}
+		}
+	}' | sort -u
+}
+
+# Claims held by two or more enabled nodes in $2 that were not already
+# shared in $1: "claim<TAB>holder holder ...".
+LDTO_newDoubleClaims()
+{
+	local a b
+	a=$(mktemp /tmp/ldto-claims.XXXXXX) || return 1
+	b=$(mktemp /tmp/ldto-claims.XXXXXX) || { rm -f "$a"; return 1; }
+	LDTO_dtbClaims "$1" > "$a"
+	LDTO_dtbClaims "$2" > "$b"
+	awk -F'\t' '
+	FNR == NR { nb[$1]++; next }
+	{ n[$1]++; h[$1] = h[$1] " " $2 }
+	END { for (k in n) if (n[k] >= 2 && nb[k] < 2) print k "\t" substr(h[k], 2) }' "$a" "$b" | sort
+	rm -f "$a" "$b"
+}
+
+# Nodes overlay $1 writes BELOW a fragment's target that already existed in
+# $2 (the tree before it) and whose property values it changed in $3 (the
+# tree after): the overlay meant to add a node and rewrote a live one (the
+# fan-auto maps that replaced the base's cpu cooling maps). Properties set on
+# the target node itself are the normal way an overlay adjusts a node and are
+# not reported. Prints "path<TAB>prop prop ...".
+LDTO_overwrites()
+{
+	{
+		LDTO_dtbFlat "$1" | sed 's/^/O\t/'
+		LDTO_dtbFlat "$2" | sed 's/^/A\t/'
+		LDTO_dtbFlat "$3" | sed 's/^/B\t/'
+	} | awk -F'\t' '
+	function strs(v, a,   n, i, out) {
+		n = split(v, a, "\"")
+		out = 0
+		for (i = 2; i <= n; i += 2) b_[++out] = a[i]
+		return out
+	}
+	$1 == "O" && $2 == "N" { onode[++on] = $3; next }
+	$1 == "O" && $2 == "P" {
+		if ($4 == "target-path") { v = $5; gsub(/"/, "", v); tgt[$3] = v }
+		else if ($3 == "/__fixups__") {
+			c = strs($5)
+			for (i = 1; i <= c; i++) {
+				s = b_[i]
+				if (s ~ /:target:0$/) { f = s; sub(/:target:0$/, "", f); fixlabel[f] = $4 }
+			}
+		}
+		next
+	}
+	$1 == "A" && $2 == "N" { pre[$3] = 1; next }
+	$1 == "A" && $2 == "P" {
+		if ($3 == "/__symbols__") { v = $5; gsub(/"/, "", v); sym[$4] = v }
+		before[$3 SUBSEP $4] = $5
+		next
+	}
+	$1 == "B" && $2 == "P" { after[$3 SUBSEP $4] = $5; next }
+	END {
+		for (f in fixlabel) if (!(f in tgt) && (fixlabel[f] in sym)) tgt[f] = sym[fixlabel[f]]
+		for (i = 1; i <= on; i++) {
+			p = onode[i]
+			if (p !~ /^\/fragment@[0-9]+\/__overlay__\//) continue
+			f = p; sub(/\/__overlay__\/.*$/, "", f)
+			if (!(f in tgt)) continue
+			rel = p; sub(/^\/fragment@[0-9]+\/__overlay__/, "", rel)
+			dest = (tgt[f] == "/") ? rel : tgt[f] rel
+			if (!(dest in pre)) continue
+			chg = ""
+			for (k in after) {
+				split(k, kk, SUBSEP)
+				if (kk[1] != dest || kk[2] == "phandle") continue
+				if ((k in before) && before[k] != after[k]) chg = chg " " kk[2]
+			}
+			if (chg != "") print dest "\t" substr(chg, 2)
+		}
+	}' | sort -u
+}
+
+# Replay the merge's new steps one at a time onto $1 and refuse on either
+# finding. Prints the findings as WARNING lines; returns 1 if any.
+LDTO_mergeAfterCheck()
+{
+	local base="$1" cur next tmp dto dtbo line found=0
+	shift
+	tmp=$(mktemp -d /tmp/ldto-after.XXXXXX) || return 1
+	cur="$base"
+	for dto in "$@"; do
+		dtbo=$(LDTO_getDTBO "$dto")
+		next="$tmp/$dto.dtb"
+		if ! fdtoverlay -i "$cur" -o "$next" "$dtbo" 2>/dev/null; then
+			rm -rf "$tmp"
+			return 1
+		fi
+		while IFS= read -r line; do
+			[ -n "$line" ] || continue
+			echo "WARNING: after-check: '$dto' rewrites existing node ${line%%$TAB_CHAR*} (${line#*$TAB_CHAR}) -- it creates a node the tree already has" >&2
+			found=1
+		done < <(LDTO_overwrites "$dtbo" "$cur" "$next")
+		cur="$next"
+	done
+	while IFS= read -r line; do
+		[ -n "$line" ] || continue
+		echo "WARNING: after-check: ${line%%$TAB_CHAR*} is held by two enabled nodes: ${line#*$TAB_CHAR}" >&2
+		found=1
+	done < <(LDTO_newDoubleClaims "$base" "$cur")
+	rm -rf "$tmp"
+	[ "$found" -eq 0 ]
 }
 
 # ESP single-overlay apply used to live here as LDTO_apply + LDTO_mergeBase;
@@ -1183,7 +1408,7 @@ LDTO_warnNextBoot()
 
 LDTO_merge()
 {
-	local dry_run=0 force=0
+	local dry_run=0 force=0 check=1
 	local -a args=()
 	while [ $# -gt 0 ]; do
 		case "$1" in
@@ -1195,14 +1420,21 @@ LDTO_merge()
 				force=1
 				shift
 				;;
+			--no-check)
+				check=0
+				shift
+				;;
 			--help|-h)
-				echo "$0 merge [--dry-run|-n] [--force] OVERLAY [OVERLAY...]" >&2
+				echo "$0 merge [--dry-run|-n] [--force] [--no-check] OVERLAY [OVERLAY...]" >&2
 				echo "  Auto-merges providers from dt.deps (autoload chain)." >&2
 				echo "  Conflict gate against the overlays already merged (the override's" >&2
 				echo "  record), then fdtoverlay of the new steps; writes the EFI override" >&2
 				echo "  only if every step is clean, stamped with what it holds." >&2
 				echo "  Refuses while this boot runs an override that has been removed" >&2
 				echo "  (reset, not yet rebooted); --force merges anyway." >&2
+				echo "  After-check: refuses if a new overlay rewrites a node the tree" >&2
+				echo "  already has, or leaves a pinctrl group / GPIO line held by two" >&2
+				echo "  enabled nodes that was not shared before; --no-check skips it." >&2
 				return 0
 				;;
 			--)
@@ -1258,6 +1490,9 @@ LDTO_merge()
 	elif [ -n "$LDTO_STATE_MSG" ]; then
 		echo "WARNING: $LDTO_STATE_MSG" >&2
 	fi
+	if [ -n "$LDTO_STATE_NOTE" ]; then
+		echo "WARNING: $LDTO_STATE_NOTE" >&2
+	fi
 
 	# Need EFI path for real merge; dry-run can preflight against firmware only.
 	if [ "$dry_run" -eq 0 ]; then
@@ -1274,8 +1509,9 @@ LDTO_merge()
 
 	# What the next boot already holds: the override's record.
 	local -a rec=() rec_ok=() new=() merged=()
-	local base_kind= edited=0 rec_out stored dto r inrec
+	local base_kind= edited=0 uboot= rec_out stored dto r inrec
 	if [ -n "$override" ]; then
+		uboot=$(LDTO_dtbChosen "$override" "$LDTO_PROP_UBOOT")
 		rec_out=$(LDTO_dtbChosen "$override" "$LDTO_PROP_MERGED")
 		if [ -n "$rec_out" ]; then
 			read -r -a rec <<<"$rec_out"
@@ -1372,7 +1608,7 @@ LDTO_merge()
 		cp -f "$PATH_OF_DT" "$base_tmp"
 		uv=$(LDTO_dtbChosen "$PATH_OF_DT" u-boot,version)
 		for p in "${LDTO_VOLATILE_CHOSEN[@]}" "$LDTO_PROP_ID" "$LDTO_PROP_MERGED" \
-				"$LDTO_PROP_BASE" "$LDTO_PROP_EDITED"; do
+				"$LDTO_PROP_BASE" "$LDTO_PROP_EDITED" "$LDTO_PROP_UBOOT"; do
 			fdtput -d "$base_tmp" /chosen "$p" 2>/dev/null || true
 		done
 		base_dtb="$base_tmp"
@@ -1380,6 +1616,7 @@ LDTO_merge()
 			base_kind="running-forced"
 		else
 			base_kind="builtin:${uv:-unknown}"
+			uboot="$uv"
 		fi
 		echo "Merge base: this boot's DT (U-Boot built-in${uv:+, $uv}; per-boot /chosen values removed)" >&2
 	fi
@@ -1390,10 +1627,15 @@ LDTO_merge()
 		echo "WARNING: merge aborted — ESP override not modified" >&2
 		return 1
 	fi
+	if [ "$check" -eq 1 ] && ! LDTO_mergeAfterCheck "$base_dtb" "${new[@]}"; then
+		rm -f "$out" "$base_tmp"
+		echo "WARNING: merge aborted — after-check findings above; ESP override not modified (--no-check merges anyway)" >&2
+		return 1
+	fi
 	rm -f "$base_tmp"
 
 	merged=("${rec[@]}" "${new[@]}")
-	if ! LDTO_stampDTB "$out" "$base_kind" "$edited" "${merged[@]}"; then
+	if ! LDTO_stampDTB "$out" "$base_kind" "$edited" "$uboot" "${merged[@]}"; then
 		rm -f "$out"
 		echo "WARNING: merge aborted — could not write the merge record; ESP override not modified" >&2
 		return 1
@@ -1500,11 +1742,12 @@ LDTO_edit()
 	fi
 	# Keep the merge record, marked as edited (advisory), and re-stamp so
 	# the next boot can be told apart from this one.
-	local rec base
+	local rec base uboot
 	rec=$(LDTO_dtbChosen "$PATH_OF_DTB_OVERRIDE" "$LDTO_PROP_MERGED")
 	base=$(LDTO_dtbChosen "$PATH_OF_DTB_OVERRIDE" "$LDTO_PROP_BASE")
+	uboot=$(LDTO_dtbChosen "$PATH_OF_DTB_OVERRIDE" "$LDTO_PROP_UBOOT")
 	# shellcheck disable=SC2086 # rec is a space-separated name list
-	if ! LDTO_stampDTB "$staged" "${base:-override-unstamped}" 1 $rec; then
+	if ! LDTO_stampDTB "$staged" "${base:-override-unstamped}" 1 "$uboot" $rec; then
 		echo "WARNING: edit aborted — could not write the merge record; override unchanged" >&2
 		rm -f "$dts" "$staged"
 		return 1

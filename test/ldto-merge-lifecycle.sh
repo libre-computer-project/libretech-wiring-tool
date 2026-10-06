@@ -178,5 +178,59 @@ check "...state builtin" state_is builtin
 run merge pwm-a
 check "...merge allowed" rc_is 0
 
+# --- U-Boot version note ---------------------------------------------------
+run reset
+boot
+run merge pwm-a
+check "override records the U-Boot version it was built on" [ "$(chosen libretech,ldto-u-boot)" = "2026.07-test" ]
+boot
+check "same U-Boot: no note" bash -c "! printf '%s' \"\$(\"$LDTO\" status 2>&1)\" | grep -q 'U-Boot is now'"
+fdtput -ts "$S/sys/firmware/fdt" /chosen u-boot,version "2027.01-test"
+printf '%s\0' "2027.01-test" > "$S/proc/device-tree/chosen/u-boot,version"
+run status
+check "newer U-Boot than the override's base: note" says "U-Boot is now 2027.01-test"
+
+# --- after-check: crafted overlays in a scratch copy of the board ----------
+run reset
+boot
+V=$S/vendor
+mkdir -p "$V"
+cp -a libre-computer/aml-s905x-cc "$V/"
+mkov() { # mkov NAME BODY -- overlay with one root fragment
+	cat > "$V/aml-s905x-cc/dt/$1.dts" <<-EOF
+	/dts-v1/;
+	/plugin/;
+	/ {
+		compatible = "libre-computer,aml-s905x-cc";
+		fragment@0 {
+			target-path = "/";
+			__overlay__ {
+	$2
+			};
+		};
+	};
+	EOF
+	dtc -q -@ -I dts -O dtb -o "$V/aml-s905x-cc/dt/$1.dtbo" "$V/aml-s905x-cc/dt/$1.dts"
+}
+mkov test-dup-gpio '			test-a { gpios = <&gpio_ao 4 0>; };
+			test-b { gpios = <&gpio_ao 4 0>; };'
+mkov test-led-gpio '			test-c { gpios = <&gpio_ao 2 0>; };'
+mkov test-uart-pins '			test-d { pinctrl-names = "default"; pinctrl-0 = <&uart_ao_a_pins>; };'
+mkov test-rewrite '			chosen { stdout-path = "serial9:115200n8"; };'
+mkov test-disabled-dup '			test-e { status = "disabled"; gpios = <&gpio_ao 2 0>; };'
+VENDOR=$V run merge --dry-run test-dup-gpio
+check "two new nodes on one GPIO: refused" rc_is 1
+check "...after-check names the line" says "after-check: GPIO .*bank@14 4 is held by two enabled nodes"
+VENDOR=$V run merge --dry-run test-led-gpio
+check "new node on the blue LED's GPIO: refused" says "held by two enabled nodes: /leds/led-blue /test-c"
+VENDOR=$V run merge --dry-run test-uart-pins
+check "new node taking the console UART's pinctrl group: refused" says "pinctrl group .*uart_ao_a is held by two enabled nodes"
+VENDOR=$V run merge --dry-run test-rewrite
+check "overlay rewriting /chosen stdout-path: refused" says "rewrites existing node /chosen (stdout-path)"
+VENDOR=$V run merge --dry-run test-disabled-dup
+check "a disabled node claims nothing" rc_is 0
+VENDOR=$V run merge --dry-run --no-check test-dup-gpio
+check "--no-check skips the after-check" rc_is 0
+
 echo "ldto merge lifecycle: $pass pass, $fail fail"
 [ "$fail" -eq 0 ]
