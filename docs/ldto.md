@@ -214,7 +214,7 @@ DT's `libretech,ldto-id` with the override file:
 | `builtin` | no override; this boot used the built-in DT too |
 | `sync` | the next boot loads the override this boot used |
 | `pending-merge` / `changed` | the override was written or edited after this boot -- reboot to apply |
-| `ignored` | the override was written in an earlier boot and was on the ESP when this boot started (file time older than the boot), yet this boot did not load it: the bootloader does not read it (boot path, `fdtfile`) |
+| `ignored` | this boot ran no override, yet one written in an earlier boot was on the ESP when it started (by file time): the bootloader seems not to read it (boot path, `fdtfile`). Advisory -- copying a backup over an existing file with `cp -p` on FAT keeps its old times and shows here too; a reboot tells |
 | `removed` | this boot runs an override that has since been removed (`reset`, deleted) -- reboot to apply |
 | `replaced` | the override was overwritten by another tool (e.g. a kernel deploy); the overlays merged in this boot's DT are not in it |
 | `tampered` | the override changed outside ldto; its record is advisory |
@@ -223,9 +223,10 @@ DT's `libretech,ldto-id` with the override file:
 `merge` **refuses** in state `removed`: with no override file its base would be
 this boot's DT, which still holds the removed overlays. Reboot first, or
 `--force`. When this boot ran no recorded override, `reset` leaves a marker
-in `/run/ldto` with the same effect until the next boot -- unless ldto wrote
-the removed file in this boot onto the built-in DT (or the bootloader never
-loads it), which shows this boot's DT is the built-in one. A file that ran
+in `/run/ldto` with the same effect until the next boot -- unless every
+write of the removed file happened in this boot, by ldto, starting from this
+boot's DT as the built-in base, which shows this boot's DT is the built-in
+one. A file that ran
 in this boot is therefore never mistaken for the built-in DT, at the price
 of a refused merge (until reboot) after resetting a DTB another tool dropped
 on the ESP during a built-in boot.

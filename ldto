@@ -887,6 +887,10 @@ LDTO_disable()
 		LDTO_active
 		return 1
 	fi
+	local h
+	for h in "$@"; do
+		case "$h" in --help|-h) set -- --help ;; esac
+	done
 	case "$1" in
 		--help|-h)
 			echo "$0 disable OVERLAY [OVERLAY...]" >&2
@@ -1278,15 +1282,32 @@ LDTO_stampDTB()
 # What this boot last wrote to the override (its id and list), so that a
 # pending merge overwritten by another tool before the reboot can still be
 # named. Best effort: without it that case reads as "legacy".
+#
+# $2 (builtin_chain=1): every write of this file's chain happened in this
+# boot, starting from this boot's own DT as the built-in base -- the only
+# proof `reset` accepts that this boot ran the built-in DT.
 LDTO_noteWrite()
 {
-	local f="$1"
+	local f="$1" chain="${2:-0}"
 	{
 		mkdir -p "$PATH_OF_RUN" &&
-		printf 'boot_id=%s\nid=%s\nmerged=%s\n' "$(LDTO_bootId)" \
+		printf 'boot_id=%s\nid=%s\nmerged=%s\nbuiltin_chain=%s\n' "$(LDTO_bootId)" \
 			"$(LDTO_dtbChosen "$f" "$LDTO_PROP_ID")" \
-			"$(LDTO_dtbChosen "$f" "$LDTO_PROP_MERGED")" > "$PATH_OF_RUN/written"
+			"$(LDTO_dtbChosen "$f" "$LDTO_PROP_MERGED")" "$chain" > "$PATH_OF_RUN/written"
 	} 2>/dev/null || true
+}
+
+# Is file $1 exactly what this boot last wrote, in a chain that began on
+# this boot's built-in DT? (see LDTO_noteWrite)
+LDTO_ownBuiltinChain()
+{
+	local f="$1" w="$PATH_OF_RUN/written" bid id
+	bid=$(LDTO_bootId)
+	id=$(LDTO_dtbChosen "$f" "$LDTO_PROP_ID")
+	[ -n "$bid" ] && [ -n "$id" ] && [ -f "$w" ] &&
+		[ "$(sed -n 's/^boot_id=//p' "$w")" = "$bid" ] &&
+		[ "$(sed -n 's/^id=//p' "$w")" = "$id" ] &&
+		[ "$(sed -n 's/^builtin_chain=//p' "$w")" = "1" ]
 }
 
 LDTO_bootId()
@@ -1404,8 +1425,12 @@ LDTO_nextBootState()
 	# still not what this boot runs: the bootloader did not load it (another
 	# boot path, or another fdtfile). A stamped file copied in during this
 	# boot (a restored backup, provisioning) is just pending.
+	# Only when this boot ran no stamped override: one that did (`changed`)
+	# proves the bootloader reads the override path. File time is a hint
+	# (an in-place `cp -p` on vfat keeps every timestamp old), so `ignored`
+	# only advises; nothing else depends on it.
 	local wb cb fbb=0
-	if [ "$LDTO_STATE" = "pending-merge" ] || [ "$LDTO_STATE" = "changed" ]; then
+	if [ "$LDTO_STATE" = "pending-merge" ]; then
 		wb=$(LDTO_dtbChosen "$file" "$LDTO_PROP_BOOT")
 		cb=$(LDTO_bootId)
 		LDTO_fileBeforeBoot "$file" || fbb=$?
@@ -1415,7 +1440,7 @@ LDTO_nextBootState()
 	fi
 	case "$LDTO_STATE" in
 	ignored)
-		LDTO_STATE_MSG="$file was written before this boot, but this boot did not load it${flist:+ (merged: $flist)} -- the bootloader does not read this override (check its boot path and fdtfile)" ;;
+		LDTO_STATE_MSG="$file was written before this boot, but this boot did not load it${flist:+ (merged: $flist)} -- the bootloader seems not to read this override (check its boot path and fdtfile; if you just restored it, a reboot loads it)" ;;
 	removed)
 		LDTO_STATE_MSG="the next boot uses U-Boot's built-in DT, but this boot is still running the override that was removed${blist:+ (merged: $blist)} -- reboot to apply" ;;
 	changed)
@@ -1434,6 +1459,9 @@ LDTO_nextBootState()
 		fu=$(LDTO_dtbChosen "$file" "$LDTO_PROP_UBOOT")
 		bu=$(LDTO_bootedChosen u-boot,version)
 		if [ -n "$fu" ] && [ -n "$bu" ] && [ "$fu" != "$bu" ]; then
+			if [ "$fu" = "unknown" ]; then
+				fu="a U-Boot that reported no version"
+			fi
 			LDTO_STATE_NOTE="U-Boot is now $bu but this override was built on the built-in DT of $fu; it still shadows the newer built-in DT -- reset, reboot and merge again to pick it up"
 		fi
 	fi
@@ -1985,9 +2013,12 @@ LDTO_merge()
 		echo "DRY-RUN: pin/resource conflicts OK" >&2
 	fi
 
-	local base_dtb target_dtb out base_tmp= uv p
+	local base_dtb target_dtb out base_tmp= uv p chain=0
 	if [ -n "$override" ]; then
 		base_dtb="$override"
+		if LDTO_ownBuiltinChain "$override"; then
+			chain=1
+		fi
 		echo "Merge base: existing override $base_dtb" >&2
 	elif [ "$dry_run" -eq 1 ] && [ ! -r "$PATH_OF_DT" ]; then
 		# Host-side dry-run (same as enable --dry-run): plan + conflicts ran;
@@ -2026,6 +2057,7 @@ LDTO_merge()
 			base_kind="builtin:${uv:-unknown}"
 			# ldto-u-boot also marks "this chain began on the built-in DT"
 			uboot="${uv:-unknown}"
+			chain=1
 			echo "Merge base: this boot's DT (U-Boot built-in${uv:+, $uv}; per-boot /chosen values removed)" >&2
 		fi
 	fi
@@ -2073,7 +2105,7 @@ LDTO_merge()
 		echo "WARNING: merge not clean — failed installing override to $target_dtb; ESP override not modified" >&2
 		return 1
 	fi
-	LDTO_noteWrite "$target_dtb"
+	LDTO_noteWrite "$target_dtb" "$chain"
 	if [ "$irc" -ne 0 ]; then
 		return 1
 	fi
@@ -2141,6 +2173,10 @@ LDTO_edit()
 	LDTO_CLEANUP+=("$dts" "$orig" "$before")
 	# The file as it was when the editor opened, to notice another writer.
 	cp -f "$PATH_OF_DTB_OVERRIDE" "$before"
+	local chain=0
+	if LDTO_ownBuiltinChain "$PATH_OF_DTB_OVERRIDE"; then
+		chain=1
+	fi
 	if ! err=$(dtc -I dtb -O dts "$PATH_OF_DTB_OVERRIDE" -o "$dts" 2>&1); then
 		echo "WARNING: edit aborted — dtc decompile failed; override unchanged" >&2
 		[ -n "$err" ] && echo "WARNING: dtc: $err" >&2
@@ -2200,7 +2236,7 @@ LDTO_edit()
 		echo "WARNING: edit aborted — failed installing override; override unchanged" >&2
 		return 1
 	fi
-	LDTO_noteWrite "$PATH_OF_DTB_OVERRIDE"
+	LDTO_noteWrite "$PATH_OF_DTB_OVERRIDE" "$chain"
 	if [ "$irc" -ne 0 ]; then
 		return 1
 	fi
@@ -2229,37 +2265,23 @@ LDTO_reset()
 		esac
 	fi
 	LDTO_checkOverrideDT RW
-	local stamp origin booted marker=0
+	local stamp booted marker=0
 	stamp=$(LDTO_dtbChosen "$PATH_OF_DTB_OVERRIDE" "$LDTO_PROP_ID")
-	origin=$(LDTO_dtbChosen "$PATH_OF_DTB_OVERRIDE" "$LDTO_PROP_UBOOT")
 	booted=$(LDTO_bootedChosen "$LDTO_PROP_ID")
 	# A stamped boot DT already tells merge/status that this boot ran an
 	# override. Without one, this boot ran the built-in DT or an override
-	# with no record. The file's chain starting on the built-in DT (it
-	# carries ldto-u-boot) while this boot ran no stamped override shows
-	# the former, and a merge base built from this boot's DT is right.
-	# Otherwise leave a per-boot marker, written BEFORE the file goes: a
-	# reset that cannot record itself does not remove anything. The file's
-	# time does not help here: this boot may have loaded an earlier version
-	# of it (a deploy or a merge rewrote it since), so a file put on the ESP
-	# during a built-in boot also gets the marker -- the merge after it is
-	# refused until a reboot, the safe side.
-	# The origin is only evidence when ldto itself wrote this file in this
-	# boot (/run/ldto/written names its id), or when the bootloader never
-	# loads it (`ignored`): a stamped file copied over this boot's legacy
-	# override carries an origin that says nothing about this boot.
-	local wfile=$PATH_OF_RUN/written ours=0 bid
-	bid=$(LDTO_bootId)
-	if [ -n "$origin" ] && [ -n "$stamp" ] && [ -n "$bid" ] && [ -f "$wfile" ] &&
-			[ "$(sed -n 's/^boot_id=//p' "$wfile")" = "$bid" ] &&
-			[ "$(sed -n 's/^id=//p' "$wfile")" = "$stamp" ]; then
+	# with no record, and only one thing proves the former: ldto wrote
+	# exactly this file in this boot, in a chain of writes that began on
+	# this boot's own DT as the built-in base (LDTO_ownBuiltinChain). The
+	# record's ldto-u-boot origin is not proof -- it rides along when a
+	# stamped file is copied over this boot's legacy override and merged
+	# onto or edited -- and neither is file time (this boot may have loaded
+	# an earlier version of the file). Otherwise leave a per-boot marker,
+	# written BEFORE the file goes: a reset that cannot record itself
+	# removes nothing. Erring this way costs a refused merge until reboot.
+	local ours=0
+	if LDTO_ownBuiltinChain "$PATH_OF_DTB_OVERRIDE"; then
 		ours=1
-	fi
-	if [ "$ours" -eq 0 ] && [ -n "$origin" ]; then
-		LDTO_nextBootState
-		if [ "$LDTO_STATE" = "ignored" ]; then
-			ours=1
-		fi
 	fi
 	if [ -z "$booted" ] && [ -d "$PATH_OF_PROC_DT" ] && [ "$ours" -eq 0 ]; then
 		marker=1

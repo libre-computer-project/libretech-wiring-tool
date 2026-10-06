@@ -304,7 +304,7 @@ rm -rf "$CFG"
 run merge pwm-a
 boot ignore-override
 check "override written in an earlier boot and not loaded: ignored" state_is ignored
-check "...naming the cause" says "the bootloader does not read this override"
+check "...naming the cause" says "the bootloader seems not to read this override"
 boot
 
 # --- one changing command at a time ----------------------------------------
@@ -462,7 +462,43 @@ if [ "$(id -u)" -ne 0 ]; then
 fi
 run disable --help
 check "disable --help: usage, rc 0" rc_is 0
+run disable pwm-a --help
+check "disable X --help: usage, rc 0" bash -c "[ $RC -eq 0 ] && printf '%s' \"\$1\" | grep -q 'disable OVERLAY'" _ "$OUT"
 run reset
+boot
+run merge pwm-a
+
+# --- review round 6 -----------------------------------------------------------
+# legacy boot, stamped built-in-origin file copied over it, merged onto / edited, reset
+for how in merge edit; do
+	run reset
+	cp -f "$BASE" "$OVR"
+	fdtput -ts "$OVR" / model "legacy override"
+	boot
+	cp -f "$S/stamped.dtb" "$OVR"
+	if [ "$how" = merge ]; then
+		run merge pwm-e
+	else
+		EDITOR="sed -i s/Libre/LIBRE/" run edit
+	fi
+	run reset
+	check "legacy boot, stamped copy $how'd, reset: marker" [ -f "$S/run/ldto/reset-pending" ]
+done
+# a booted override proves the bootloader reads the path: changed, never ignored
+boot
+run merge pwm-a
+boot
+cp -f "$S/stamped.dtb" "$OVR"
+echo "btime $(( $(date +%s) + 100 ))" > "$S/proc/stat"
+check "stamped file over a booted override, old file times: changed, not ignored" state_is changed
+# ignored does not excuse reset from its marker
+run reset
+boot
+run merge pwm-a
+boot ignore-override
+check "(ignored)" state_is ignored
+run reset
+check "reset of an ignored override: marker" [ -f "$S/run/ldto/reset-pending" ]
 boot
 run merge pwm-a
 # a stamped backup restored during a boot is pending, not ignored
