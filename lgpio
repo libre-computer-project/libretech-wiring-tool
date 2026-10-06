@@ -51,7 +51,9 @@ LGPIO_gpioget(){
 	local ver
 	ver=$(LGPIO_gpiodMajor)
 	if [ "$ver" = 2 ]; then
-		gpioget -c "$chip" "$@" "$line"
+		# v2 prints "<line>"=active|inactive by default; --numeric gives
+		# the bare 1/0 that v1 prints.
+		gpioget -c "$chip" --numeric "$@" "$line"
 	else
 		gpioget "$@" "$chip" "$line"
 	fi
@@ -106,14 +108,49 @@ LGPIO_gpiomon(){
 }
 
 
-LGPIO_getColumn(){
-	local cols=$(grep -iE "^#\s*header" "$MAP_FILE" | grep -Eio "^.*$1($TAB_CHAR|$)")
-	if [ -z "$cols" ]; then
-		echo "$FUNCNAME: invalid column name: $1" >&2
-		exit 1
+# Print the bias option for the installed libgpiod, or nothing for as-is
+# (the default in both). v1 spells "disable" (-B), v2 "disabled" (-b);
+# either spelling is accepted here.
+LGPIO_gpiodBias(){
+	local caller="$1" bias="$2"
+	case "$bias" in
+		as-is) return 0 ;;
+		pull-up|pull-down) ;;
+		disable|disabled)
+			bias=disable
+			;;
+		*)
+			echo "$caller: invalid bias '$bias' (pull-up, pull-down, disabled, as-is)" >&2
+			return 1
+			;;
+	esac
+	if [ "$(LGPIO_gpiodMajor)" = 2 ]; then
+		[ "$bias" = disable ] && bias=disabled
+		echo "-b $bias"
+	else
+		echo "-B $bias"
 	fi
-	local col=$(echo "${cols//[^$TAB_CHAR]}" | wc -c)
-	echo $((col - 1))
+}
+
+# The map's column-header line ("#Header<TAB>Pin<TAB>..."), without the '#'.
+# Anchored at the tab so a prose comment mentioning "header" never matches.
+LGPIO_columnHeader(){
+	grep -i -m 1 "^#Header$TAB_CHAR" "$MAP_FILE" | cut -c 2-
+}
+
+# 1-based field number of the column named exactly $1 (case-insensitive).
+LGPIO_getColumn(){
+	local -a names
+	local i
+	IFS="$TAB_CHAR" read -r -a names <<< "$(LGPIO_columnHeader)"
+	for i in "${!names[@]}"; do
+		if [ "${names[$i],,}" = "${1,,}" ]; then
+			echo $((i + 1))
+			return 0
+		fi
+	done
+	echo "lgpio: invalid column name '$1' (valid: all gpiod ${names[*],,})" >&2
+	return 1
 }
 
 LGPIO_headersHelp(){
@@ -137,8 +174,13 @@ LGPIO_header(){
 		LGPIO_headerHelp
 		return 1
 	fi
-	grep -iE "^#\s*header" "$MAP_FILE" | cut -f 2- -d "$TAB_CHAR" >&2
-	grep -i "$1$TAB_CHAR" "$MAP_FILE" | cut -f 2- -d "$TAB_CHAR"
+	# Exact match on the Header column: "J1" must not pull in 7J1 or J12.
+	if ! grep -qi "^$1$TAB_CHAR" "$MAP_FILE"; then
+		echo "$FUNCNAME: header $1 does not exist." >&2
+		return 1
+	fi
+	LGPIO_columnHeader | cut -f 2- -d "$TAB_CHAR" >&2
+	grep -i "^$1$TAB_CHAR" "$MAP_FILE" | cut -f 2- -d "$TAB_CHAR"
 }
 
 LGPIO_getDefaultHeader(){
@@ -157,7 +199,8 @@ LGPIO_getRpiHeader(){
 }
 
 LGPIO_infoHelp(){
-	echo "$0 info [HEADER] PIN [type=all,gpiod,chip,line,sysfs,name,pad,ref,desc]" >&2
+	echo "$0 info [HEADER] PIN [TYPE[,TYPE...]]" >&2
+	echo "  TYPE: all (default), gpiod, or a column: header pin chip line sysfs name pad ref desc" >&2
 }
 
 LGPIO_info(){
@@ -191,25 +234,28 @@ LGPIO_info(){
 	fi
 	
 	if [ -z "$1" -o "${1,,}" = "all" ]; then
-		grep -Ei "#\s*header" "$MAP_FILE" | cut -f 3- -d "$TAB_CHAR" >&2
+		LGPIO_columnHeader | cut -f 3- -d "$TAB_CHAR" >&2
 		grep -i "^$header$TAB_CHAR$pin$TAB_CHAR" "$MAP_FILE" | cut -f 3- -d "$TAB_CHAR"
 	elif [ "${1,,}" = "gpiod" ]; then
 		# A header pin may have more than one row when two SoC lines are
 		# wired to the same pin. Operations (get/set/watch/bcm) act on the
 		# FIRST row; only "all" reports every line. See docs/gpio-map.md.
 		grep -i "^$header$TAB_CHAR$pin$TAB_CHAR" "$MAP_FILE" | head -n 1 | cut -f 3,4 -d "$TAB_CHAR"
-	elif [ "$1" = "${1/,}" ]; then
-		grep -i "^$header$TAB_CHAR$pin$TAB_CHAR" "$MAP_FILE" | head -n 1 | cut -f $(LGPIO_getColumn "$1") -d "$TAB_CHAR"
+	elif [ "$#" -eq 1 ] && [ "$1" = "${1/,}" ]; then
+		local col
+		col=$(LGPIO_getColumn "$1") || exit 1
+		grep -i "^$header$TAB_CHAR$pin$TAB_CHAR" "$MAP_FILE" | head -n 1 | cut -f "$col" -d "$TAB_CHAR"
 	else
 		local colnames
 		for col in $@; do
 			colnames="$colnames ${col//,/ }"
 		done
-		local cols=""
+		local cols="" c
 		for colname in $colnames; do
-			cols="$cols,$(LGPIO_getColumn "$colname")"
+			c=$(LGPIO_getColumn "$colname") || exit 1
+			cols="$cols,$c"
 		done
-		grep -Ei "#\s*header" "$MAP_FILE" | cut -f "${cols:1}" -d "$TAB_CHAR" >&2
+		LGPIO_columnHeader | cut -f "${cols:1}" -d "$TAB_CHAR" >&2
 		grep -i "^$header$TAB_CHAR$pin$TAB_CHAR" "$MAP_FILE" | head -n 1 | cut -f "${cols:1}" -d "$TAB_CHAR"
 	fi
 }
@@ -286,19 +332,9 @@ LGPIO_set(){
 					echo "$FUNCNAME: --bias needs a value" >&2
 					return 1
 				fi
-				# map as-is -> omit (v2 has no as-is)
-				if [ "$2" != "as-is" ]; then
-					# v1 used --bias=; v2 uses -b
-					if [ "$(LGPIO_gpiodMajor)" = 2 ]; then
-						case "$2" in
-							pull-up|pull-down) gs_opts+=("-b" "$2") ;;
-							disabled|disable) gs_opts+=("-b" "disabled") ;;
-							*) echo "$FUNCNAME: invalid bias $2" >&2; return 1 ;;
-						esac
-					else
-						gs_opts+=("-B" "$2")
-					fi
-				fi
+				local bias_opt
+				bias_opt=$(LGPIO_gpiodBias "$FUNCNAME" "$2") || return 1
+				gs_opts+=($bias_opt)
 				shift 2
 				;;
 			-d|--drive)
@@ -351,10 +387,13 @@ LGPIO_set(){
 			echo "$FUNCNAME: pin must be numeric (got '$pin')." >&2
 			return 1
 		fi
-		if [ -n "${value//[01]}" ]; then
-			echo "$FUNCNAME: invalid GPIO value $value." >&2
-			return 1
-		fi
+		case "$value" in
+			0|1) ;;
+			*)
+				echo "$FUNCNAME: invalid GPIO value '$value' (must be 0 or 1)." >&2
+				return 1
+				;;
+		esac
 		local gpiod chip line
 		gpiod=$(LGPIO_info $header $pin gpiod)
 		chip=$(printf '%s' "$gpiod" | cut -f1)
@@ -368,7 +407,7 @@ LGPIO_set(){
 }
 
 LGPIO_bcmHelp(){
-	echo "$0 bcm [PIN] [TYPE={all,gpiod,chip,line,sysfs,name,pad,ref,desc}]" >&2
+	echo "$0 bcm BCM_GPIO [TYPE[,TYPE...]]   # TYPE as for info" >&2
 	echo "$0 bcm check   # list all BCM# → header pin coverage for this board" >&2
 }
 
@@ -376,6 +415,8 @@ LGPIO_bcmHelp(){
 LGPIO_bcmLoadMap(){
 	declare -gA BCM_GPIO2PIN
 	BCM_GPIO2PIN=()
+	BCM_GPIO2PIN[0]=27
+	BCM_GPIO2PIN[1]=28
 	BCM_GPIO2PIN[2]=3
 	BCM_GPIO2PIN[3]=5
 	BCM_GPIO2PIN[4]=7
@@ -420,7 +461,7 @@ LGPIO_bcmCheck(){
 	printf '%-8s %-6s %-10s %s\n' "BCM" "PIN" "STATUS" "NAME"
 	local bcm pin status name chip line row missing=0
 	# Numeric BCM lines only for the table (aliases checked separately)
-	local nums=(2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27)
+	local nums=(0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27)
 	for bcm in "${nums[@]}"; do
 		pin=${BCM_GPIO2PIN[$bcm]}
 		if [ -z "$pin" ]; then
@@ -528,7 +569,7 @@ LGPIO_debug(){
 	fi
 
 	if [ ! -f "$GPIO_DEBUG_PATH" ]; then
-		echo "$GPIO debug helper not found." >&2
+		echo "GPIO debug helper $GPIO_DEBUG_PATH not found." >&2
 		exit 1
 	fi
 
@@ -634,7 +675,7 @@ LGPIO_watchHelp(){
 	echo "$0 watch [options] [HEADER] PIN" >&2
 	echo "  Monitor edge events (gpiomon). Options:" >&2
 	echo "    -e, --edges <rising|falling|both>  (default both)" >&2
-	echo "    -b, --bias <pull-up|pull-down|disabled>" >&2
+	echo "    -b, --bias <pull-up|pull-down|disabled|as-is>" >&2
 	echo "    -l, --active-low" >&2
 	echo "    -n, --num-events <N>   exit after N events" >&2
 }
@@ -666,11 +707,9 @@ LGPIO_watch(){
 				shift 2
 				;;
 			-b|--bias)
-				if [ "$(LGPIO_gpiodMajor)" = 2 ]; then
-					opts+=("-b" "$2")
-				else
-					opts+=("-B" "$2")
-				fi
+				local bias_opt
+				bias_opt=$(LGPIO_gpiodBias "$FUNCNAME" "$2") || return 1
+				opts+=($bias_opt)
 				shift 2
 				;;
 			-l|--active-low)

@@ -30,30 +30,36 @@ export VENDOR=libre-computer BOARD=aml-s905x-cc
 ```text
 lgpio headers
 lgpio header [HEADER]
-lgpio info [HEADER] PIN [type=all,gpiod,chip,line,sysfs,name,pad,ref,desc]
+lgpio info [HEADER] PIN [TYPE[,TYPE...]]
 lgpio get [HEADER] PIN
 lgpio set [options] [HEADER_]PIN={0,1} ...
 lgpio pinmux [HEADER] [PIN]
 lgpio watch [options] [HEADER] PIN
-lgpio bcm [PIN] [type=...]
+lgpio bcm BCM_GPIO [TYPE[,TYPE...]]
 lgpio bcm check
 lgpio debug [BANK][_NUM]    # board-specific, needs gpio.config + memtool
 ```
 
 ### headers / header
 
-List header names, or dump all rows for one header (e.g. `7J1`).
+List header names, or dump all rows for one header (e.g. `7J1`). The
+header name must match the map's Header column exactly (case-insensitive):
+`header J1` does not include `7J1` or `J12`.
 
 ### info
 
 Default header is the first data row in `gpio.map` (usually the 40-pin
-header). Types: `all`, `gpiod` (chip+line), `chip`, `line`, `sysfs`,
-`name`, `pad`, `ref`, `desc`.
+header). TYPE is `all` (the default), `gpiod` (chip+line), or a column
+name from the map, matched exactly and case-insensitively: `header`,
+`pin`, `chip`, `line`, `sysfs`, `name`, `pad`, `ref`, `desc`. Several
+columns may be given comma- or space-separated; an unknown name is an
+error that lists the valid ones.
 
 ```bash
 lgpio info 7J1 19
 lgpio info 19 name
 lgpio info 24 gpiod
+lgpio info 7J1 19 name,pad
 ```
 
 ### pinmux
@@ -82,8 +88,12 @@ lgpio set --bias pull-down --drive push-pull 7J1_12=1
 | Option | Values |
 |--------|--------|
 | `-l` / `--active-low` | treat line as active-low |
-| `-b` / `--bias` | `pull-up`, `pull-down`, `disabled`, `as-is` |
+| `-b` / `--bias` | `pull-up`, `pull-down`, `disabled` (or `disable`), `as-is` |
 | `-d` / `--drive` | `push-pull`, `open-drain`, `open-source` |
+
+`lgpio` passes each bias in the spelling the installed libgpiod takes
+(`-B disable` on v1, `-b disabled` on v2); `as-is` passes no bias option.
+`get` prints `0` or `1` on both versions.
 
 **Note:** On libgpiod v2, line state after `gpioset` exits is not guaranteed
 unless held; `lgpio set` uses a short hold period for one-shot values.
@@ -102,17 +112,21 @@ lgpio watch -n 10 11      # exit after 10 events
 | Option | Meaning |
 |--------|---------|
 | `-e` / `--edges` | `rising`, `falling`, `both` (default) |
-| `-b` / `--bias` | pull-up / pull-down / disabled |
+| `-b` / `--bias` | pull-up / pull-down / disabled / as-is (as for `set`) |
 | `-l` / `--active-low` | invert edge sense |
 | `-n` / `--num-events` | exit after N events |
 
 ### bcm
 
-RPi BCM GPIO number → physical pin on the default header, then `info`.
+RPi BCM GPIO number (0-27, or the aliases `SDA0` / `SCL0` / `ID_SD` /
+`ID_SC`) → physical pin on the header the map declares with
+`#rpi-header: <header>`, then `info`. A board whose map says
+`#rpi-header: none` has no BCM numbering and `bcm` says so.
 
 ```bash
 lgpio bcm 8 name          # BCM8 → pin 24 → SoC name
 lgpio bcm 2 sysfs
+lgpio bcm 0 name          # BCM0 (ID_SD) → pin 27
 lgpio bcm check           # full coverage table + WARNINGs if incomplete
 ```
 

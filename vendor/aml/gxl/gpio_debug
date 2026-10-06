@@ -116,19 +116,27 @@ declare -A GPIO_BANK_IO_BIT_OFF=(
 	["GPIOZ"]=14
 )
 
+# Pull and pull-enable bits are indexed by pin number within the kernel's
+# bank (pinctrl-meson-gxl.c BANK("DV", GPIODV_0, ...) / BANK("Z", GPIOZ_0,
+# ...)), so the DV (pins 24..29) and Z (pins 14..15) offsets match
+# GPIO_BANK_IO_BIT_OFF.
 declare -A GPIO_BANK_PULL_EN_BIT_OFF=(
 	["GPIOAO"]=16
 	["GPIOX"]=0
-	["GPIODV"]=0
+	["GPIODV"]=24
 	["GPIOH"]=20
 	["BOOT"]=0
 	["CARD"]=20
 	["CLK"]=28
-	["GPIOZ"]=0
+	["GPIOZ"]=14
 )
 
+# Word offsets from GPIO_BANK_BASE_ADDR. Periphs: meson-gxl.dtsi "pull-enable"
+# at periphs+0x520. AO has no separate pull-enable register: meson-gxl.dtsi
+# gives gpio_ao "pull" at aobus+0x2c and meson8_aobus_parse_dt_extra() makes
+# pull-enable the same register (enable = bits 16+n, pull-up = bits n).
 declare -A GPIO_BANK_PULL_EN_REG_OFF=(
-	["GPIOAO"]=0x48
+	["GPIOAO"]=0x0b
 	["GPIOX"]=0x4c
 	["GPIODV"]=0x48
 	["GPIOH"]=0x49
@@ -147,16 +155,17 @@ GPIO_BANK_PULL_EN_get(){
 declare -A GPIO_BANK_PULL_DIR_BIT_OFF=(
 	["GPIOAO"]=0
 	["GPIOX"]=0
-	["GPIODV"]=0
+	["GPIODV"]=24
 	["GPIOH"]=20
 	["BOOT"]=0
 	["CARD"]=20
 	["CLK"]=28
-	["GPIOZ"]=0
+	["GPIOZ"]=14
 )
 
+# Periphs: meson-gxl.dtsi "pull" at periphs+0x4e8; AO: aobus+0x2c (see above).
 declare -A GPIO_BANK_PULL_DIR_REG_OFF=(
-	["GPIOAO"]=0x3a
+	["GPIOAO"]=0x0b
 	["GPIOX"]=0x3e
 	["GPIODV"]=0x3a
 	["GPIOH"]=0x3b
