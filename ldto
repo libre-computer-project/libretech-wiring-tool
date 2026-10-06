@@ -887,6 +887,14 @@ LDTO_disable()
 		LDTO_active
 		return 1
 	fi
+	case "$1" in
+		--help|-h)
+			echo "$0 disable OVERLAY [OVERLAY...]" >&2
+			echo "  Removes runtime (configfs) overlays, consumers first. Refuses overlays" >&2
+			echo "  merged into this boot's DT, and providers an active overlay still needs." >&2
+			return 0
+			;;
+	esac
 	if ! LDTO_requireValidNames "$@"; then
 		return 1
 	fi
@@ -1295,11 +1303,16 @@ LDTO_bootId()
 # write reads a file of this boot as older; a clock that starts behind the
 # previous boot's write reads an older file as new (an override the
 # bootloader ignores then shows as pending-merge instead of ignored).
+#
+# The newest of mtime, ctime and birth time counts: `cp -p`, `rsync -a` or
+# tar keep the mtime of a restored file, but vfat reports its creation time
+# as the birth time (ctime there is the mtime), and a new file is created now.
 LDTO_fileBeforeBoot()
 {
 	local bt mt
 	bt=$(awk '$1 == "btime" { print $2 }' "$PATH_OF_PROC_STAT" 2>/dev/null) || bt=
-	mt=$(stat -c %Y "$1" 2>/dev/null) || mt=
+	mt=$(stat -c '%Y %Z %W' "$1" 2>/dev/null |
+		awk '{ m = 0; for (i = 1; i <= NF; i++) if ($i ~ /^[0-9]+$/ && $i + 0 > m) m = $i + 0; if (m) print m }') || mt=
 	if [ -z "$bt" ] || [ -z "$mt" ]; then
 		return 2
 	fi
@@ -1347,6 +1360,10 @@ LDTO_nextBootState()
 			[ "$(sed -n 's/^boot_id=//p' "$PATH_OF_RUN/written")" = "$bid" ]; then
 		wid=$(sed -n 's/^id=//p' "$PATH_OF_RUN/written")
 		lost=$(sed -n 's/^merged=//p' "$PATH_OF_RUN/written")
+	fi
+	if [ -f "$file" ] && [ ! -r "$file" ]; then
+		LDTO_STATE_MSG="cannot read $file (permissions -- sudo?): next-boot state unknown"
+		return 0
 	fi
 	if [ -f "$file" ]; then
 		f=$(LDTO_dtbChosen "$file" "$LDTO_PROP_ID")
@@ -2007,7 +2024,8 @@ LDTO_merge()
 			echo "Merge base: this boot's DT -- the removed override, still running${rec[0]:+ (holds: ${rec[*]})}; per-boot /chosen values removed" >&2
 		else
 			base_kind="builtin:${uv:-unknown}"
-			uboot="$uv"
+			# ldto-u-boot also marks "this chain began on the built-in DT"
+			uboot="${uv:-unknown}"
 			echo "Merge base: this boot's DT (U-Boot built-in${uv:+, $uv}; per-boot /chosen values removed)" >&2
 		fi
 	fi
@@ -2116,10 +2134,13 @@ LDTO_edit()
 	# R12: fail-closed — never write override if dtc decompile/recompile fails.
 	LDTO_checkOverrideDT RW
 	LDTO_warnNextBoot
-	local dts orig staged err
+	local dts orig before staged err
 	dts=$(mktemp /tmp/ldto-edit.XXXXXX.dts) || return 1
 	orig=$(mktemp /tmp/ldto-edit.XXXXXX.orig) || { rm -f "$dts"; return 1; }
-	LDTO_CLEANUP+=("$dts" "$orig")
+	before=$(mktemp /tmp/ldto-edit.XXXXXX.before) || { rm -f "$dts" "$orig"; return 1; }
+	LDTO_CLEANUP+=("$dts" "$orig" "$before")
+	# The file as it was when the editor opened, to notice another writer.
+	cp -f "$PATH_OF_DTB_OVERRIDE" "$before"
 	if ! err=$(dtc -I dtb -O dts "$PATH_OF_DTB_OVERRIDE" -o "$dts" 2>&1); then
 		echo "WARNING: edit aborted — dtc decompile failed; override unchanged" >&2
 		[ -n "$err" ] && echo "WARNING: dtc: $err" >&2
@@ -2164,6 +2185,14 @@ LDTO_edit()
 		rm -f "$dts" "$staged"
 		return 1
 	fi
+	if ! cmp -s "$before" "$PATH_OF_DTB_OVERRIDE"; then
+		local keep
+		keep=$(mktemp /tmp/ldto-edit-kept.XXXXXX.dts) && cp -f "$dts" "$keep"
+		echo "WARNING: edit aborted — the override changed while the editor was open (a deploy or another tool?); it is left as that writer left it; your edit is in ${keep:-(lost)}" >&2
+		rm -f "$dts" "$staged" "$before"
+		return 1
+	fi
+	rm -f "$before"
 	local irc=0
 	LDTO_installDTB "$staged" "$PATH_OF_DTB_OVERRIDE" || irc=$?
 	rm -f "$dts" "$staged"
@@ -2215,7 +2244,24 @@ LDTO_reset()
 	# of it (a deploy or a merge rewrote it since), so a file put on the ESP
 	# during a built-in boot also gets the marker -- the merge after it is
 	# refused until a reboot, the safe side.
-	if [ -z "$booted" ] && [ -d "$PATH_OF_PROC_DT" ] && [ -z "$origin" ]; then
+	# The origin is only evidence when ldto itself wrote this file in this
+	# boot (/run/ldto/written names its id), or when the bootloader never
+	# loads it (`ignored`): a stamped file copied over this boot's legacy
+	# override carries an origin that says nothing about this boot.
+	local wfile=$PATH_OF_RUN/written ours=0 bid
+	bid=$(LDTO_bootId)
+	if [ -n "$origin" ] && [ -n "$stamp" ] && [ -n "$bid" ] && [ -f "$wfile" ] &&
+			[ "$(sed -n 's/^boot_id=//p' "$wfile")" = "$bid" ] &&
+			[ "$(sed -n 's/^id=//p' "$wfile")" = "$stamp" ]; then
+		ours=1
+	fi
+	if [ "$ours" -eq 0 ] && [ -n "$origin" ]; then
+		LDTO_nextBootState
+		if [ "$LDTO_STATE" = "ignored" ]; then
+			ours=1
+		fi
+	fi
+	if [ -z "$booted" ] && [ -d "$PATH_OF_PROC_DT" ] && [ "$ours" -eq 0 ]; then
 		marker=1
 		if ! { mkdir -p "$PATH_OF_RUN" && printf 'boot_id=%s\nremoved=%s\nstamp=%s\n' "$(LDTO_bootId)" \
 				"$PATH_OF_DTB_OVERRIDE" "${stamp:-none}" > "$PATH_OF_RUN/reset-pending"; } 2>/dev/null; then
@@ -3195,8 +3241,10 @@ case "$cmd_lc" in
 		# actives when present, and reports the next-boot DT either way)
 		;;
 	disable)
-		LDTO_requireConfigFS || exit 1
-		LDTO_lock || exit 1
+		if [ "$help" -eq 0 ]; then
+			LDTO_requireConfigFS || exit 1
+			LDTO_lock || exit 1
+		fi
 		;;
 	*)
 		LDTO_requireConfigFS || exit 1

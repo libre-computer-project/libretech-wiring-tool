@@ -44,13 +44,12 @@ boot() {
 	if [ -f "$OVR" ] && [ "${1:-}" != ignore-override ]; then
 		src=$OVR
 	fi
-	# Time passes: what is on the ESP now predates this boot.
+	# The boot starts after every file now on the ESP was written (mtime,
+	# ctime and birth time alike) and before anything written after it.
 	t=$(date +%s)
-	if [ -f "$OVR" ]; then
-		touch -d "@$((t - 20))" "$OVR"
-	fi
 	mkdir -p "$S/proc"
-	echo "btime $((t - 10))" > "$S/proc/stat"
+	echo "btime $((t + 1))" > "$S/proc/stat"
+	sleep 1.2
 	mkdir -p "$S/sys/firmware" "$S/proc/sys/kernel/random"
 	cp -f "$src" "$S/sys/firmware/fdt"
 	fdtput -p -ts "$S/sys/firmware/fdt" /chosen u-boot,version "2026.07-test"
@@ -414,6 +413,55 @@ check "after the reboot, merge allowed" rc_is 0
 EDITOR='sleep 5 >/dev/null 2>&1 </dev/null & true' run edit
 LDTO_LOCK_WAIT=0 run merge pwm-e
 check "editor's background child does not hold the ldto lock" bash -c "! printf '%s' \"\$1\" | grep -q 'another ldto command'" _ "$OUT"
+run reset
+boot
+run merge pwm-a
+
+# --- review round 5 -----------------------------------------------------------
+# a stamped, built-in-origin override copied over this boot's legacy override
+boot
+cp -f "$OVR" "$S/stamped.dtb"
+run reset
+cp -f "$BASE" "$OVR"
+fdtput -ts "$OVR" / model "legacy override"
+boot
+cp -f "$S/stamped.dtb" "$OVR"
+run reset
+check "stamped file copied over this boot's legacy override, reset: marker" [ -f "$S/run/ldto/reset-pending" ]
+# a backup restored with cp -p (mtime kept) during a boot is pending
+boot
+cp -f "$S/stamped.dtb" "$OVR"
+boot
+cp -f "$OVR" "$S/backup-p.dtb"
+touch -d @1000000000 "$S/backup-p.dtb"
+run reset
+boot
+cp -p "$S/backup-p.dtb" "$OVR"
+check "backup restored with cp -p during this boot: pending-merge, not ignored" state_is pending-merge
+# a built-in boot whose bootloader sets no u-boot,version
+run reset
+boot
+fdtput -d "$S/sys/firmware/fdt" /chosen u-boot,version
+run merge pwm-a
+check "no u-boot,version: origin recorded as unknown" [ "$(chosen libretech,ldto-u-boot)" = "unknown" ]
+run reset
+check "...reset: no marker" [ ! -f "$S/run/ldto/reset-pending" ]
+check "...state builtin" state_is builtin
+# the override changes while the editor is open
+run merge pwm-a
+printf '#!/bin/sh\nsed -i s/Libre/LIBRE/ "$1"\ncp -f "%s" "%s"\n' "$BASE" "$OVR" > "$S/ed-race.sh"
+EDITOR="sh $S/ed-race.sh" run edit
+check "override changed while editing: edit refused" says "the override changed while the editor was open"
+check "...the other writer's file is kept" cmp -s "$OVR" "$BASE"
+# unreadable override (non-root status)
+if [ "$(id -u)" -ne 0 ]; then
+	chmod 000 "$OVR"
+	run status
+	chmod 644 "$OVR"
+	check "unreadable override: status says so, not replaced" says "cannot read"
+fi
+run disable --help
+check "disable --help: usage, rc 0" rc_is 0
 run reset
 boot
 run merge pwm-a

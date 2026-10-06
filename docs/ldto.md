@@ -147,8 +147,11 @@ sudo ldto current  # running firmware DTB as DTS
 `edit` decompiles the existing override to DTS, opens it in `$EDITOR`, and
 recompiles it. If the decompile, the editor, or the recompile fails, the
 override is left unchanged; otherwise the recompiled DTB replaces it, with its
-merge record kept and marked edited (advisory). It needs an override to exist
-(run `merge` first).
+merge record kept and marked edited (advisory). Saving with no change writes
+nothing; if the file changed while the editor was open, the edit is not
+installed (it is kept in `/tmp`). `$EDITOR` may carry arguments and must wait
+until the file is closed (`gvim -f`, `code -w`). It needs an override to
+exist (run `merge` first).
 
 **Which DT boots:** U-Boot loads the override DTB if it exists, else its own
 built-in DT. The override is a self-contained copy; it does not follow later
@@ -219,8 +222,13 @@ DT's `libretech,ldto-id` with the override file:
 
 `merge` **refuses** in state `removed`: with no override file its base would be
 this boot's DT, which still holds the removed overlays. Reboot first, or
-`--force`. For an override without a record, `reset` leaves a marker in
-`/run/ldto` that has the same effect until the next boot.
+`--force`. When this boot ran no recorded override, `reset` leaves a marker
+in `/run/ldto` with the same effect until the next boot -- unless ldto wrote
+the removed file in this boot onto the built-in DT (or the bootloader never
+loads it), which shows this boot's DT is the built-in one. A file that ran
+in this boot is therefore never mistaken for the built-in DT, at the price
+of a refused merge (until reboot) after resetting a DTB another tool dropped
+on the ESP during a built-in boot.
 
 A kernel package or deploy that writes the ESP DTB path replaces the override
 (state `replaced`); merge the overlays again afterwards.
