@@ -7,21 +7,22 @@ SPDX-License-Identifier: MIT
 
 | Package | Contents |
 |---------|----------|
-| **libretech-gpio** | `lgpio`, per-board `gpio.map` |
-| **libretech-dtoverlay** | `ldto`, `scripts/overlay-deps.py`, `dt/*.dtbo`, `dt.map`, `dt.deps`, `dt.config` |
+| **libretech-gpio** | `lgpio`, per-board `gpio.map` and `gpio.config`, `vendor/*/*/gpio_debug` (`lgpio debug`) |
+| **libretech-dtoverlay** | `ldto`, `scripts/overlay-deps.py`, `dt/*.dtbo` + their `dt/*.dts` sources, `dt.map`, `dt.deps`, `dt.config` |
+
+The `.dts` sources ship beside the `.dtbo`: `ldto list`, `info`, `conflicts`
+and the `enable` preflight read `Summary:`, `Pins:` and `Resource-*` from them.
 
 Source package: `libretech-wiring-tool` (`debian/control`).
 
-Build (example):
-
-```bash
-dpkg-buildpackage -us -uc -b
-```
+Build: `./build.sh` (stamps a dated `debian/changelog` entry, then runs
+`dpkg-buildpackage -uc -us --build=all`). Build-Depends include `python3`
+(`dt.deps` generation and the build-time checks).
 
 Depends:
 
 - `libretech-gpio` → `gpiod`  
-- `libretech-dtoverlay` → `device-tree-compiler`  
+- `libretech-dtoverlay` → `device-tree-compiler`, `libretech-gpio` (ldto reads `gpio.map`)  
 
 ## Install prefix
 
@@ -34,23 +35,30 @@ Default: `/opt/librecomputer/libretech-wiring-tool/`
   scripts/overlay-deps.py
   libre-computer/<board>/
     gpio.map
+    gpio.config          # GXL boards only (lgpio debug)
     dt.map
     dt.deps
     dt.config
     dt/*.dtbo
+    dt/*.dts
+  vendor/aml/gxl/gpio_debug
 ```
 
-`update-alternatives` (via package `.alternatives`) typically installs
-`/usr/local/bin/lgpio` and `/usr/local/bin/ldto` pointing at this prefix.
+The packages register `/usr/bin/lgpio` and `/usr/bin/ldto` with
+`update-alternatives`; `install.sh` (git checkout) registers
+`/usr/local/bin/lgpio` and `/usr/local/bin/ldto` instead.
 
 From the git tree:
 
 ```bash
-sudo make install              # install-lgpio + install-ldto
+sudo make install              # install-lgpio + install-ldto (builds first)
 sudo make install-lgpio
 sudo make install-ldto
 # PREFIX=/opt/... DESTDIR=... optional
 ```
+
+`lgpio debug` sources `gpio.config` and the `GPIO_DEBUG_PATH` it names,
+relative to the install root.
 
 ## Runtime board paths
 

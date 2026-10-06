@@ -1,3 +1,6 @@
 # SPDX-License-Identifier: GPL-2.0-only
 opt/librecomputer/libretech-wiring-tool/lgpio
 opt/librecomputer/libretech-wiring-tool/libre-computer/*/gpio.map
+# `lgpio debug`: per-board gpio.config names a GPIO_DEBUG_PATH under vendor/
+opt/librecomputer/libretech-wiring-tool/libre-computer/*/gpio.config
+opt/librecomputer/libretech-wiring-tool/vendor

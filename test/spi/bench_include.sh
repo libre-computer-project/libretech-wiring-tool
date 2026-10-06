@@ -95,7 +95,11 @@ spi_clock_monitor(){
 }
 
 spi_clock_monitor_wait(){
-	while [ ! -z $scm_pid ]; do
-		:
+	# The child SIGINTs us after its sampling window; with no board_clock it
+	# exits at once and never signals, so also stop when it is gone.
+	while [ -n "$scm_pid" ] && kill -0 "$scm_pid" 2>/dev/null; do
+		sleep 0.01
 	done
+	scm_pid=
+	trap - SIGINT
 }

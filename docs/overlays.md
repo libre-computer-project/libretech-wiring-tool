@@ -137,7 +137,10 @@ Every real (non-symlink) `.dts` should start with SPDX, copyright, and:
 ```
 
 `gpio.map` is the pinout authority for `Pins:` rows.  
-Bulk refresh: `scripts/normalize-overlay-headers.py`.
+To rewrite stale `Pins:` blocks from `gpio.map`:
+`scripts/check-overlay-pins.py --fix [--board <board>]` (git-tracked overlays
+only; needs base DTBs and a kernel tree, like `make check-overlay-pins`).
+`Summary:`, `Requires:` and `Notes:` are written by hand.
 
 ## SPI chip-select naming
 

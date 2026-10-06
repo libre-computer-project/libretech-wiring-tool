@@ -26,6 +26,11 @@ if ! which gcc > /dev/null; then
 	packages+=(gcc)
 fi
 
+# make generates dt.deps with scripts/overlay-deps.py
+if ! which python3 > /dev/null; then
+	packages+=(python3)
+fi
+
 if [ "${#packages[@]}" -gt 0 ]; then
 	apt install -y ${packages[@]}
 fi

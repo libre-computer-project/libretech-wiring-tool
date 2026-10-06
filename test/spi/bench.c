@@ -359,21 +359,12 @@ int main(int argc, char *argv[]) {
 	// Verify data
 	uint32_t mismatch_count = 0;
 	for (i = 0; i < total_words; i++) {
-		// For the last word, check if it's partial
+		// Every word occupies a whole slot (bits >= 8: total_size is a
+		// multiple of bytes_per_word; sub-byte: whole bytes of aligned
+		// slots), and unpack_word() already masks to `bits`, so the last
+		// word is never partial and needs no extra mask.
 		uint64_t tx_word = unpack_word(tx_data, i, bits);
 		uint64_t rx_word = unpack_word(rx_data, i, bits);
-		if (i == total_words - 1) {
-			// Calculate total bits used
-			uint64_t total_bits_used = (uint64_t)total_size * 8;
-			uint32_t bits_in_last_word = total_bits_used % bits;
-			if (bits_in_last_word == 0) {
-				bits_in_last_word = bits;
-			}
-			// Mask to only the used bits in the last word
-			uint64_t mask = (1ULL << bits_in_last_word) - 1;
-			tx_word &= mask;
-			rx_word &= mask;
-		}
 		if (tx_word != rx_word) {
 			if (mismatch_count < MAX_MISMATCHES_TO_PRINT) {
 				if (bits < 8) {

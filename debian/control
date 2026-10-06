@@ -6,7 +6,8 @@ Maintainer: Da Xue <da@libre.computer>
 Build-Depends: debhelper-compat (= 13),
                device-tree-compiler,
                gcc,
-               make
+               make,
+               python3
 Standards-Version: 4.6.2
 Homepage: https://github.com/libre-computer-project/libretech-wiring-tool
 Rules-Requires-Root: no
@@ -23,7 +24,9 @@ Description: Libre Computer header GPIO lookup and control (lgpio)
 
 Package: libretech-dtoverlay
 Architecture: all
-Depends: device-tree-compiler, ${misc:Depends}
+Depends: device-tree-compiler,
+         libretech-gpio (= ${binary:Version}),
+         ${misc:Depends}
 Description: Libre Computer device-tree overlays and ldto tool
  Compiles and installs per-board device-tree overlays (.dtbo) for header
  buses and accessories (I2C, SPI, UART, PWM, displays, etc.), plus the

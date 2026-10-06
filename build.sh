@@ -9,7 +9,11 @@ dateymd=$(date +%Y.%m.%d.%H-%M-%S)
 commit=$(git rev-parse HEAD 2>/dev/null || echo unknown)
 dateutc=$(date -Ru)
 
-# Refresh changelog for this build (native package, single entry is fine).
+# Stamp a dated changelog entry for this build only (native package, single
+# entry is fine), and put the tracked changelog back afterwards so a build
+# never leaves the tree dirty.
+cp -p debian/changelog debian/changelog.build-orig
+trap 'mv -f debian/changelog.build-orig debian/changelog' EXIT
 cat > debian/changelog <<EOF
 libretech-wiring-tool ($dateymd) unstable; urgency=medium
 

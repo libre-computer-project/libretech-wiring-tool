@@ -21,7 +21,12 @@ ifneq ($(BOARD_FILTER),)
     $(error LWT: no .dts overlays under $(BOARD_DT_REAL) (BOARD_NAME=$(BOARD_FILTER)))
   endif
 else
-  DT_DTS := $(wildcard libre-computer/*/dt/*.dts)
+  DT_DTS_ALL := $(wildcard libre-computer/*/dt/*.dts)
+  # Whole-dir symlink boards (aml-s905x-cc-v2/dt -> ../aml-s905x-cc/dt) are
+  # compiled once, through the real directory. Listing them too made two
+  # targets write the same .pre.dts/.dtbo under -j and lost overlays.
+  DT_DIRS_LINKED := $(shell for d in libre-computer/*/dt; do if [ -L "$$d" ]; then echo "$$d"; fi; done)
+  DT_DTS := $(filter-out $(addsuffix /%,$(DT_DIRS_LINKED)),$(DT_DTS_ALL))
 endif
 
 # Same-dir alias .dts → .dtbo symlinks. Cross-dir .dts symlinks compile locally.
@@ -35,12 +40,21 @@ DTOS        := $(DTOS_REAL) $(DTOS_SYM)
 DESTGPIOMAPS	:= $(patsubst %,$(PREFIX)/%,$(wildcard libre-computer/*/gpio.map))
 DESTDTMAPS	:= $(patsubst %,$(PREFIX)/%,$(wildcard libre-computer/*/dt.map))
 DESTDTOCFG	:= $(patsubst %,$(PREFIX)/%,$(wildcard libre-computer/*/dt.config))
-DESTDTBOS	:= $(patsubst %,$(PREFIX)/%,$(wildcard libre-computer/*/dt/*.dtbo))
+DESTGPIOCFG	:= $(patsubst %,$(PREFIX)/%,$(wildcard libre-computer/*/gpio.config))
+# lgpio debug sources the GPIO_DEBUG_PATH named in gpio.config, relative to
+# the install root.
+DESTGPIODBG	:= $(patsubst %,$(PREFIX)/%,$(wildcard vendor/*/*/gpio_debug))
+# Derived from the build targets, not a parse-time wildcard of built files, so
+# `make install` on a clean tree builds and installs every overlay. The .dts
+# sources are installed beside them: ldto reads Summary:/Pins:/Resource-*
+# from <board>/dt/<name>.dts at run time.
+DESTDTBOS	:= $(addprefix $(PREFIX)/,$(DTOS))
+DESTDTS		:= $(addprefix $(PREFIX)/,$(DT_DTS))
 # Per-board auto-dependency tables (consumer -> provider).
 ifneq ($(BOARD_FILTER),)
   DEPS_FILES := libre-computer/$(BOARD_FILTER)/dt.deps
 else
-  DEPS_BOARDS := $(sort $(foreach d,$(DT_DTS),$(word 2,$(subst /, ,$(d)))))
+  DEPS_BOARDS := $(sort $(foreach d,$(DT_DTS_ALL),$(word 2,$(subst /, ,$(d)))))
   DEPS_FILES := $(addprefix libre-computer/,$(addsuffix /dt.deps,$(DEPS_BOARDS)))
 endif
 
@@ -152,19 +166,24 @@ $(DTOS_SYM): $(DTOS_REAL)
 endif
 
 # Real / cross-dir sources: cpp + dtc. Same-dir symlink .dts: .dtbo symlink only.
+# One shell per recipe so the symlinked-dir guard really ends the recipe, and
+# a cpp or dtc failure fails the target and leaves no partial output behind.
+DTO_COMPILE = $(CC) -E -nostdinc -Iinclude -x assembler-with-cpp -undef -o $*.pre.dts $< \
+		|| { rm -f $*.pre.dts $@; exit 1; }; \
+	echo "DTC	$*.pre.dts"; \
+	$(DTC) $(DTC_OPTIONS) -I dts -O dtb -o $@ $*.pre.dts \
+		|| { rm -f $*.pre.dts $@; exit 1; }; \
+	rm -f $*.pre.dts
+
 %.dtbo: %.dts
 	@if [ -L $(@D) ]; then \
 		exit 0; \
-	fi
-	@if [ -L "$<" ]; then \
+	elif [ -L "$<" ]; then \
 		target=$$(readlink "$<"); \
 		case "$$target" in \
 		*/*) \
 			echo "CC	$< (via $$target)"; \
-			$(CC) -E -nostdinc -Iinclude -x assembler-with-cpp -undef -o $*.pre.dts $<; \
-			echo "DTC	$*.pre.dts"; \
-			$(DTC) $(DTC_OPTIONS) -I dts -O dtb -o $@ $*.pre.dts; \
-			rm -f $*.pre.dts; \
+			$(DTO_COMPILE); \
 			;; \
 		*) \
 			ln -fns "$${target%.dts}.dtbo" $@; \
@@ -173,10 +192,7 @@ endif
 		esac; \
 	else \
 		echo "CC	$<"; \
-		$(CC) -E -nostdinc -Iinclude -x assembler-with-cpp -undef -o $*.pre.dts $<; \
-		echo "DTC	$*.pre.dts"; \
-		$(DTC) $(DTC_OPTIONS) -I dts -O dtb -o $@ $*.pre.dts; \
-		rm -f $*.pre.dts; \
+		$(DTO_COMPILE); \
 	fi
 
 clean:
@@ -201,7 +217,13 @@ $(PREFIX)/libre-computer/%/gpio.map: boarddirs
 		install -p -m 644 $(patsubst $(PREFIX)/%,%,$@) $@; \
 	fi
 
-install-lgpio: boarddirs $(DESTGPIOMAPS)
+$(PREFIX)/libre-computer/%/gpio.config: boarddirs
+	install -p -m 644 $(patsubst $(PREFIX)/%,%,$@) $@
+
+$(PREFIX)/vendor/%/gpio_debug:
+	install -D -p -m 644 $(patsubst $(PREFIX)/%,%,$@) $@
+
+install-lgpio: boarddirs $(DESTGPIOMAPS) $(DESTGPIOCFG) $(DESTGPIODBG)
 	install -p -m 755 lgpio $(PREFIX)
 
 $(PREFIX)/libre-computer/%/dt.map: boarddirs
@@ -214,13 +236,15 @@ $(PREFIX)/libre-computer/%/dt.map: boarddirs
 $(PREFIX)/libre-computer/%/dt.config: boarddirs
 	install -p -m 644 $(patsubst $(PREFIX)/%,%,$@) $@
 
-$(PREFIX)/libre-computer/%.dtbo: boarddirs dtodirs
-	@if [ -L $(@D) ]; then \
-		exit; \
-	fi
+# Prerequisite on the built overlay so install never runs ahead of the build.
+# Whole-dir symlink boards are not in DESTDTBOS/DESTDTS; dtodirs links their
+# dt/ to the real one, and the guard below stops a write through that link.
+$(PREFIX)/libre-computer/%.dtbo: libre-computer/%.dtbo | boarddirs dtodirs
 	@src=$(patsubst $(PREFIX)/%,%,$@); \
 	srcdts=$${src%.dtbo}.dts; \
-	if [ -L "$$srcdts" ]; then \
+	if [ -L $(@D) ]; then \
+		exit 0; \
+	elif [ -L "$$srcdts" ]; then \
 		target=$$(readlink "$$srcdts"); \
 		case "$$target" in \
 		*/*) install -p -m 644 "$$src" $@ ;; \
@@ -232,7 +256,18 @@ $(PREFIX)/libre-computer/%.dtbo: boarddirs dtodirs
 		install -p -m 644 "$$src" $@; \
 	fi
 
-install-ldto: boarddirs $(DESTDTOCFG) $(DESTDTMAPS) $(DESTDTBOS) $(DEPS_FILES)
+# Overlay sources beside the .dtbo (ldto's Summary/Pins/Resource-* source).
+# A same-dir alias stays a relative symlink; a cross-dir one is copied.
+$(PREFIX)/libre-computer/%.dts: libre-computer/%.dts | boarddirs dtodirs
+	@if [ -L $(@D) ]; then \
+		exit 0; \
+	elif [ -L "$<" ] && ! readlink "$<" | grep -q /; then \
+		ln -fns "$$(readlink "$<")" $@; \
+	else \
+		install -p -m 644 "$<" $@; \
+	fi
+
+install-ldto: boarddirs $(DESTDTOCFG) $(DESTDTMAPS) $(DESTDTBOS) $(DESTDTS) $(DEPS_FILES)
 	install -p -m 755 ldto $(PREFIX)
 	install -d -m 755 $(PREFIX)/scripts
 	install -p -m 755 scripts/overlay-deps.py $(PREFIX)/scripts/overlay-deps.py
