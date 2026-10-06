@@ -69,31 +69,47 @@ LDTO_loadDeps()
 }
 
 # Expand args with auto-providers from dt.deps (providers first, no dups).
+# A dependency cycle or a chain deeper than LDTO_DEPS_MAX_DEPTH is an error:
+# prints WARNING to stderr and returns 1 (callers must check the status;
+# capture with out=$(LDTO_expandDeps …) || return 1, not mapfile < <(…)).
+LDTO_DEPS_MAX_DEPTH=16
 LDTO_expandDeps()
 {
 	LDTO_loadDeps
 	local -a ordered=()
 	local -A seen=()
+	local -A onpath=()
+	local dep_err=""
 
 	_ldto_add() {
 		local name="$1"
 		local depth="${2:-0}"
+		local chain="$3"
 		local dep realp
-		if [ "$depth" -gt 6 ]; then
-			return
-		fi
+		[ -n "$dep_err" ] && return
 		realp=$(LDTO_getAliasDT "$name")
 		if [ -n "$realp" ]; then
 			name="$realp"
 		fi
+		chain="${chain:+$chain -> }$name"
 		if [[ -v "seen[$name]" ]]; then
 			return
 		fi
+		if [[ -v "onpath[$name]" ]]; then
+			dep_err="dependency cycle in $DEPS_FILE: $chain"
+			return
+		fi
+		if [ "$depth" -gt "$LDTO_DEPS_MAX_DEPTH" ]; then
+			dep_err="dependency chain deeper than $LDTO_DEPS_MAX_DEPTH in $DEPS_FILE: $chain"
+			return
+		fi
+		onpath[$name]=1
 		if [[ -v "MAP_DEPS[$name]" ]]; then
 			for dep in ${MAP_DEPS[$name]}; do
-				_ldto_add "$dep" $((depth + 1))
+				_ldto_add "$dep" $((depth + 1)) "$chain"
 			done
 		fi
+		unset "onpath[$name]"
 		if [[ -v "seen[$name]" ]]; then
 			return
 		fi
@@ -103,9 +119,31 @@ LDTO_expandDeps()
 
 	local arg
 	for arg in "$@"; do
-		_ldto_add "$arg" 0
+		_ldto_add "$arg" 0 ""
 	done
+	if [ -n "$dep_err" ]; then
+		echo "WARNING: $dep_err" >&2
+		return 1
+	fi
 	printf '%s\n' "${ordered[@]}"
+}
+
+# Order the given overlay names by dt.deps (providers before consumers),
+# keeping only the names given (deps that are not in the list are not added).
+# Prints one canonical basename per line; returns 1 on a dependency error.
+LDTO_orderByDeps()
+{
+	local -A want=()
+	local n out
+	for n in "$@"; do
+		[ -n "$n" ] && want[$(LDTO_canonName "$n")]=1
+	done
+	[ ${#want[@]} -gt 0 ] || return 0
+	out=$(LDTO_expandDeps "$@") || return 1
+	while IFS= read -r n; do
+		[ -n "$n" ] && [[ -v "want[$n]" ]] && printf '%s\n' "$n"
+	done <<<"$out"
+	return 0
 }
 
 LDTO_getDTAlias()
@@ -135,10 +173,10 @@ LDTO_getSummary()
 	# One-line Summary: from .dts header (empty if none)
 	local dts="$1"
 	[ -f "$dts" ] || return 0
+	# POSIX awk (mawk): case-insensitive "Summary:" without IGNORECASE
 	LDTO_extractHeaderComments "$dts" 2>/dev/null | awk '
-		BEGIN { IGNORECASE = 1 }
-		/^Summary:[[:space:]]*/ {
-			sub(/^Summary:[[:space:]]*/, "")
+		tolower($0) ~ /^summary:/ {
+			sub(/^[^:]*:[[:space:]]*/, "")
 			print
 			exit
 		}
@@ -200,18 +238,21 @@ LDTO_collectOverlayPins()
 	LDTO_loadGpioMap
 	[ -n "$GPIO_MAP_FILE" ] || return 0
 
-	local comments def_hdr
+	local comments
 	comments=$(LDTO_extractHeaderComments "$dts")
-	def_hdr=$(grep -v '^#' "$GPIO_MAP_FILE" | head -n1 | cut -f1)
 
-	# Structured Pins: 7J1.19  GPIOX_8 ...
+	# Structured Pins: 7J1.19  GPIOX_8 ... / J1.18  GPIO3_A5 ...
+	# Header names follow gpio.map column 1: optional digit prefix + J + digits
+	# (7J1, 2J3, 9J1, J1, J12, ...). The leading class keeps it off the tail
+	# of a longer word (e.g. "PJ1.2").
 	printf '%s\n' "$comments" | awk -v o="$dto" '
 		{
 			line = $0
 			# strip leading "* " from comment extract if present
 			sub(/^[[:space:]]+/, "", line)
-			if (match(line, /[0-9]+[Jj][0-9]+\.[0-9]+[[:space:]]+[A-Za-z0-9_*]+/)) {
+			if (match(line, /(^|[^A-Za-z0-9_])[0-9]*[Jj][0-9]+\.[0-9]+[[:space:]]+[A-Za-z0-9_*]+/)) {
 				tok = substr(line, RSTART, RLENGTH)
+				sub(/^[^0-9Jj]/, "", tok)
 				split(tok, a, /[\.[:space:]]+/)
 				# a[1]=7J1 a[2]=19 a[3]=GPIOX_8
 				if (a[1] != "" && a[2] != "" && a[3] != "")
@@ -242,7 +283,9 @@ LDTO_printPlan()
 	LDTO_loadMap
 	LDTO_loadGpioMap
 	local -a seq
-	mapfile -t seq < <(LDTO_expandDeps "$@")
+	local seq_out
+	seq_out=$(LDTO_expandDeps "$@") || return 1
+	mapfile -t seq <<<"$seq_out"
 	echo "Plan (dependency order):"
 	local dto n=0
 	for dto in "${seq[@]}"; do
@@ -346,7 +389,9 @@ LDTO_planSequence()
 {
 	LDTO_loadMap
 	local -a seq
-	mapfile -t seq < <(LDTO_expandDeps "$@")
+	local seq_out
+	seq_out=$(LDTO_expandDeps "$@") || return 1
+	mapfile -t seq <<<"$seq_out"
 	local dto
 	for dto in "${seq[@]}"; do
 		LDTO_canonName "$dto"
@@ -466,19 +511,25 @@ LDTO_planToApply()
 }
 
 # Write live-ish base DTB to $1: stock firmware FDT + currently applied
-# overlays that have a local .dtbo (readdir order — best-effort).
+# overlays that have a local .dtbo, re-applied in dt.deps order (providers
+# first; configfs readdir order is alphabetical, not apply order).
 # Returns 0 on success; 1 if firmware unreadable or active re-apply fails.
 LDTO_buildLiveBase()
 {
 	local out="$1"
-	local name dtbo
+	local name dtbo applied_out
 	local -a applied=() chain=()
 
 	if [ ! -r "$PATH_OF_DT" ]; then
 		return 1
 	fi
 
-	mapfile -t applied < <(LDTO_listAppliedOverlays)
+	applied_out=$(LDTO_listAppliedOverlays)
+	if [ -n "$applied_out" ]; then
+		mapfile -t applied <<<"$applied_out"
+		applied_out=$(LDTO_orderByDeps "${applied[@]}") || return 1
+		mapfile -t applied <<<"$applied_out"
+	fi
 	for name in "${applied[@]}"; do
 		[ -n "$name" ] || continue
 		dtbo=$(LDTO_getDTBO "$name")
@@ -534,9 +585,11 @@ LDTO_enableLivePreflight()
 	local live out
 
 	if [ ! -r "$PATH_OF_DT" ]; then
-		# Host-side dry-run / no firmware node: pin gate still ran; chain check N/A.
-		echo "WARNING: cannot live-preflight enable (no readable $PATH_OF_DT); skipping chain check" >&2
-		return 0
+		# Dry-run reports SKIPPED before calling here; a real apply without
+		# the chain check is opt-in only (--no-preflight).
+		echo "WARNING: enable aborted — cannot live-preflight (no readable $PATH_OF_DT); nothing applied" >&2
+		echo "WARNING: re-run with --no-preflight to apply without the conflict and chain checks" >&2
+		return 1
 	fi
 
 	mapfile -t to_apply < <(LDTO_planToApply "${seq[@]}")
@@ -624,10 +677,12 @@ LDTO_enable()
 
 	if [ "$dry_run" -eq 1 ]; then
 		echo "DRY-RUN: no configfs changes" >&2
-		LDTO_printPlan "${args[@]}"
+		LDTO_printPlan "${args[@]}" || return 1
 		LDTO_loadMap
 		local -a seq
-		mapfile -t seq < <(LDTO_planSequence "${args[@]}")
+		local seq_out
+		seq_out=$(LDTO_planSequence "${args[@]}") || return 1
+		mapfile -t seq <<<"$seq_out"
 		# Fail dry-run if any plan step lacks a .dtbo (same as real enable)
 		local dto dtbo_file missing=0
 		for dto in "${seq[@]}"; do
@@ -661,7 +716,9 @@ LDTO_enable()
 	LDTO_checkOFConfig RW
 	LDTO_loadMap
 	local -a seq
-	mapfile -t seq < <(LDTO_planSequence "${args[@]}")
+	local seq_out
+	seq_out=$(LDTO_planSequence "${args[@]}") || return 1
+	mapfile -t seq <<<"$seq_out"
 
 	# Resolve .dtbo for every step before touching configfs
 	local dto dtbo_file
@@ -772,8 +829,9 @@ LDTO_disable()
 
 	local -a seq=()
 	local -a to_remove=()
-	local i s
-	mapfile -t seq < <(LDTO_planSequence "${resolved[@]}")
+	local i s seq_out
+	seq_out=$(LDTO_planSequence "${resolved[@]}") || return 1
+	mapfile -t seq <<<"$seq_out"
 	# Reverse of providers-first plan ⇒ consumers first
 	for ((i=${#seq[@]}-1; i>=0; i--)); do
 		s="${seq[i]}"
@@ -883,12 +941,9 @@ LDTO_checkFirmwareDT()
 
 LDTO_findEFIDTBPath()
 {
+	# Empty when nothing is mounted under /boot; the NFS-root branch below
+	# still applies then.
 	local mnt_boot=$(cut -f 2 -d " " /proc/mounts  | grep ^/boot)
-	local mnt_boot_count=$(echo "$mnt_boot" | wc -l)
-	if [ $mnt_boot_count -lt 1 ]; then
-		echo "$FUNCNAME: no mounts found under /boot directory." >&2
-		return 1
-	fi
 	for mnt_dir in $mnt_boot; do
 		if [ -d "$mnt_dir"/EFI/BOOT -o -e "$mnt_dir"/uboot.env ]; then
 			PATH_OF_EFI_DTB="$mnt_dir"/dtb
@@ -984,8 +1039,10 @@ LDTO_merge()
 	LDTO_importDTConfig
 	LDTO_loadMap
 
-	local -a seq
-	mapfile -t seq < <(LDTO_planSequence "${args[@]}")
+	local -a seq=()
+	local seq_out
+	seq_out=$(LDTO_planSequence "${args[@]}") || return 1
+	[ -n "$seq_out" ] && mapfile -t seq <<<"$seq_out"
 	if [ ${#seq[@]} -eq 0 ]; then
 		echo "WARNING: merge not clean — empty plan" >&2
 		return 1
@@ -1000,12 +1057,12 @@ LDTO_merge()
 		return 1
 	fi
 
-	LDTO_checkFirmwareDT || return 1
-
 	# Need EFI path for real merge; dry-run can preflight against firmware only.
 	if [ "$dry_run" -eq 0 ]; then
+		LDTO_checkFirmwareDT || return 1
 		LDTO_findEFIDTBPath RW || return 1
 	else
+		echo "DRY-RUN: pin/resource conflicts OK" >&2
 		# Prefer override path if mounts allow (read-only OK for base choice)
 		LDTO_findEFIDTBPath 2>/dev/null || true
 	fi
@@ -1014,7 +1071,24 @@ LDTO_merge()
 	if [ -n "${PATH_OF_EFI_DTB:-}" ] && [ -f "$PATH_OF_EFI_DTB/$DT_OVERRIDE" ]; then
 		base_dtb="$PATH_OF_EFI_DTB/$DT_OVERRIDE"
 		echo "Merge base: existing override $base_dtb" >&2
+	elif [ "$dry_run" -eq 1 ] && [ ! -r "$PATH_OF_DT" ]; then
+		# Host-side dry-run (same as enable --dry-run): plan + conflicts ran;
+		# the chain check needs a base DTB. Still fail on a missing .dtbo.
+		local dto missing=0
+		for dto in "${seq[@]}"; do
+			if [ -z "$(LDTO_getDTBO "$dto")" ]; then
+				echo "WARNING: dry-run: missing .dtbo for '$dto'" >&2
+				missing=1
+			fi
+		done
+		if [ "$missing" -eq 1 ]; then
+			echo "WARNING: dry-run aborted — plan has missing .dtbo" >&2
+			return 1
+		fi
+		echo "DRY-RUN: fdtoverlay chain preflight SKIPPED (no readable $PATH_OF_DT and no existing override); no ESP write" >&2
+		return 0
 	else
+		LDTO_checkFirmwareDT || return 1
 		base_dtb="$PATH_OF_DT"
 		echo "Merge base: running firmware DTB" >&2
 	fi
@@ -1164,14 +1238,17 @@ LDTO_loadGpioMap()
 LDTO_gpioLookupName()
 {
 	local name="$1"
-	local bare="${name%\*}"
+	local bare="$name"
+	while [ "${bare%\*}" != "$bare" ]; do
+		bare="${bare%\*}"
+	done
 	[ -z "$GPIO_MAP_FILE" ] && return 1
-	# Match Name column; allow trailing * in map (e.g. GPIOAO_8*)
+	# Match Name column; allow trailing *s in map (e.g. GPIOAO_8*, TEST_N**)
 	awk -F '\t' -v n="$bare" '
 		/^#/ || NF < 6 { next }
 		{
 			mapn = $6
-			sub(/\*$/, "", mapn)
+			sub(/\*+$/, "", mapn)
 			if (mapn == n) {
 				print $0
 				found = 1
@@ -1346,10 +1423,6 @@ LDTO_info()
 		if [[ -v "MAP_DEPS[$dto]" ]]; then
 			prov="${MAP_DEPS[$dto]}"
 		fi
-		# also check symlink basename deps if dto is alias consumer
-		if [ -z "$prov" ] && [ -n "$1" ]; then
-			:
-		fi
 		if [ -n "$prov" ]; then
 			echo "Requires: $prov"
 		else
@@ -1386,7 +1459,6 @@ LDTO_info()
 				# Prefer structured Summary/Pins/Requires/Notes if present
 				if printf '%s\n' "$desc" | grep -q '^Summary:'; then
 					printf '%s\n' "$desc" | awk '
-						BEGIN { skip_copy = 1 }
 						/^[Cc]opyright/ { next }
 						/^[Aa]uthor:/ { next }
 						{ print "  " $0 }
@@ -1438,12 +1510,21 @@ LDTO_info()
 			local pin_notes def_hdr hdr_from_cmt pins_csv
 			pin_notes=$(LDTO_extractHeaderComments "$dts")
 			def_hdr=$(grep -v '^#' "$GPIO_MAP_FILE" | head -n1 | cut -f1)
-			hdr_from_cmt=$(printf '%s\n' "$pin_notes" | grep -oE '\b[0-9]+[Jj][0-9]+\b' | head -n1 || true)
+			# First header named in the comments that gpio.map knows (a
+			# connector the map does not list, e.g. a silkscreen alias, is
+			# not a default for bare "pin N" notes)
+			hdr_from_cmt=$(printf '%s\n' "$pin_notes" | grep -oE '\b[0-9]*[Jj][0-9]+\b' | awk -F '\t' '
+				NR == FNR { if ($0 !~ /^#/) known[tolower($1)] = 1; next }
+				{ k = tolower($0); if (k in known) { print; exit } }
+			' "$GPIO_MAP_FILE" - || true)
 			[ -n "$hdr_from_cmt" ] && def_hdr=$hdr_from_cmt
 
+			# POSIX awk only (Debian default is mawk): no IGNORECASE, no \< \>,
+			# no /re/i. Word matches run on a lowercased copy (same length, so
+			# RSTART/RLENGTH index the original); a leading [^a-z0-9_] class
+			# stands in for the word boundary.
 			pins_csv=$(
 				printf '%s\n' "$pin_notes" | awk -v defh="$def_hdr" '
-					BEGIN { IGNORECASE = 1 }
 					function emit(h, p) {
 						p = p + 0
 						if (p < 1 || p > 99) return
@@ -1452,47 +1533,56 @@ LDTO_info()
 						seen[key] = 1
 						print h "\t" p
 					}
+					# Header token (7J1, 2J3, J1, J12, ...) at the start of s
+					function hdr(s) {
+						match(s, /[0-9]*[Jj][0-9]+/)
+						return substr(s, RSTART, RLENGTH)
+					}
 					{
 						line = $0
-						# 7J1.24
-						while (match(line, /[0-9]+[Jj][0-9]+\.[0-9]+/)) {
+						# 7J1.24 / J1.18
+						while (match(line, /(^|[^A-Za-z0-9_])[0-9]*[Jj][0-9]+\.[0-9]+/)) {
 							tok = substr(line, RSTART, RLENGTH)
+							sub(/^[^0-9Jj]/, "", tok)
 							split(tok, a, /\./)
 							emit(a[1], a[2])
 							line = substr(line, RSTART + RLENGTH)
 						}
 						line = $0
-						# 7J1 pin 22
-						while (match(line, /[0-9]+[Jj][0-9]+[[:space:]]+pin[[:space:]]*[0-9]+/)) {
+						lc = tolower(line)
+						# 7J1 pin 22 / J1 pin 22
+						while (match(lc, /(^|[^a-z0-9_])[0-9]*j[0-9]+[[:space:]]+pin[[:space:]]*[0-9]+/)) {
 							tok = substr(line, RSTART, RLENGTH)
-							match(tok, /[0-9]+[Jj][0-9]+/)
-							h = substr(tok, RSTART, RLENGTH)
+							sub(/^[^0-9Jj]/, "", tok)
+							h = hdr(tok)
 							match(tok, /[0-9]+$/)
 							emit(h, substr(tok, RSTART, RLENGTH))
 							line = substr(line, RSTART + RLENGTH)
+							lc = substr(lc, RSTART + RLENGTH)
 						}
-						line = $0
+						lc = tolower($0)
 						# bare "pin 22" (word pin, not pins / pinmux / pinctrl)
-						while (match(line, /\<pin[[:space:]]+[0-9]+/)) {
-							tok = substr(line, RSTART, RLENGTH)
+						while (match(lc, /(^|[^a-z0-9_])pin[[:space:]]+[0-9]+/)) {
+							tok = substr(lc, RSTART, RLENGTH)
 							match(tok, /[0-9]+/)
 							emit(defh, substr(tok, RSTART, RLENGTH))
-							line = substr(line, RSTART + RLENGTH)
+							lc = substr(lc, RSTART + RLENGTH)
 						}
 						# "Pins 19 (MOSI), 21 ..." or "pins (7J1 19/21/23/24)" — plural only
-						if (match($0, /\<pins[[:space:]]+/)) {
+						if (match(tolower($0), /(^|[^a-z0-9_])pins[[:space:]]+/)) {
 							rest = substr($0, RSTART + RLENGTH)
 							if (match(rest, /^\([^)]*\)/)) {
 								inner = substr(rest, 2, RLENGTH - 2)
-								gsub(/[0-9]+[Jj][0-9]+/, " ", inner)
+								gsub(/[0-9]*[Jj][0-9]+/, " ", inner)
 								n = split(inner, parts, /[^0-9]+/)
 								for (i = 1; i <= n; i++)
 									if (parts[i] != "") emit(defh, parts[i])
 							} else {
 								# strip (role) labels so SS0/CS0 digits are not pins
 								gsub(/\([^)]*\)/, " ", rest)
-								# stop before trailing prose
-								sub(/[[:space:]]+(come|from|with|using|on)[[:space:]].*/i, "", rest)
+								# stop before trailing prose (case-insensitive)
+								if (match(tolower(rest), /[[:space:]]+(come|from|with|using|on)[[:space:]]/))
+									rest = substr(rest, 1, RSTART - 1)
 								n = split(rest, parts, /[^0-9]+/)
 								for (i = 1; i <= n; i++)
 									if (parts[i] != "") emit(defh, parts[i])
@@ -1605,6 +1695,9 @@ LDTO_derivedAliasClaims()
 	fi
 	[ "$has_aliases" -eq 1 ] || return 0
 
+	# local: callers run this in the caller's shell (not a subshell), and a
+	# global $out clobbered LDTO_enableGateConflicts's report path
+	local out line
 	if command -v python3 >/dev/null 2>&1; then
 		if out=$(python3 - "$file" <<'PY'
 import re
@@ -1752,14 +1845,12 @@ LDTO_conflicts()
 		names+=("$a")
 	done
 
-	# Include active overlays when configfs is present
-	if [ -d "$PATH_OF_CONFIG" ]; then
-		local act
-		for act in "$PATH_OF_CONFIG"/*; do
-			[ -e "$act" ] || continue
-			names+=("$(basename "$act")")
-		done
-	fi
+	# Include active overlays (configfs status=applied only, same rule as
+	# status/active; unapplied leftover dirs claim nothing)
+	local act
+	while IFS= read -r act; do
+		[ -n "$act" ] && names+=("$act")
+	done < <(LDTO_listAppliedOverlays)
 
 	if [ ${#names[@]} -eq 0 ]; then
 		echo "$FUNCNAME: no overlays given and none active." >&2
@@ -1768,7 +1859,9 @@ LDTO_conflicts()
 	fi
 
 	local -a seq
-	mapfile -t seq < <(LDTO_expandDeps "${names[@]}")
+	local seq_out
+	seq_out=$(LDTO_expandDeps "${names[@]}") || return 1
+	mapfile -t seq <<<"$seq_out"
 
 	echo "Overlays considered (deps expanded): ${seq[*]}"
 	echo
@@ -1837,11 +1930,12 @@ LDTO_conflicts()
 	_ldto_is_related() {
 		local a="$1" b="$2" x
 		local -a exp
-		mapfile -t exp < <(LDTO_expandDeps "$a")
+		# expansion errors already failed LDTO_conflicts on the full set
+		mapfile -t exp < <(LDTO_expandDeps "$a" 2>/dev/null)
 		for x in "${exp[@]}"; do
 			[ "$x" = "$b" ] && return 0
 		done
-		mapfile -t exp < <(LDTO_expandDeps "$b")
+		mapfile -t exp < <(LDTO_expandDeps "$b" 2>/dev/null)
 		for x in "${exp[@]}"; do
 			[ "$x" = "$a" ] && return 0
 		done

@@ -23,12 +23,13 @@ export VENDOR=libre-computer BOARD=aml-s905x-cc
 ```
 
 Commands that **do not** require configfs: `help`, `list`, `info`,
-`conflicts`, `enable --dry-run`, `merge` / `merge --dry-run` (needs
-firmware DTB / EFI for real merge).  
+`conflicts`, `enable --dry-run`, `merge --dry-run`. On a host without
+`/sys/firmware/fdt` both dry-runs print the plan and run the pin/resource
+conflict check, then report the `fdtoverlay` chain check as `SKIPPED`.  
 Commands that **need configfs**: `enable` (apply), `disable`, `status`,
 `active`.  
 Commands that need firmware/EFI DTB (not configfs): `merge`, `show`,
-`diff`, `reset`, `current`.
+`diff`, `edit`, `reset`, `current`.
 
 ## Commands
 
@@ -36,14 +37,15 @@ Commands that need firmware/EFI DTB (not configfs): `merge`, `show`,
 ldto list
 ldto status
 ldto active [OVERLAY]
-ldto enable [--dry-run|-n] OVERLAY [OVERLAY...]
+ldto enable [--dry-run|-n] [--no-preflight] OVERLAY [OVERLAY...]
 ldto disable OVERLAY...
 ldto info OVERLAY|ALIAS...
 ldto conflicts [OVERLAY|ALIAS]...
 ldto current
-ldto merge OVERLAY...
-ldto show
+ldto merge [--dry-run|-n] OVERLAY...
+ldto show [OVERLAY]
 ldto diff
+ldto edit
 ldto reset
 ```
 
@@ -78,17 +80,28 @@ sudo ldto enable spi-cc-1cs-ili9341
 
 ldto enable --dry-run spi-cc-1cs-ili9341   # plan + pins + optional fdtoverlay chain check
 ldto enable -n H40P_SPI_0_2CS_LCD_35
-sudo ldto enable --no-preflight …          # skip fdtoverlay (not recommended)
+sudo ldto enable --no-preflight …          # skip conflict gate AND chain check (not recommended)
 
 sudo ldto disable spi-cc-1cs-ili9341
 ```
 
-**Autoload + clean apply:** `enable` expands `dt.deps`, then **preflights the
-entire chain** with `fdtoverlay` against `/sys/firmware/fdt`. If any
-**intermediary** step fails, it prints `WARNING: apply not clean at overlay
-'…'` (plan + steps that would have succeeded) and **applies nothing** to
-configfs. If configfs fails mid-chain after preflight, overlays applied in
-*this* command are rolled back.
+**Autoload + clean apply:** `enable` expands `dt.deps`, then runs two gates
+before touching configfs:
+
+1. **Conflicts** — the same check as `ldto conflicts` over the plan plus the
+   currently applied overlays.
+2. **Chain preflight** — `fdtoverlay` of the new steps onto a live base:
+   `/sys/firmware/fdt` with the currently applied overlays re-applied in
+   `dt.deps` order (providers first).
+
+If either gate fails it prints a `WARNING` (for the chain: `apply not clean
+at overlay '…'`, the plan, and the steps that would have succeeded) and
+**applies nothing**. An unreadable `/sys/firmware/fdt` is a failed preflight
+too. `--no-preflight` skips **both** gates. If configfs fails mid-chain after
+preflight, overlays applied in *this* command are rolled back.
+
+A cycle in `dt.deps`, or a provider chain deeper than 16, is reported as a
+`WARNING` and the command fails.
 
 Hardware overlays can wedge the system if removed while in use — disable
 carefully.
@@ -96,7 +109,8 @@ carefully.
 ### conflicts
 
 Pin occupancy for the named overlays (deps expanded) plus any **active**
-overlays when configfs is present.
+overlays (configfs `status` = `applied`; leftover unapplied directories are
+ignored) when configfs is present.
 
 ```bash
 ldto conflicts spi-cc-1cs-enc28j60 spi-cc-1cs-ili9341
@@ -110,19 +124,31 @@ ldto conflicts spi-cc-1cs-enc28j60 spi-cc-1cs-ili9341
 
 Exit status `2` if conflicts are reported.
 
-### merge / show / diff / reset / current
+### merge / show / diff / edit / reset / current
 
 Permanent path: merge overlays into the EFI DTB override (see board
 `dt.config` for `DT_OVERRIDE` path). Effective after reboot.
 
 ```bash
 sudo ldto merge spi-cc-1cs-ili9341
-ldto merge --dry-run spi-cc-1cs-ili9341   # chain preflight only (no ESP write)
+ldto merge --dry-run spi-cc-1cs-ili9341   # conflicts + chain preflight (no ESP write)
 ldto show          # next-boot DTB as DTS
+ldto show OVERLAY  # one overlay's .dtbo as DTS
 sudo ldto diff     # running vs next-boot
+sudo ldto edit     # hand-edit the next-boot DTB in $EDITOR (default vim)
 sudo ldto reset    # remove override DTB
 sudo ldto current  # running firmware DTB as DTS
 ```
+
+`edit` decompiles the existing override to DTS, opens it in `$EDITOR`, and
+recompiles it. If the decompile, the editor, or the recompile fails, the
+override is left unchanged; otherwise the recompiled DTB replaces it. It
+needs an override to exist (run `merge` first).
+
+The merge conflict gate checks the plan against the **currently applied
+configfs overlays**, not against overlays already merged into the override:
+ldto does not record which overlays an override contains. The chain
+preflight still starts from the existing override.
 
 **Autoload + atomic merge:** expands `dt.deps` (providers first), then applies
 the full chain to a **temp** DTB starting from the existing override (if any)
