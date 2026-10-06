@@ -109,6 +109,12 @@ A cycle in `dt.deps`, or a provider chain deeper than 16, is reported as a
 Hardware overlays can wedge the system if removed while in use — disable
 carefully.
 
+GPIO interrupts come from a small pool of SoC channels (8 on Amlogic GXL).
+In one boot, applying and removing many overlays that use a GPIO interrupt
+(touch controllers, `gpio-key-*`, `pps-gpio`, CAN/Ethernet chips) can use the
+pool up: the next one fails to probe (`irq_meson_gpio: No channel available`,
+`-22`) until a reboot. Merged overlays are not affected.
+
 ### conflicts
 
 Pin occupancy for the named overlays (deps expanded) plus any **active**
