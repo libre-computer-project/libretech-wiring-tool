@@ -26,10 +26,13 @@ Commands that **do not** require configfs: `help`, `list`, `info`,
 `conflicts`, `enable --dry-run`, `merge --dry-run`. On a host without
 `/sys/firmware/fdt` both dry-runs print the plan and run the pin/resource
 conflict check, then report the `fdtoverlay` chain check as `SKIPPED`.  
-Commands that **need configfs**: `enable` (apply), `disable`, `status`,
-`active`.  
+Commands that **need configfs**: `enable` (apply), `disable`, `active`.  
 Commands that need firmware/EFI DTB (not configfs): `merge`, `show`,
-`diff`, `edit`, `reset`, `current`.
+`diff`, `edit`, `reset`, `current`, `status` (lists configfs actives when
+configfs is present).  
+Testing: `LDTO_SYSROOT` prefixes every system path and `LDTO_EFI_DTB` names
+the ESP `dtb/` directory; `make check-ldto` runs the merge lifecycle in a
+scratch root.
 
 ## Commands
 
@@ -42,7 +45,7 @@ ldto disable OVERLAY...
 ldto info OVERLAY|ALIAS...
 ldto conflicts [OVERLAY|ALIAS]...
 ldto current
-ldto merge [--dry-run|-n] OVERLAY...
+ldto merge [--dry-run|-n] [--force] OVERLAY...
 ldto show [OVERLAY]
 ldto diff
 ldto edit
@@ -136,30 +139,61 @@ ldto show          # next-boot DTB as DTS
 ldto show OVERLAY  # one overlay's .dtbo as DTS
 sudo ldto diff     # running vs next-boot
 sudo ldto edit     # hand-edit the next-boot DTB in $EDITOR (default vim)
-sudo ldto reset    # remove override DTB
+sudo ldto reset    # remove override DTB (reboot before the next merge)
+ldto status        # configfs actives, merged set, next-boot state
 sudo ldto current  # running firmware DTB as DTS
 ```
 
 `edit` decompiles the existing override to DTS, opens it in `$EDITOR`, and
 recompiles it. If the decompile, the editor, or the recompile fails, the
-override is left unchanged; otherwise the recompiled DTB replaces it. It
-needs an override to exist (run `merge` first).
+override is left unchanged; otherwise the recompiled DTB replaces it, with its
+merge record kept and marked edited (advisory). It needs an override to exist
+(run `merge` first).
 
-The merge conflict gate checks the plan against the **currently applied
-configfs overlays**, not against overlays already merged into the override:
-ldto does not record which overlays an override contains. The chain
-preflight still starts from the existing override.
+**Which DT boots:** U-Boot loads the override DTB if it exists, else its own
+built-in DT. The override is a self-contained copy; it does not follow later
+changes to the built-in DT (or to the NOR overlays U-Boot applies to it).
 
-**Autoload + atomic merge:** expands `dt.deps` (providers first), then applies
-the full chain to a **temp** DTB starting from the existing override (if any)
-or the running firmware DTB. Only if **every** step succeeds is the result
-installed to the ESP. An intermediate `fdtoverlay` failure prints
-`WARNING: apply not clean at overlay '…'` / `WARNING: merge aborted — ESP
-override not modified` and leaves the previous override untouched (no
-half-merged next-boot DTB).
+**Merge record:** every override ldto writes carries `/chosen` properties:
+`libretech,ldto-merged` (the overlays merged, in order),
+`libretech,ldto-base` (`builtin:<u-boot version>`, `override:<id>`, or
+`override-unstamped` when it was merged onto an override with no record --
+then the list holds only what ldto added), `libretech,ldto-edited` after
+`edit`, and `libretech,ldto-id`, a hash of the DTB that changes with every
+write. U-Boot and the EFI stub keep them, so the running system shows the
+record of the DT it booted under `/proc/device-tree/chosen`.
 
-A kernel package upgrade may overwrite the ESP DTB — re-merge after
-upgrades if you rely on permanent overlays.
+**Autoload + atomic merge:** expands `dt.deps` (providers first). Overlays
+already in the override's record are skipped (`already merged`; nothing new =
+nothing to do). The new steps are conflict-checked against each other **and
+against the overlays already merged** (runtime-only overlays are reported as
+"gone after reboot", not gated), then applied to a **temp** copy of the
+existing override -- or, with none, of this boot's DT with its per-boot
+`/chosen` values removed (`kaslr-seed`, `rng-seed`, `u-boot,version`, the EFI
+`linux,uefi-*` and kexec entries). Only if **every** step succeeds is the
+stamped result installed to the ESP; otherwise `WARNING: merge aborted — ESP
+override not modified`.
+
+**Next boot vs this boot:** `status`, `merge` and `enable` compare the booted
+DT's `libretech,ldto-id` with the override file:
+
+| State | Meaning |
+|---|---|
+| `builtin` | no override; this boot used the built-in DT too |
+| `sync` | the next boot loads the override this boot used |
+| `pending-merge` / `changed` | the override was written or edited after this boot -- reboot to apply |
+| `removed` | this boot runs an override that has since been removed (`reset`, deleted) -- reboot to apply |
+| `replaced` | the override was overwritten by another tool (e.g. a kernel deploy); the overlays merged in this boot's DT are not in it |
+| `tampered` | the override changed outside ldto; its record is advisory |
+| `legacy` | an override with no ldto record: cannot compare |
+
+`merge` **refuses** in state `removed`: with no override file its base would be
+this boot's DT, which still holds the removed overlays. Reboot first, or
+`--force`. For an override without a record, `reset` leaves a marker in
+`/run/ldto` that has the same effect until the next boot.
+
+A kernel package or deploy that writes the ESP DTB path replaces the override
+(state `replaced`); merge the overlays again afterwards.
 
 ## Aliases (dt.map)
 
