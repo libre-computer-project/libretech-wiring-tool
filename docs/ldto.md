@@ -110,10 +110,15 @@ Hardware overlays can wedge the system if removed while in use — disable
 carefully.
 
 GPIO interrupts come from a small pool of SoC channels (8 on Amlogic GXL).
-In one boot, applying and removing many overlays that use a GPIO interrupt
-(touch controllers, `gpio-key-*`, `pps-gpio`, CAN/Ethernet chips) can use the
-pool up: the next one fails to probe (`irq_meson_gpio: No channel available`,
-`-22`) until a reboot. Merged overlays are not affected.
+On a kernel older than the Libre Computer `linux-6.18.y-lc` with
+`6e51d0c3f6005` / `f4db5b4c75fb0`, a removed overlay's interrupt keeps its
+channel, so applying and removing many overlays that use a GPIO interrupt
+(touch controllers, `gpio-key-*`, `pps-gpio`, CAN/Ethernet chips) in one boot
+can use the pool up: the next one fails to probe (`irq_meson_gpio: No channel
+available`, `-22`) until a reboot. Those kernels give the channel back on
+removal, and show the pool in
+`/sys/kernel/debug/meson-gpio-intc/<controller>` (free / mapped /
+requested per channel).
 
 ### conflicts
 
