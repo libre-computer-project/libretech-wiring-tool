@@ -40,10 +40,17 @@ RC=0
 # boot: U-Boot loads the override if present, else its built-in DT.
 # boot ignore-override: a bootloader that does not read the override.
 boot() {
-	local src=$BASE p v
+	local src=$BASE p v t
 	if [ -f "$OVR" ] && [ "${1:-}" != ignore-override ]; then
 		src=$OVR
 	fi
+	# Time passes: what is on the ESP now predates this boot.
+	t=$(date +%s)
+	if [ -f "$OVR" ]; then
+		touch -d "@$((t - 20))" "$OVR"
+	fi
+	mkdir -p "$S/proc"
+	echo "btime $((t - 10))" > "$S/proc/stat"
 	mkdir -p "$S/sys/firmware" "$S/proc/sys/kernel/random"
 	cp -f "$src" "$S/sys/firmware/fdt"
 	fdtput -p -ts "$S/sys/firmware/fdt" /chosen u-boot,version "2026.07-test"
@@ -51,7 +58,7 @@ boot() {
 	fdtput -p -tx "$S/sys/firmware/fdt" /chosen linux,elfcorehdr 0 1000
 	rm -rf "$S/proc/device-tree" "$S/run"
 	mkdir -p "$S/proc/device-tree/chosen"
-	for p in libretech,ldto-id libretech,ldto-merged libretech,ldto-u-boot; do
+	for p in libretech,ldto-id libretech,ldto-merged libretech,ldto-u-boot libretech,ldto-edited; do
 		if v=$(fdtget -ts "$S/sys/firmware/fdt" /chosen "$p" 2>/dev/null); then
 			# shellcheck disable=SC2086 # one word per string
 			printf '%s\0' $v > "$S/proc/device-tree/chosen/$p"
@@ -149,7 +156,12 @@ run merge pwm-a
 boot
 rec_before=$(chosen libretech,ldto-merged)
 EDITOR=true run edit
-check "edit succeeds" rc_is 0
+check "edit with no change: says so" says "no changes; override unchanged"
+check "...does not mark the record edited" [ -z "$(chosen libretech,ldto-edited)" ]
+check "...and the next boot is still this one" state_is sync
+EDITOR="sed -i s/Libre/LIBRE/" run edit
+check "edit succeeds (EDITOR with arguments)" rc_is 0
+check "...the change is in the override" bash -c "fdtget -ts '$OVR' / model | grep -q LIBRE"
 check "edit keeps the record" same_nonempty "$rec_before" "$(chosen libretech,ldto-merged)"
 check "edit marks the record advisory" [ "$(chosen libretech,ldto-edited)" = "1" ]
 check "edited since boot: changed" state_is changed
@@ -374,6 +386,41 @@ run reset
 check "lock directory unusable: refused" says "cannot take the ldto lock"
 check "...and the override is still there" [ -f "$OVR" ]
 rm -f "$S/run"
+
+# --- review round 3 -----------------------------------------------------------
+# another tool's DTB dropped on the ESP during a built-in boot, then reset
+run reset
+boot
+cp -f "$BASE" "$OVR"
+run reset
+check "reset of a DTB put there during this boot: no marker" [ ! -f "$S/run/ldto/reset-pending" ]
+check "...state builtin" state_is builtin
+run merge pwm-a
+check "...merge allowed" rc_is 0
+# a stamped backup restored during a boot is pending, not ignored
+boot
+cp -f "$OVR" "$S/backup.dtb"
+run reset
+boot
+cp -f "$S/backup.dtb" "$OVR"
+check "stamped override copied in during this boot: pending-merge, not ignored" state_is pending-merge
+# merge --force after reset keeps the edited mark of the booted override
+run reset
+boot
+run merge pwm-a
+EDITOR="sed -i s/Libre/LIBRE/" run edit
+boot
+run reset
+run merge --force pwm-e
+check "merge --force onto an edited override keeps the edited mark" [ "$(chosen libretech,ldto-edited)" = "1" ]
+check "...and names its base as the removed override" says "the removed override, still running"
+# disable of a merged overlay with a leftover unapplied configfs node
+mkdir -p "$CFG/pwm-a"
+echo unapplied > "$CFG/pwm-a/status"
+run disable pwm-a
+check "disable of a merged overlay with a stale configfs node: refused" says "merged into this boot's DT, not a runtime overlay"
+check "...the node is left alone" [ -d "$CFG/pwm-a" ]
+rm -rf "$CFG"
 
 echo "ldto merge lifecycle: $pass pass, $fail fail"
 [ "$fail" -eq 0 ]

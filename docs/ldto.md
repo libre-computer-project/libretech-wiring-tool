@@ -158,9 +158,11 @@ changes to the built-in DT (or to the NOR overlays U-Boot applies to it).
 `libretech,ldto-merged` (the overlays merged, in order),
 `libretech,ldto-u-boot` (the U-Boot version whose built-in DT the override
 started from, carried across later merges),
-`libretech,ldto-base` (`builtin:<u-boot version>`, `override:<id>`, or
+`libretech,ldto-base` (`builtin:<u-boot version>`, `override:<id>`,
 `override-unstamped` when it was merged onto an override with no record --
-then the list holds only what ldto added), `libretech,ldto-edited` after
+then the list holds only what ldto added -- `override-modified` when that
+override was changed outside ldto, or `running-forced` for `merge --force`
+onto a removed override that is still running), `libretech,ldto-edited` after
 `edit`, `libretech,ldto-boot-id` (the boot that wrote it), and
 `libretech,ldto-id`, a hash of the DTB that changes with every
 write. U-Boot and the EFI stub keep them, so the running system shows the
@@ -209,7 +211,7 @@ DT's `libretech,ldto-id` with the override file:
 | `builtin` | no override; this boot used the built-in DT too |
 | `sync` | the next boot loads the override this boot used |
 | `pending-merge` / `changed` | the override was written or edited after this boot -- reboot to apply |
-| `ignored` | the override was written in an earlier boot, yet this boot did not load it: the bootloader does not read it (boot path, `fdtfile`) |
+| `ignored` | the override was written in an earlier boot and was on the ESP when this boot started (file time older than the boot), yet this boot did not load it: the bootloader does not read it (boot path, `fdtfile`) |
 | `removed` | this boot runs an override that has since been removed (`reset`, deleted) -- reboot to apply |
 | `replaced` | the override was overwritten by another tool (e.g. a kernel deploy); the overlays merged in this boot's DT are not in it |
 | `tampered` | the override changed outside ldto; its record is advisory |
