@@ -214,7 +214,7 @@ DT's `libretech,ldto-id` with the override file:
 | `builtin` | no override; this boot used the built-in DT too |
 | `sync` | the next boot loads the override this boot used |
 | `pending-merge` / `changed` | the override was written or edited after this boot -- reboot to apply |
-| `ignored` | this boot ran no override, yet one written in an earlier boot was on the ESP when it started (by file time): the bootloader seems not to read it (boot path, `fdtfile`). Advisory -- copying a backup over an existing file with `cp -p` on FAT keeps its old times and shows here too; a reboot tells |
+| `ignored` | this boot ran no override, and the file was written by ldto in an earlier boot: either it was copied here during this boot (a reboot loads it) or the bootloader does not read it (boot path, `fdtfile`). Advisory -- ldto never reads the wall clock, which a board without an RTC does not have before NTP, so it cannot tell the two apart |
 | `removed` | this boot runs an override that has since been removed (`reset`, deleted) -- reboot to apply |
 | `replaced` | the override was overwritten by another tool (e.g. a kernel deploy); the overlays merged in this boot's DT are not in it |
 | `tampered` | the override changed outside ldto; its record is advisory |

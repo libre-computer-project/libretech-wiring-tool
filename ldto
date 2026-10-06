@@ -30,7 +30,6 @@ PATH_OF_DT=$LDTO_SYSROOT/sys/firmware/fdt
 PATH_OF_PROC_DT=$LDTO_SYSROOT/proc/device-tree
 PATH_OF_RUN=$LDTO_SYSROOT/run/ldto
 PATH_OF_BOOT_ID=$LDTO_SYSROOT/proc/sys/kernel/random/boot_id
-PATH_OF_PROC_STAT=$LDTO_SYSROOT/proc/stat
 PATH_OF_DEBUG_PINCTRL=$LDTO_SYSROOT/sys/kernel/debug/pinctrl
 PATH_OF_PLATFORM_DEVICES=$LDTO_SYSROOT/sys/bus/platform/devices
 PATH_OF_DTB_OVERRIDE=
@@ -1345,28 +1344,6 @@ LDTO_bootId()
 	return 0
 }
 
-# Was file $1 on the ESP before this boot (mtime older than the boot time)?
-# 0 yes, 1 no (put there during this boot), 2 cannot tell. Wall-clock based,
-# so a board without an RTC can be wrong either way: a clock set after the
-# write reads a file of this boot as older; a clock that starts behind the
-# previous boot's write reads an older file as new (an override the
-# bootloader ignores then shows as pending-merge instead of ignored).
-#
-# The newest of mtime, ctime and birth time counts: `cp -p`, `rsync -a` or
-# tar keep the mtime of a restored file, but vfat reports its creation time
-# as the birth time (ctime there is the mtime), and a new file is created now.
-LDTO_fileBeforeBoot()
-{
-	local bt mt
-	bt=$(awk '$1 == "btime" { print $2 }' "$PATH_OF_PROC_STAT" 2>/dev/null) || bt=
-	mt=$(stat -c '%Y %Z %W' "$1" 2>/dev/null |
-		awk '{ m = 0; for (i = 1; i <= NF; i++) if ($i ~ /^[0-9]+$/ && $i + 0 > m) m = $i + 0; if (m) print m }') || mt=
-	if [ -z "$bt" ] || [ -z "$mt" ]; then
-		return 2
-	fi
-	[ "$mt" -lt "$bt" ]
-}
-
 # Fallback for overrides with no stamp (written by an older ldto or another
 # tool): `ldto reset` leaves this marker for the rest of the boot.
 LDTO_resetMarkerValid()
@@ -1448,26 +1425,25 @@ LDTO_nextBootState()
 			LDTO_STATE=pending-merge
 		fi
 	fi
-	# Written in an earlier boot, on the ESP when this boot started, and
-	# still not what this boot runs: the bootloader did not load it (another
-	# boot path, or another fdtfile). A stamped file copied in during this
-	# boot (a restored backup, provisioning) is just pending.
-	# Only when this boot ran no stamped override: one that did (`changed`)
-	# proves the bootloader reads the override path. File time is a hint
-	# (an in-place `cp -p` on vfat keeps every timestamp old), so `ignored`
-	# only advises; nothing else depends on it.
-	local wb cb fbb=0
+	# Written in an earlier boot and not what this boot runs, while this
+	# boot ran no stamped override (one that did -- `changed` -- proves the
+	# bootloader reads the override path): either the bootloader does not
+	# load it (another boot path, or another fdtfile), or the file was
+	# copied here during this boot (a restored backup, provisioning). ldto
+	# cannot tell the two apart without trusting the wall clock, which a
+	# board with no RTC does not have before NTP -- so `ignored` names both
+	# and nothing depends on it.
+	local wb cb
 	if [ "$LDTO_STATE" = "pending-merge" ]; then
 		wb=$(LDTO_dtbChosen "$file" "$LDTO_PROP_BOOT")
 		cb=$(LDTO_bootId)
-		LDTO_fileBeforeBoot "$file" || fbb=$?
-		if [ -n "$wb" ] && [ -n "$cb" ] && [ "$wb" != "$cb" ] && [ "$fbb" -ne 1 ]; then
+		if [ -n "$wb" ] && [ -n "$cb" ] && [ "$wb" != "$cb" ]; then
 			LDTO_STATE=ignored
 		fi
 	fi
 	case "$LDTO_STATE" in
 	ignored)
-		LDTO_STATE_MSG="$file was written before this boot, but this boot did not load it${flist:+ (merged: $flist)} -- the bootloader seems not to read this override (check its boot path and fdtfile; if you just restored it, a reboot loads it)" ;;
+		LDTO_STATE_MSG="$file was written in an earlier boot, but this boot did not load it${flist:+ (merged: $flist)} -- if it was copied here during this boot, a reboot loads it; otherwise the bootloader does not read this override (check its boot path and fdtfile)" ;;
 	removed)
 		LDTO_STATE_MSG="the next boot uses U-Boot's built-in DT, but this boot is still running the override that was removed${blist:+ (merged: $blist)} -- reboot to apply" ;;
 	changed)

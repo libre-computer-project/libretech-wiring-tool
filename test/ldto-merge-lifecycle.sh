@@ -44,12 +44,6 @@ boot() {
 	if [ -f "$OVR" ] && [ "${1:-}" != ignore-override ]; then
 		src=$OVR
 	fi
-	# The boot starts after every file now on the ESP was written (mtime,
-	# ctime and birth time alike) and before anything written after it.
-	t=$(date +%s)
-	mkdir -p "$S/proc"
-	echo "btime $((t + 1))" > "$S/proc/stat"
-	sleep 1.2
 	mkdir -p "$S/sys/firmware" "$S/proc/sys/kernel/random"
 	cp -f "$src" "$S/sys/firmware/fdt"
 	fdtput -p -ts "$S/sys/firmware/fdt" /chosen u-boot,version "2026.07-test"
@@ -304,7 +298,7 @@ rm -rf "$CFG"
 run merge pwm-a
 boot ignore-override
 check "override written in an earlier boot and not loaded: ignored" state_is ignored
-check "...naming the cause" says "the bootloader seems not to read this override"
+check "...naming the cause" says "otherwise the bootloader does not read this override"
 boot
 
 # --- one changing command at a time ----------------------------------------
@@ -428,16 +422,26 @@ boot
 cp -f "$S/stamped.dtb" "$OVR"
 run reset
 check "stamped file copied over this boot's legacy override, reset: marker" [ -f "$S/run/ldto/reset-pending" ]
-# a backup restored with cp -p (mtime kept) during a boot is pending
+# a backup restored during a boot: ignored, naming both causes (no clock)
 boot
 cp -f "$S/stamped.dtb" "$OVR"
 boot
 cp -f "$OVR" "$S/backup-p.dtb"
-touch -d @1000000000 "$S/backup-p.dtb"
 run reset
 boot
 cp -p "$S/backup-p.dtb" "$OVR"
-check "backup restored with cp -p during this boot: pending-merge, not ignored" state_is pending-merge
+check "backup restored during this boot: ignored (advisory)" state_is ignored
+check "...naming the copy-in cause first" says "if it was copied here during this boot, a reboot loads it"
+# no decision reads the wall clock: file times far in the past or future change nothing
+touch -d @0 "$OVR"
+check "file time 1970: still ignored" state_is ignored
+touch -d '2099-01-01' "$OVR"
+check "file time 2099: still ignored" state_is ignored
+run reset
+boot
+run merge pwm-a
+touch -d @0 "$OVR"
+check "written this boot, file time 1970: still pending-merge" state_is pending-merge
 # a built-in boot whose bootloader sets no u-boot,version
 run reset
 boot
@@ -489,8 +493,7 @@ boot
 run merge pwm-a
 boot
 cp -f "$S/stamped.dtb" "$OVR"
-echo "btime $(( $(date +%s) + 100 ))" > "$S/proc/stat"
-check "stamped file over a booted override, old file times: changed, not ignored" state_is changed
+check "stamped file over a booted override: changed, not ignored" state_is changed
 # ignored does not excuse reset from its marker
 run reset
 boot
@@ -520,23 +523,23 @@ printf '#!/bin/sh\nif [ -d "$1" ]; then kill -INT $PPID; sleep 1; fi\nexit 0\n' 
 chmod +x "$S/shim/sync"
 PATH="$S/shim:$PATH" run merge pwm-e
 check "interrupted after the rename: says the override was replaced" says "was already replaced by the new file"
+check "...and the write is recorded for this boot" bash -c "grep -q '^merged=.*pwm-e' '$S/run/ldto/written'"
 # the editor gets Ctrl-C with its default effect (not ignored)
 EDITOR="grep -q '^SigIgn:.*0000000000000000\$' /proc/\$\$/status" run edit
 check "the editor's INT/TERM are not ignored" says "no changes; override unchanged"
 # a recompile failure keeps the edit
 EDITOR="sed -i 's/^\/ {/\/ { broken/'" run edit
 check "recompile failure: the edit is kept and named" says "your edit is in /tmp/ldto-edit-kept"
-check "...and the write is recorded for this boot" bash -c "grep -q '^merged=.*pwm-e' '$S/run/ldto/written'"
 run reset
 boot
 run merge pwm-a
-# a stamped backup restored during a boot is pending, not ignored
+# a stamped backup copied in during a boot: ignored (advisory, both causes)
 boot
 cp -f "$OVR" "$S/backup.dtb"
 run reset
 boot
 cp -f "$S/backup.dtb" "$OVR"
-check "stamped override copied in during this boot: pending-merge, not ignored" state_is pending-merge
+check "stamped override copied in during this boot: ignored (advisory)" state_is ignored
 # merge --force after reset keeps the edited mark of the booted override
 run reset
 boot
