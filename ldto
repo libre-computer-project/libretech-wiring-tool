@@ -738,7 +738,7 @@ LDTO_enable()
 		fi
 	done
 	if [ ${#booted[@]} -gt 0 ] && [ -n "$(LDTO_bootedChosen "$LDTO_PROP_EDITED")" ]; then
-		echo "WARNING: this boot's DT was hand-edited (ldto edit) after its overlays were merged; its record (${booted[*]}) is advisory -- an overlay listed there is skipped and conflict-checked as live, but may have been changed or disabled by hand (check with 'ldto current')" >&2
+		echo "WARNING: this boot's DT was hand-edited (ldto edit, or outside ldto) after its overlays were merged; its record (${booted[*]}) is advisory -- an overlay listed there is skipped and conflict-checked as live, but may have been changed or disabled by hand (check with 'ldto current')" >&2
 	fi
 
 	if [ "$dry_run" -eq 1 ]; then
@@ -1156,7 +1156,7 @@ LDTO_onExit()
 # what a disable already removed, then exit (the EXIT trap cleans up).
 LDTO_onSignal()
 {
-	trap '' INT TERM
+	trap '' INT TERM HUP
 	if [ ${#LDTO_APPLIED_NOW[@]} -gt 0 ] || [ -n "$LDTO_APPLYING" ]; then
 		echo "WARNING: interrupted -- rolling back this command's overlays: ${LDTO_APPLIED_NOW[*]} $LDTO_APPLYING" >&2
 		LDTO_rollbackConfigFS "${LDTO_APPLIED_NOW[@]}" ${LDTO_APPLYING:+"$LDTO_APPLYING"}
@@ -1168,6 +1168,8 @@ LDTO_onSignal()
 	case "$LDTO_ESP_PHASE" in
 	staging)
 		echo "WARNING: interrupted -- $LDTO_ESP_TARGET unchanged" >&2 ;;
+	failed)
+		echo "WARNING: interrupted -- $LDTO_ESP_TARGET was replaced but did not read back identical: do not reboot; run 'ldto reset' or check the boot medium" >&2 ;;
 	renaming)
 		if [ -n "$LDTO_STAGED" ] && [ -e "$LDTO_STAGED" ]; then
 			echo "WARNING: interrupted -- $LDTO_ESP_TARGET unchanged" >&2
@@ -1180,7 +1182,7 @@ LDTO_onSignal()
 	exit 130
 }
 trap LDTO_onExit EXIT
-trap LDTO_onSignal INT TERM
+trap LDTO_onSignal INT TERM HUP
 LDTO_installDTB()
 {
 	local src="$1" dst="$2" dir
@@ -1206,6 +1208,7 @@ LDTO_installDTB()
 	fi
 	LDTO_ESP_PHASE=renaming
 	if ! mv -f "$LDTO_STAGED" "$dst"; then
+		LDTO_ESP_PHASE=staging
 		echo "WARNING: renaming the staged copy over $dst failed" >&2
 		rm -f "$LDTO_STAGED"; LDTO_STAGED=; LDTO_ESP_PHASE=
 		return 1
@@ -1213,6 +1216,7 @@ LDTO_installDTB()
 	LDTO_STAGED=
 	sync "$dir" 2>/dev/null || sync
 	if ! cmp -s "$src" "$dst"; then
+		LDTO_ESP_PHASE=failed
 		echo "WARNING: $dst does not read back identical after the rename -- do not reboot; run 'ldto reset' or check the boot medium" >&2
 		return 2
 	fi
@@ -2214,14 +2218,15 @@ LDTO_edit()
 	cp -f "$dts" "$orig"
 	# $EDITOR may carry arguments ("code -w"), as git and others allow.
 	# It must not keep the lock (fd 9), and must wait until the file is
-	# saved and closed (gvim -f, code -w), as for git. Like git, ignore
-	# Ctrl-C while it runs: the terminal sends it to the whole process
-	# group (e.g. from a shell-out inside the editor), and the edit the user
-	# then saves must not be thrown away.
-	trap '' INT TERM
+	# saved and closed (gvim -f, code -w), as for git. ldto itself survives
+	# INT/TERM/HUP while it runs (the terminal sends Ctrl-C to the whole
+	# process group, e.g. from a shell-out inside the editor, and the edit
+	# then saved must not be thrown away) -- a no-op handler, not SIG_IGN,
+	# so the editor still gets the signals with their default effect.
+	trap : INT TERM HUP
 	local erc=0
 	sh -c "${EDITOR:-vim} \"\$1\"" ldto-edit "$dts" 9>&- || erc=$?
-	trap LDTO_onSignal INT TERM
+	trap LDTO_onSignal INT TERM HUP
 	[ "$erc" -eq 0 ] || {
 		echo "WARNING: edit aborted — editor failed; override unchanged" >&2
 		rm -f "$dts" "$orig"
@@ -2239,8 +2244,10 @@ LDTO_edit()
 	}
 	LDTO_CLEANUP+=("$staged")
 	if ! err=$(dtc -I dts -O dtb "$dts" -o "$staged" 2>&1); then
-		echo "WARNING: edit aborted — dtc recompile failed; override unchanged" >&2
-		[ -n "$err" ] && echo "WARNING: dtc: $err" >&2
+		local keep
+		keep=$(mktemp /tmp/ldto-edit-kept.XXXXXX.dts) && cp -f "$dts" "$keep"
+		echo "WARNING: edit aborted — dtc recompile failed; override unchanged; your edit is in ${keep:-(lost)} (line numbers below refer to it)" >&2
+		[ -n "$err" ] && echo "WARNING: dtc: ${err//$dts/${keep:-$dts}}" >&2
 		rm -f "$dts" "$staged"
 		return 1
 	fi

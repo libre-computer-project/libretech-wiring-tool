@@ -508,7 +508,7 @@ boot
 EDITOR="sed -i s/Libre/LIBRE/" run edit
 boot
 run enable --dry-run pwm-a
-check "enable on a hand-edited boot DT: record called advisory" says "hand-edited (ldto edit) after its overlays were merged"
+check "enable on a hand-edited boot DT: record called advisory" says "hand-edited (ldto edit, or outside ldto) after its overlays were merged"
 run merge pwm-a
 check "merge onto a hand-edited override: record called advisory" says "hand-edited after its overlays were merged"
 # Ctrl-C reaching ldto while the editor runs does not discard the saved edit
@@ -520,6 +520,12 @@ printf '#!/bin/sh\nif [ -d "$1" ]; then kill -INT $PPID; sleep 1; fi\nexit 0\n' 
 chmod +x "$S/shim/sync"
 PATH="$S/shim:$PATH" run merge pwm-e
 check "interrupted after the rename: says the override was replaced" says "was already replaced by the new file"
+# the editor gets Ctrl-C with its default effect (not ignored)
+EDITOR="grep -q '^SigIgn:.*0000000000000000\$' /proc/\$\$/status" run edit
+check "the editor's INT/TERM are not ignored" says "no changes; override unchanged"
+# a recompile failure keeps the edit
+EDITOR="sed -i 's/^\/ {/\/ { broken/'" run edit
+check "recompile failure: the edit is kept and named" says "your edit is in /tmp/ldto-edit-kept"
 check "...and the write is recorded for this boot" bash -c "grep -q '^merged=.*pwm-e' '$S/run/ldto/written'"
 run reset
 boot
