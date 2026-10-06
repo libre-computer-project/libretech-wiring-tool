@@ -230,6 +230,35 @@ def canon(name: str) -> str:
 
 def tokens(name: str) -> frozenset[str]:
     """Comparable token set: case/underscore/instance-suffix insensitive."""
+    out = raw_tokens(name)
+    return frozenset(t for t in out if t not in NOISE) or frozenset(out)
+
+
+# Controllers whose instance letter is glued on in datasheet names: TDMB_D1,
+# PCMA, TSINB. Only these split -- EMMC or DATA must not become EMM+C / DAT+A.
+GLUED_INSTANCE = {"TDM", "PCM", "PDM", "TSIN", "I2S", "SPI", "UART", "PWM", "I2C"}
+
+
+def instances(name: str) -> frozenset[str]:
+    """The single-letter instance markers a name carries: UART_TX_B -> {B},
+    TDMB_D1 -> {B}, tdm_c_dout2_a -> {C, A} (a bank suffix counts too). A
+    letter with a lane number (D1) or an aliased word (DATA, DOUT) is not one.
+    tokens() drops instance letters as NOISE so that a name with no instance
+    still matches one that has it; this keeps them so that two names with
+    DIFFERENT instances do not (UART_TX_B is not uart_tx_a)."""
+    out = set()
+    for p in re.split(r"[^A-Za-z0-9]+", re.sub(r"_[udz]$", "", name).upper()):
+        if len(p) == 1 and p in "ABCDEF":
+            out.add(p)
+            continue
+        m = re.match(r"^([A-Z0-9]*?[A-Z])([A-F])$", p)
+        if m and m.group(1) in GLUED_INSTANCE:
+            out.add(m.group(2))
+    return frozenset(out)
+
+
+def raw_tokens(name: str) -> set[str]:
+    """tokens() before the NOISE filter."""
     # Same lowercase reset-pull suffix canon() drops, dropped here too -- left
     # in, the stray U/D became a token of its own and no map name could ever be
     # a subset of the TRM's.
@@ -264,7 +293,7 @@ def tokens(name: str) -> frozenset[str]:
             out.add(m.group(2))
             p = m.group(1)
         out.add(ALIAS.get(p, p))
-    return frozenset(t for t in out if t not in NOISE) or frozenset(out)
+    return out
 
 
 def match_score(a: str, b: str) -> int:
@@ -282,6 +311,11 @@ def match_score(a: str, b: str) -> int:
     ca, cb = canon(a), canon(b)
     if ca and cb and ca == cb:
         return 3
+    # Both name an instance and share none: a different controller of the same
+    # kind (UART_TX_B vs uart_tx_a, PWM_F vs pwm_e, TDMA_D1 vs tdm_b_dout1).
+    ia, ib = instances(a), instances(b)
+    if ia and ib and not ia & ib:
+        return 0
     if sa and sb and (sa in sb or sb in sa):
         return 2
     ta, tb = tokens(a), tokens(b)
@@ -412,11 +446,15 @@ def load_authority(soc: str, linux: Path,
 
 def load_map(path: Path) -> list[dict]:
     rows = []
-    for line in path.read_text(errors="replace").splitlines():
-        if not line.strip() or line.lstrip().startswith("#"):
+    for n, line in enumerate(path.read_text(errors="replace").splitlines(), 1):
+        if not line.strip() or line.startswith("#"):
             continue
         f = line.split("\t")
         if len(f) < 9:
+            # Dropping it silently would take a rail row out of --rails, the
+            # one gate that fails hard; check-lwt reports the same row.
+            print(f"WARNING: {path}:{n}: {len(f)} tab-separated field(s), need 9 "
+                  f"-- row not checked")
             continue
         rows.append({
             "header": f[0], "pin": f[1], "chip": f[2], "line": f[3],
@@ -470,6 +508,10 @@ VOLTAGE = re.compile(
 GROUND_NAME = re.compile(r"[AD]?GND\d*|VSS[A-Z0-9_]*", re.I)
 SUPPLY_NAME = re.compile(r"(?:[AD])?(?:VCC|VDD|VBUS|VBAT|VIN|VPP)[A-Z0-9._+-]*"
                          r"|\d+(?:[.]\d+)?V\d*", re.I)
+# A net named for its voltage without a VCC/VDD prefix -- SYS_12V, DC_12V, +3V3,
+# P3V3, 5V_OUT -- is a supply too: one '_'/'-' separated part is a voltage.
+VOLTAGE_PART = re.compile(r"\+?P?\d+(?:[.]\d+)?V\d*", re.I)
+NET_NAME = re.compile(r"[+A-Za-z0-9._-]+")
 
 
 def rail_mv(name: str) -> int | None:
@@ -500,7 +542,9 @@ def rail_class(name: str) -> tuple[str, int | None] | None:
         return None
     if GROUND_NAME.fullmatch(n):
         return "GND", None
-    if SUPPLY_NAME.fullmatch(n):
+    if SUPPLY_NAME.fullmatch(n) or (
+            NET_NAME.fullmatch(n)
+            and any(VOLTAGE_PART.fullmatch(p) for p in re.split(r"[_-]", n))):
         if re.split(r"[._-]", n.upper())[-1] in CONTROL_SUFFIX:
             return None
         return "SUPPLY", rail_mv(n)
@@ -718,6 +762,14 @@ SELF_TEST = [
     ("3.3V", "VCC3V3_SYS", False),          # roc-rk3399-pc J15.18
     ("3.3V", "VDDIO_AO3.3V", False),        # aml-s905x-cc 2J3.8
     ("12V", "DC_12V", False),               # roc-rk3399-pc J6.3, jack-side 12V
+    ("12V", "SYS_12V", False),              # roc-rk3399-pc J21.3
+    ("GND", "SYS_12V", True),               # same row published as ground
+    ("GND", "DC_12V", True),
+    ("GND", "+3V3", True),
+    ("3.3V", "P3V3", False),
+    ("5V", "5V_OUT", False),
+    ("3.3V", "SYS_12V", True),              # both supplies, wrong voltage
+    ("0", "SDIO_1V8_EN", False),            # an enable signal, not a rail
     ("POE", "POE1", False),                 # roc-rk3399-pc J1.1, magnetics tap
     ("0", "GPIO0_B4(V1.1A)/EDP_TP(V1.2A)", False),   # roc-rk3399-pc J20.26
     ("2", "I2C2_SCL", False),
@@ -750,7 +802,36 @@ def self_test() -> int:
             print(f"SELFTEST FAIL: ball case '{what}': expected {want}, got {got}")
     print(f"check-pinmux --self-test: {len(BALL_TEST) - bfails}/{len(BALL_TEST)} "
           f"ball cases pass")
-    return 1 if fails or bfails else 0
+    mfails = 0
+    for a, b, want in MATCH_TEST:
+        got = match_score(a, b) > 0
+        if got != want:
+            mfails += 1
+            print(f"SELFTEST FAIL: match {a!r} vs {b!r}: expected "
+                  f"{'a match' if want else 'no match'}, got score {match_score(a, b)}")
+    print(f"check-pinmux --self-test: {len(MATCH_TEST) - mfails}/{len(MATCH_TEST)} "
+          f"match cases pass")
+    return 1 if fails or bfails or mfails else 0
+
+
+# (driver/datasheet name, map Desc token, must they match?) -- real pairs from
+# the GXL/G12A/RK3399 maps, plus the wrong-instance defects that used to pass.
+MATCH_TEST = [
+    ("uart_tx_a", "UART_TX_A", True),
+    ("uart_tx_a", "UART_TX_B", False),        # another UART instance
+    ("uart_tx_ao_b", "UART_TX_AO_A", False),
+    ("pwm_e", "PWM_F", False),
+    ("tdm_b_dout1", "TDMA_D1", False),
+    ("tdm_b_dout1", "TDMB_D1", True),         # glued instance, lane number
+    ("tdm_c_dout2_a", "TDMC_D2", True),       # bank suffix _a is not a mismatch
+    ("pwm_f_a", "PWM_F", True),
+    ("pdm_din0_a", "PDM_DIN0", True),
+    ("i2c_sck_d", "I2C_SCK_D", True),
+    ("spi0_clk_x", "SPI_A_SCLK", True),       # one side names no instance
+    ("uart_c_rts", "UART_EE_C_RTS", True),
+    ("SDIO_DATA0", "SDIO0_D0", True),         # DATA is not DAT + instance A
+    ("emmc_nand_d0", "EMMC_D0", True),        # EMMC is not EMM + instance C
+]
 
 
 # --------------------------------------------------------------------- check
@@ -970,6 +1051,11 @@ def main() -> int:
     boards = [b for b in ([LC / args.board] if args.board
                           else sorted(p for p in LC.iterdir() if p.is_dir()))
               if (b / "gpio.map").is_file()]
+    if not boards:
+        # An empty population is not a clean one: "0 contradictions across 0
+        # boards" is what a misspelled --board would otherwise print.
+        print(f"ERROR: no gpio.map for {args.board or 'any board'}")
+        return 2
 
     # Run BEFORE the kernel-tree gate, on purpose. The rail check reads nothing
     # but the map, so a host with no kernel source still gets it, and so does a

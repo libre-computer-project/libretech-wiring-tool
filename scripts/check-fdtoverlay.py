@@ -98,20 +98,24 @@ def load_deps(path: Path) -> dict[str, list[str]]:
 
 
 def expand_chain(consumer: str, edges: dict[str, list[str]]) -> list[str]:
-    """Providers first (depth-first), then consumer. Dedupe, preserve order."""
+    """Providers first (depth-first), then consumer. Dedupe, preserve order.
+    A dependency cycle raises ValueError: silently ordering one consumer
+    before its provider would make the provider look like "the overlay"."""
     ordered: list[str] = []
     seen: set[str] = set()
+    path: list[str] = []
 
-    def add(name: str, depth: int = 0) -> None:
-        if depth > 32:
-            return
+    def add(name: str) -> None:
+        if name in path:
+            raise ValueError("dt.deps cycle: " + " -> ".join(path[path.index(name):] + [name]))
         if name in seen:
             return
+        path.append(name)
         for p in edges.get(name, []):
-            add(p, depth + 1)
-        if name not in seen:
-            seen.add(name)
-            ordered.append(name)
+            add(p)
+        path.pop()
+        seen.add(name)
+        ordered.append(name)
 
     add(consumer)
     return ordered
@@ -351,8 +355,24 @@ def self_test() -> int:
         if claims_board(ov, base) != want:
             fails += 1
             print(f"SELFTEST FAIL: {what}: expected claims={want}")
-    n = len(SELF_TEST) + len(CLAIM_TEST)
-    print(f"check-fdtoverlay --self-test: {n - fails}/{n} cases pass (alias, claim)")
+    chain_cases = [
+        ("providers first", expand_chain("dev", {"dev": ["bus"], "bus": ["clk"]}),
+         ["clk", "bus", "dev"]),
+        ("shared provider listed once",
+         expand_chain("d", {"d": ["a", "b"], "a": ["c"], "b": ["c"]}), ["c", "a", "b", "d"]),
+    ]
+    for what, got, want in chain_cases:
+        if got != want:
+            fails += 1
+            print(f"SELFTEST FAIL: chain {what}: expected {want}, got {got}")
+    try:
+        expand_chain("a", {"a": ["b"], "b": ["a"]})
+        fails += 1
+        print("SELFTEST FAIL: chain cycle a -> b -> a was not reported")
+    except ValueError:
+        pass
+    n = len(SELF_TEST) + len(CLAIM_TEST) + len(chain_cases) + 1
+    print(f"check-fdtoverlay --self-test: {n - fails}/{n} cases pass (alias, claim, chain)")
     return 1 if fails else 0
 
 
@@ -497,7 +517,12 @@ def check_board(
                     skip(f"{name}: {stem} does not claim {base_compat[:1]}")
                 continue
 
-            chain_names = expand_chain(stem, edges)
+            try:
+                chain_names = expand_chain(stem, edges)
+            except ValueError as e:
+                stats.fail += 1
+                warn(f"{name}: {stem}: {e}")
+                continue
             chain_paths: list[Path] = []
             missing = False
             for cn in chain_names:

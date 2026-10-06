@@ -91,13 +91,23 @@ def main() -> int:
     if not a.schema or not Path(a.dt_validate).is_file():
         print("SKIP: need --schema and dt-validate (pip dtschema)")
         return 0
+    if not Path(a.schema).is_file():
+        print(f"ERROR: schema {a.schema} does not exist")
+        return 2
     cache: dict[Path, set[str]] = {}
+    tool_failed: list[str] = []
 
     def errors(dtb: Path) -> set[str]:
         if dtb not in cache:
             r = subprocess.run([a.dt_validate, "-s", a.schema, str(dtb)],
                                capture_output=True, text=True, timeout=600)
-            cache[dtb] = normalize(r.stdout + r.stderr)
+            out = r.stdout + r.stderr
+            # dt-validate reports schema violations on stdout and still exits
+            # 0; a non-zero exit with nothing reported means it did not run
+            # (bad schema, unreadable DTB), and "no errors" would be a lie.
+            if r.returncode != 0 and not normalize(out):
+                tool_failed.append(f"{dtb.name}: dt-validate exit {r.returncode}")
+            cache[dtb] = normalize(out)
         return cache[dtb]
 
     roots = [Path(d) for d in a.dtb_dir] + fdt.home_paths()
@@ -128,8 +138,11 @@ def main() -> int:
                 for e in introduced(errors(before), errors(after)):
                     new += 1
                     print(f"SCHEMA: {board.name}/{stem}: {e}")
-    print(f"check-overlay-schema: {checked} overlays validated, {new} error(s) introduced")
-    return 0
+    for f in tool_failed:
+        print(f"ERROR: {f}")
+    print(f"check-overlay-schema: {checked} overlays validated, {new} error(s) introduced"
+          f"{f', {len(tool_failed)} dt-validate run(s) failed' if tool_failed else ''}")
+    return 2 if tool_failed else 0
 
 
 if __name__ == "__main__":

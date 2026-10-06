@@ -75,11 +75,6 @@ SKIP_NAMES = {
 PIN_ROW_RE = re.compile(
     r"^\s*\*?\s*(\d*[Jj]\d+)\.(\d+)\s+(\S+)(?:\s+(\S+))?"
 )
-PAD_TOKEN = re.compile(
-    r"\b(GPIO[A-Z][A-Z0-9_]*|GPIODV_[0-9]+|TEST_N|RK_P[A-Z0-9_]+|"
-    r"GPIO[0-9]_[A-Z][0-9]+|P[A-G][0-9]+)\b"
-)
-SKIP_PAD = re.compile(r"^(GPIO_ACTIVE_|GPIO_OPEN_|GPIO_PULL_|GPIO_PERSISTENT)")
 
 # A package ball: one or two column letters then a row number.  Rockchip and
 # Amlogic both use this shape; 'BKH30' (three letters) is how a typo shows up.
@@ -945,7 +940,7 @@ class Checker:
             bare = name.rstrip("*")
             if (
                 bare in SKIP_NAMES
-                or r["chip"] in POWER_CHIPS
+                or r["chip"] in CLASS_CHIPS
                 or bare.startswith("SARADC")
             ):
                 continue
@@ -1099,7 +1094,6 @@ class Checker:
 
         gpath = board / "gpio.map"
         by_pin: dict[tuple[str, str], list[str]] = {}
-        by_name: dict[str, tuple[str, str]] = {}
         pad_of: dict[str, str] = {}
         if gpath.is_file():
             for r in load_gpio_map(gpath):
@@ -1111,7 +1105,6 @@ class Checker:
                 # wired to it, so keep every name; a Pins: row naming any of
                 # them is correct. A plain dict would silently keep the last.
                 by_pin.setdefault((r["header"], r["pin"]), []).append(bare)
-                by_name[bare] = (r["header"], r["pin"])
 
         for dts in sorted(dt.glob("*.dts")):
             if dts.is_symlink():
@@ -1124,7 +1117,7 @@ class Checker:
             if "Summary:" not in header:
                 self.warn(
                     f"{board.name}/{dts.name}: header missing Summary: "
-                    f"(run scripts/normalize-overlay-headers.py)"
+                    f"(write one by hand: docs/overlays.md 'Overlay header policy')"
                 )
 
             # Pins rows must match gpio.map
@@ -1138,21 +1131,8 @@ class Checker:
                                  deps.get(dts.stem, []))
             if w:
                 self.warn(w)
-
-            # DTS body pad names: if known to map, OK; unknown meson pads warn lightly
-            body = text.split("/dts-v1/", 1)[-1]
-            if by_name and board.name in BOARD_SOC:
-                for m in PAD_TOKEN.finditer(body):
-                    tok = m.group(1)
-                    if SKIP_PAD.match(tok):
-                        continue
-                    bare = tok.rstrip("*")
-                    if bare in ("TEST_N",) or bare.startswith("GPIO"):
-                        # only warn if looks like SoC pad but absent from map
-                        # AND used in gpios/groups (already in body)
-                        if bare not in by_name and bare != "GPIO_TEST_N":
-                            # Many pads exist on SoC but not on header — OK
-                            pass
+            # Body pads are checked by check-overlay-pins.py, which resolves
+            # what each overlay actually muxes once applied.
 
     def run(self, board_filter: str | None) -> int:
         boards = board_dirs(board_filter)

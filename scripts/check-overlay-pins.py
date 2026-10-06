@@ -133,6 +133,10 @@ def meson_irqids(header: Path) -> dict[int, str]:
         r"#define\s+IRQID_(\w+)\s+(\d+)", header.read_text())}
 
 
+# A meson pinctrl group named after its single pad (the GPIO function group).
+PAD_GROUP = re.compile(r"(GPIO[A-Z]*|BOOT|CARD|TEST)_\d+")
+
+
 class Resolver:
     def __init__(self, family: str, tree: Tree, groups: dict[str, list[str]],
                  bindings: tuple[dict[int, str], dict[int, str]] | None,
@@ -187,7 +191,12 @@ class Resolver:
             props = self.t.nodes.get(p, {})
             if "groups" in props:
                 for g in strings(props["groups"]):
-                    pads.update(self.groups.get(g, []))
+                    if g in self.groups:
+                        pads.update(self.groups[g])
+                    elif self.family == "meson" and PAD_GROUP.fullmatch(g):
+                        # meson's GPIO-function groups are named after their
+                        # one pad: groups = "GPIOAO_8" with function gpio_aobus
+                        pads.add(g)
             if "pins" in props:
                 pads.update(strings(props["pins"]))
             if "rockchip,pins" in props:
@@ -275,10 +284,16 @@ def collisions(res: "Resolver", mine: list[str], own: set[str]) -> list[tuple[st
     out = []
     if not own:
         return out
+    # Exempt only the nodes the overlay itself writes (touched() lists each
+    # target and every node written below it), never their descendants: a
+    # fragment targeting "/" or "/soc" would otherwise exempt the whole tree,
+    # and every root-targeted overlay (fans, keys, pps, w1, panels) went
+    # unchecked.
+    written = set(mine)
     for path in res.t.nodes:
         if path.startswith(("/__", "/aliases", "/chosen")):
             continue
-        if any(path == t or path.startswith(t.rstrip("/") + "/") for t in mine):
+        if path in written:
             continue
         hit = sorted(res.node_pads(path) & own)
         if hit:
@@ -636,6 +651,16 @@ def check_board(board: Path, roots, linux: Path, stats: dict) -> None:
                       f"{dest} -- a new node that collides with a base node's name")
             mine = touched(otree, prev_tree.symbols)
             for p in mine:
+                # A device the overlay creates under a node that stays disabled
+                # never probes: i2c-a-at24c32 on a board whose i2c_AO is off.
+                if (p not in prev_tree.nodes and "compatible" in res.t.nodes.get(p, {})
+                        and not res.enabled(p)):
+                    off = p
+                    while off != "/" and res.t.nodes.get(off, {}).get("status") != '"disabled"':
+                        off = res.t.parent(off)
+                    stats["dead"] += 1
+                    print(f"DEAD: {board.name}/{stem}: creates {p}, under {off}, which "
+                          f"stays disabled once the overlay and its providers apply")
                 own |= res.node_pads(p) - prev.node_pads(p)
                 # "stale" asks whether anything muxes the pad once the chain
                 # is applied -- including what the base already had enabled
@@ -661,7 +686,7 @@ def check_board(board: Path, roots, linux: Path, stats: dict) -> None:
                 print(f"UNDOCUMENTED: {board.name}/{stem}: muxes header pad {pad}, "
                       f"absent from its Pins:")
             if stats.get("fix") and not dts.is_symlink() and tracked(dts):
-                text = dts.read_text()
+                text = original = dts.read_text()
                 pins_pads = doc
                 if undoc or stale:
                     pins_pads = (doc & whole & header_pads) | (own & header_pads)
@@ -669,11 +694,14 @@ def check_board(board: Path, roots, linux: Path, stats: dict) -> None:
                 junk = notes_junk(text, pins_pads, whole)
                 if junk:
                     text = drop_lines(text, junk)
-                if undoc or stale or junk:
+                if text != original:
                     dts.write_text(text)
                     stats["fixed"] += 1
                     print(f"FIXED: {board.name}/{stem}: +{len(undoc)} undocumented, "
                           f"-{len(stale)} stale, -{len(junk)} Notes residue")
+                elif undoc or stale or junk:
+                    print(f"NOT FIXED: {board.name}/{stem}: no Pins: block or "
+                          f"Summary: line to rewrite; edit the header by hand")
             elif notes_junk(dts.read_text(), doc, whole):
                 stats["residue"] = stats.get("residue", 0) + 1
                 print(f"RESIDUE: {board.name}/{stem}: Notes: carries generator "
@@ -747,6 +775,9 @@ def self_test() -> int:
          res.node_pads("/unnamed"), set()),
         ("collision: another enabled node holds a newly muxed pad",
          set(p for p, _ in collisions(res, ["/unnamed"], {"GPIOX_14"})), {"/serial@84c0"}),
+        ("collision: an overlay that targets / still collides with base nodes",
+         set(p for p, _ in collisions(res, ["/", "/unnamed"], {"GPIOX_14"})),
+         {"/serial@84c0"}),
         ("no collision with a node under a disabled ancestor",
          collisions(Resolver("meson", Tree(parse_dts(
              '/ {\n\tbus {\n\t\tstatus = "disabled";\n\t\tdev {\n'
@@ -849,7 +880,8 @@ def main() -> int:
         return 0
     roots = [Path(d) for d in a.dtb_dir] + fdt.home_paths()
     stats = {"overlays": 0, "with_pads": 0, "undocumented": 0, "stale": 0, "skip": 0,
-             "missing": 0, "collide": 0, "merge": 0, "explain": a.explain, "fix": a.fix,
+             "missing": 0, "collide": 0, "merge": 0, "dead": 0,
+             "explain": a.explain, "fix": a.fix,
              "fixed": 0, "slots": 0, "slot_bad": 0, "keypins": {}}
     for board in fdt.board_dirs(a.board):
         check_board(board, roots, linux, stats)
@@ -861,13 +893,14 @@ def main() -> int:
           f"{stats['stale']} stale, {stats['missing']} on no package pad, "
           f"{stats['collide']} colliding with an enabled node, "
           f"{stats['merge']} rewriting an existing node, "
+          f"{stats['dead']} device(s) under a disabled node, "
           f"{stats.get('residue', 0)} with Notes residue; "
           f"{stats['slots']} dt.map keys checked, {stats['slot_bad']} off their slot, "
           f"{len(shared)} not shared by 2+ boards at identical pins; "
           f"{stats['skip']} board(s) without a base DTB")
     return 1 if (stats["undocumented"] or stats["stale"] or stats["missing"]
-                 or stats["collide"] or stats["merge"] or stats.get("residue")
-                 or stats["slot_bad"] or shared) else 0
+                 or stats["collide"] or stats["merge"] or stats["dead"]
+                 or stats.get("residue") or stats["slot_bad"] or shared) else 0
 
 
 if __name__ == "__main__":

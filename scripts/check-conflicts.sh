@@ -57,6 +57,8 @@ CASES_s905x_cc=(
 	"spi_bus_only|0|spi-cc-1cs"
 	"spi_bus_device|0|spi-cc-1cs|spi-cc-1cs-ili9341"
 	"spi_two_devices|2|spi-cc-1cs-ili9341|spi-cc-1cs-enc28j60"
+	"spi_cs_clash|2|spi-cc-2cs-ili9486-xpt2046|spi-cc-2cs-spidev"
+	"spi_2cs_bus_device|0|spi-cc-2cs|spi-cc-2cs-spidev"
 	"map_alias|0|H40P_SPI_0_1CS"
 	"uart_sdio_alias|2|uart-a|sdio"
 	"sdio_pwm_e_ok|0|sdio|pwm-e"

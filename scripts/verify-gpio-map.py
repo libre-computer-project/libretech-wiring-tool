@@ -113,12 +113,15 @@ def load_map(path: Path) -> list[dict]:
     cols = ("header", "pin", "chip", "line", "sysfs", "name", "pad", "ref",
             "desc")
     rows = []
-    for line in path.read_text(errors="replace").splitlines():
+    for n, line in enumerate(path.read_text(errors="replace").splitlines(), 1):
         if not line.strip() or line.startswith("#"):
             continue
         parts = line.split("\t")
         if len(parts) >= 9:
             rows.append(dict(zip(cols, parts)))
+        else:
+            print(f"WARNING: {path}:{n}: {len(parts)} tab-separated field(s), "
+                  f"need 9 -- row not checked", file=sys.stderr)
     return rows
 
 
@@ -345,7 +348,14 @@ def main() -> int:
           f"header names, {cov['unverified']} unverified; base check "
           f"{'ran' if cov['base'] else 'not applicable'}; "
           f"{len(found)} mismatch(es)")
-    return 1 if found else 0
+    if found:
+        return 1
+    if cov["rows"] and not (cov["pad"] or cov["header"]):
+        # Not a clean result: nothing in the map could be tied to the live
+        # kernel (e.g. pinctrl labels that match no gpiochip).
+        print("verify-gpio-map: no GPIO row could be checked", file=sys.stderr)
+        return 2
+    return 0
 
 
 if __name__ == "__main__":
