@@ -187,7 +187,12 @@ time and refuses (`WARNING: after-check: …`) if
   `init`) or a GPIO line (controller + cells, flags ignored) ends up held by
   two **enabled** nodes when it was not shared before -- this also catches
   clashes with the board's own devices (an LED, the console UART), which the
-  header-pin gate cannot see.
+  header-pin gate cannot see;
+- with debugfs mounted (`/sys/kernel/debug/pinctrl`, read as root), a **pad**
+  ends up muxed by two enabled nodes through *different* groups or a GPIO --
+  e.g. a second UART group on the console's pads. The pads behind each group
+  and GPIO line come from the running kernel's `pingroups` / `pins`; without
+  debugfs this level is skipped silently.
 
 `--no-check` skips it. Runtime `enable` and `edit` do not run it.
 

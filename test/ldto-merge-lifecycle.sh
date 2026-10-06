@@ -232,5 +232,36 @@ check "a disabled node claims nothing" rc_is 0
 VENDOR=$V run merge --dry-run --no-check test-dup-gpio
 check "--no-check skips the after-check" rc_is 0
 
+# --- after-check, pad level: pinctrl debugfs of the AO controller ----------
+# uart_ao_b_0_1 muxes the console's pads GPIOAO_0/1 through other groups,
+# which only the pads (debugfs) show.
+mkov test-uart-b01 '			test-f { pinctrl-names = "default"; pinctrl-0 = <&uart_ao_b_0_1_pins>; };'
+mkov test-gpio-console '			test-g { gpios = <&gpio_ao 0 0>; };'
+VENDOR=$V run merge --dry-run test-uart-b01
+check "no debugfs: a different group on the console pads is not seen" rc_is 0
+AO=/soc/bus@c8100000/pinctrl@14
+D=$S/sys/kernel/debug/pinctrl/c8100000.bus:pinctrl@14-pinctrl-meson
+mkdir -p "$D" "$S/sys/bus/platform/devices/c8100000.bus:pinctrl@14"
+printf 'name [pinmux] [pinconf]\npinctrl-meson yes yes\n' > "$S/sys/kernel/debug/pinctrl/pinctrl-devices"
+ln -s "../../../../firmware/devicetree/base$AO" "$S/sys/bus/platform/devices/c8100000.bus:pinctrl@14/of_node"
+{
+	echo "registered pins: 10"
+	for i in 0 1 2 3 4 5 6 7 8 9; do echo "pin $i (GPIOAO_$i) $i:aobus-banks  c8100000.bus:pinctrl@14"; done
+} > "$D/pins"
+{
+	echo "registered pin groups:"
+	for g in uart_tx_ao_a:0 uart_rx_ao_a:1 uart_tx_ao_b_0:0 uart_rx_ao_b_1:1 GPIOAO_2:2; do
+		printf 'group: %s\npin %s (GPIOAO_%s)\n\n' "${g%%:*}" "${g#*:}" "${g#*:}"
+	done
+} > "$D/pingroups"
+VENDOR=$V run merge --dry-run test-uart-b01
+check "debugfs: another group on the console pads is refused" says "pad GPIOAO_0 on $AO is held by two enabled nodes: /soc/bus@c8100000/serial@4c0 /test-f"
+VENDOR=$V run merge --dry-run test-gpio-console
+check "debugfs: a GPIO on a console pad is refused" says "pad GPIOAO_0 on $AO is held by two enabled nodes: /soc/bus@c8100000/serial@4c0 /test-g"
+VENDOR=$V run merge --dry-run test-uart-pins
+check "debugfs: the same group is reported once, not again per pad" bash -c "printf '%s' \"\$1\" | grep -q 'pinctrl group' && ! printf '%s' \"\$1\" | grep -q 'pad GPIOAO'" _ "$OUT"
+VENDOR=$V run merge --dry-run pwm-e
+check "debugfs: a clean overlay still merges" rc_is 0
+
 echo "ldto merge lifecycle: $pass pass, $fail fail"
 [ "$fail" -eq 0 ]
