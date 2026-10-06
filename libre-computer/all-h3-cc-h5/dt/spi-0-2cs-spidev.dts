@@ -7,6 +7,7 @@
  * Summary: spidev on SPI0 CS0 and CS1 (40P header 7J1 pins 24 and 26)
  *
  * Requires: spi-0-2cs
+ * Resource-provides: spi:spi0@0, spi:spi0@1
  */
 /dts-v1/;
 /plugin/;

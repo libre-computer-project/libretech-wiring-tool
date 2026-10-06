@@ -7,6 +7,7 @@
  * Summary: Spidev interfaces for spi-0-1cs
  *
  * Requires: spi-0-1cs
+ * Resource-provides: spi:spi0@0
  *
  * Notes:
  * Requires spi-0-1cs overlay

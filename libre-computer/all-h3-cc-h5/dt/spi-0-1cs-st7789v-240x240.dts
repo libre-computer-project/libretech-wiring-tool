@@ -12,6 +12,7 @@
  *   7J1.31   PA21          A14     I2S0-SDI
  *
  * Requires: spi-0-1cs
+ * Resource-provides: spi:spi0@0
  *
  * Notes:
  * Display stack: mixed. Shared SPI/GPIO fields serve tinydrm when the

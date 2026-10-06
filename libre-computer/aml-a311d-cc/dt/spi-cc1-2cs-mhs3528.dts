@@ -12,6 +12,7 @@
  *   7J1.22   GPIOA_6       E15     GPIOA_6
  *
  * Requires: spi-cc1-2cs
+ * Resource-provides: spi:spicc1@0, spi:spicc1@1
  *
  * Notes:
  * Display stack: tinydrm (DRM tiny / panel) preferred; staging fbtft is the

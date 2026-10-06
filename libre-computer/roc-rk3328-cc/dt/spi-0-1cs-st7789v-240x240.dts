@@ -12,6 +12,7 @@
  *   J1.31    GPIO2_C7      N17     GPIO2_C7_U/I2S1_SDO
  *
  * Requires: spi-0-1cs
+ * Resource-provides: spi:spi0@0
  *
  * Notes:
  * Display stack: mixed. Shared SPI/GPIO fields serve tinydrm when the

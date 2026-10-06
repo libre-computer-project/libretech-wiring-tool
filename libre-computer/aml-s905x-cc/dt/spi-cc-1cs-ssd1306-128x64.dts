@@ -11,6 +11,7 @@
  *   7J1.31   GPIOX_18      B7      BT_WAKE_HOST
  *
  * Requires: spi-cc-1cs
+ * Resource-provides: spi:spicc@0
  */
 /dts-v1/;
 /plugin/;

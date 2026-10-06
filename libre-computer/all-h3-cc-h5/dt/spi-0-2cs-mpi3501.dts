@@ -12,6 +12,7 @@
  *   7J1.22   PA14          G12     UART3-RX
  *
  * Requires: spi-0-2cs
+ * Resource-provides: spi:spi0@0, spi:spi0@1
  *
  * Notes:
  * Display stack: tinydrm (DRM tiny / panel) preferred; staging fbtft is the

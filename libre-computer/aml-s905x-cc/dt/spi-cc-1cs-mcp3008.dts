@@ -6,6 +6,7 @@
  * Summary: Device Tree Overlay to enable MCP3008 ADC
  *
  * Requires: spi-cc-1cs
+ * Resource-provides: spi:spicc@0
  */
 /dts-v1/;
 /plugin/;

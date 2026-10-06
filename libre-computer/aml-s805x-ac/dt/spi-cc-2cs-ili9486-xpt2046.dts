@@ -12,6 +12,7 @@
  *   7J1.22   GPIOX_0       A2      WIFI_D0
  *
  * Requires: spi-cc-2cs
+ * Resource-provides: spi:spicc@0, spi:spicc@1
  *
  * Notes:
  * Display stack: tinydrm (DRM tiny / panel) preferred; staging fbtft is the

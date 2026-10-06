@@ -12,6 +12,7 @@
  *   7J1.31   GPIOAO_2      B7      PWR_KEY_DET
  *
  * Requires: spi-cc-1cs
+ * Resource-provides: spi:spicc@0
  *
  * Notes:
  * Display stack: mixed. Shared SPI/GPIO fields serve tinydrm when the

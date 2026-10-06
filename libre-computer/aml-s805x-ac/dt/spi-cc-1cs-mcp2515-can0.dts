@@ -10,6 +10,7 @@
  *   7J1.22   GPIOX_0       A2      WIFI_D0
  *
  * Requires: spi-cc-1cs
+ * Resource-provides: spi:spicc@0
  */
 /dts-v1/;
 /plugin/;

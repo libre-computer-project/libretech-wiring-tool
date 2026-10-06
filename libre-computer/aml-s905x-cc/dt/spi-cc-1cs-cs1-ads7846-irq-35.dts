@@ -10,6 +10,7 @@
  *   7J1.35   GPIOX_7       C1      WIFI_WAKE_HOST
  *
  * Requires: spi-cc-1cs-cs1
+ * Resource-provides: spi:spicc@0
  */
 /dts-v1/;
 /plugin/;

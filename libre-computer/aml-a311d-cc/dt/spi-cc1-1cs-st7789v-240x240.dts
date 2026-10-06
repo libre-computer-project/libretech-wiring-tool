@@ -12,6 +12,7 @@
  *   7J1.31   GPIOA_2       E17     GPIOA_2
  *
  * Requires: spi-cc1-1cs
+ * Resource-provides: spi:spicc1@0
  *
  * Notes:
  * Display stack: mixed. Shared SPI/GPIO fields serve tinydrm when the

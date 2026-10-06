@@ -6,6 +6,7 @@
  * Summary: spidev on the bit-banged SPI bus (spi-gpio) CS0
  *
  * Requires: spi-gpio-1cs
+ * Resource-provides: spi:spigpio0@0
  */
 /dts-v1/;
 /plugin/;

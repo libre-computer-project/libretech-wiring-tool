@@ -14,6 +14,7 @@
  *   7J1.24   GPIOX_10      A4      UART_C_CTS_N
  *
  * Requires: spi-cc-1cs
+ * Resource-provides: spi:spicc@0
  *
  * Notes:
  * Display stack: tinydrm (DRM tiny / panel) preferred; staging fbtft is the

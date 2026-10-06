@@ -10,6 +10,7 @@
  *   7J1.7    GPIOCLK_0     E9      GPIOCLK_0
  *
  * Requires: spi-cc-1cs-cs1
+ * Resource-provides: spi:spicc@0
  */
 /dts-v1/;
 /plugin/;

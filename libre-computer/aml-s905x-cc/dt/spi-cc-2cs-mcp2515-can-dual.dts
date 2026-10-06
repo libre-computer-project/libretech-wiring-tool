@@ -11,6 +11,7 @@
  *   7J1.22   GPIOX_0       A2      WIFI_SD_D0
  *
  * Requires: spi-cc-2cs
+ * Resource-provides: spi:spicc@0, spi:spicc@1
  *
  * Notes:
  *   Tested with the Seengreat Dual-CH CAN HAT Rev 3.1

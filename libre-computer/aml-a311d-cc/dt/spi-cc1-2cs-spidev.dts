@@ -7,6 +7,7 @@
  * Summary: SPICC1 userspace spidev for spi-cc1-1cs
  *
  * Requires: spi-cc1-2cs
+ * Resource-provides: spi:spicc1@0, spi:spicc1@1
  */
 /dts-v1/;
 /plugin/;

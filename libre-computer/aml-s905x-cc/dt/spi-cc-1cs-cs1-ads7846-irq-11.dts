@@ -10,6 +10,7 @@
  *   7J1.11   GPIOAO_8*     F17     I2SOUT-CH23
  *
  * Requires: spi-cc-1cs-cs1
+ * Resource-provides: spi:spicc@0
  */
 /dts-v1/;
 /plugin/;
