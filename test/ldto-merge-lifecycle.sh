@@ -51,7 +51,7 @@ boot() {
 	fdtput -p -tx "$S/sys/firmware/fdt" /chosen linux,elfcorehdr 0 1000
 	rm -rf "$S/proc/device-tree" "$S/run"
 	mkdir -p "$S/proc/device-tree/chosen"
-	for p in libretech,ldto-id libretech,ldto-merged; do
+	for p in libretech,ldto-id libretech,ldto-merged libretech,ldto-u-boot; do
 		if v=$(fdtget -ts "$S/sys/firmware/fdt" /chosen "$p" 2>/dev/null); then
 			# shellcheck disable=SC2086 # one word per string
 			printf '%s\0' $v > "$S/proc/device-tree/chosen/$p"
@@ -317,6 +317,63 @@ if [ "$(id -u)" -ne 0 ]; then
 	check "...and it is byte-identical" cmp -s "$OVR" "$S/ovr-before.dtb"
 	check "...with no staging file left behind" bash -c "! ls -A '${OVR%/*}' | grep -q '^\.ldto-new'"
 fi
+
+# --- --help never acts ------------------------------------------------------
+run reset --help
+check "reset --help: only prints usage" [ -f "$OVR" ]
+EDITOR="sed -i s/pwm/PWM/" run edit -h
+check "edit -h: only prints usage" [ "$(chosen libretech,ldto-merged)" = "pwm-a" ]
+run reset bogus
+check "reset with an unknown argument: refused, nothing removed" bash -c "[ $RC -eq 1 ] && [ -f '$OVR' ]"
+
+# --- two merges from the built-in DT in one boot, then reset ----------------
+run reset
+boot
+run merge pwm-a
+run merge pwm-e
+check "second merge keeps the built-in origin" [ "$(chosen libretech,ldto-u-boot)" = "2026.07-test" ]
+run reset
+check "...reset: no marker (this boot's DT is the built-in one)" [ ! -f "$S/run/ldto/reset-pending" ]
+check "...state builtin" state_is builtin
+run merge pwm-a
+check "...and merge is allowed" rc_is 0
+
+# --- a pending merge overwritten before the reboot ------------------------
+run reset
+boot
+run merge pwm-e
+cp -f "$BASE" "$OVR"
+check "pending merge overwritten by another tool: replaced, not legacy" state_is replaced
+check "...naming what was lost" says "pwm-e"
+
+# --- merge --force after reset keeps what the tree already holds ------------
+run reset
+boot
+run merge pwm-a
+boot
+run reset
+run merge --force pwm-e
+check "merge --force: record starts from the booted one" [ "$(chosen libretech,ldto-merged)" = "pwm-a pwm-e" ]
+check "...and keeps the U-Boot origin" [ "$(chosen libretech,ldto-u-boot)" = "2026.07-test" ]
+
+# --- reset that cannot record itself removes nothing -----------------------
+run reset
+cp -f "$BASE" "$OVR"
+fdtput -ts "$OVR" / model "legacy override"
+boot
+mkdir -p "$S/run/ldto/reset-pending"
+run reset
+check "reset of a legacy override with no way to record it: refused" says "reset refused"
+check "...and the override is still there" [ -f "$OVR" ]
+rmdir "$S/run/ldto/reset-pending"
+
+# --- no lock, no change -----------------------------------------------------
+rm -rf "$S/run"
+touch "$S/run"
+run reset
+check "lock directory unusable: refused" says "cannot take the ldto lock"
+check "...and the override is still there" [ -f "$OVR" ]
+rm -f "$S/run"
 
 echo "ldto merge lifecycle: $pass pass, $fail fail"
 [ "$fail" -eq 0 ]

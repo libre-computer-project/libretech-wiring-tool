@@ -800,9 +800,12 @@ LDTO_enable()
 		fi
 	fi
 
-	local -a applied_now=()
+	# Global, so an interrupt (LDTO_onSignal) can roll this command back too.
+	LDTO_APPLIED_NOW=()
+	local -n applied_now=LDTO_APPLIED_NOW
 	local status
 	for dto in "${seq[@]}"; do
+		LDTO_APPLYING=
 		if LDTO_listHas "$dto" "${booted[@]}"; then
 			echo "Overlay $dto: already merged in this boot's DT" >&2
 			continue
@@ -828,6 +831,7 @@ LDTO_enable()
 				return 1
 			fi
 		fi
+		LDTO_APPLYING=$dto
 		if ! mkdir "$PATH_OF_CONFIG/$dto" 2>/dev/null; then
 			echo "WARNING: apply not clean — cannot create configfs node for '$dto'" >&2
 			echo "WARNING: autoload plan: ${seq[*]}" >&2
@@ -863,6 +867,8 @@ LDTO_enable()
 			return 1
 		fi
 	done
+	LDTO_APPLYING=
+	LDTO_APPLIED_NOW=()
 }
 
 LDTO_disable()
@@ -922,7 +928,7 @@ LDTO_disable()
 	for dto in "${to_remove[@]}"; do
 		if [ ! -e "$PATH_OF_CONFIG/$dto" ]; then
 			if LDTO_listHas "$dto" "${booted[@]}"; then
-				echo "Overlay $dto: merged into this boot's DT, not a runtime overlay -- disable cannot remove it; drop it from the override (ldto reset, merge the others again) and reboot" >&2
+				echo "Overlay $dto: merged into this boot's DT, not a runtime overlay -- disable cannot remove it; to drop it: ldto reset, reboot, merge the others again, reboot" >&2
 			else
 				echo "Overlay $dto: does not exist and cannot be removed" >&2
 			fi
@@ -942,13 +948,16 @@ LDTO_disable()
 		done
 	done
 
+	LDTO_REMOVED_NOW=()
 	for dto in "${to_remove[@]}"; do
 		if ! rmdir "$PATH_OF_CONFIG/$dto" 2>/dev/null; then
-			echo "WARNING: Overlay $dto: remove failed (still in use or kernel rejected rmdir?)" >&2
+			echo "WARNING: Overlay $dto: remove failed (still in use or kernel rejected rmdir?)${LDTO_REMOVED_NOW[0]:+; already removed: ${LDTO_REMOVED_NOW[*]}}" >&2
 			return 1
 		fi
+		LDTO_REMOVED_NOW+=("$dto")
 		echo "Overlay $dto: removed" >&2
 	done
+	LDTO_REMOVED_NOW=()
 }
 
 LDTO_status()
@@ -1099,8 +1108,31 @@ LDTO_findEFIDTBPath()
 # safe): stage the copy in the target directory, flush and verify it, rename
 # it over the target, flush the directory, verify the result.
 LDTO_STAGED=
-trap '[ -z "$LDTO_STAGED" ] || rm -f "$LDTO_STAGED"' EXIT
-trap '[ -z "$LDTO_STAGED" ] || rm -f "$LDTO_STAGED"; exit 130' INT TERM
+LDTO_CLEANUP=()
+LDTO_APPLIED_NOW=()
+LDTO_APPLYING=
+LDTO_REMOVED_NOW=()
+LDTO_onExit()
+{
+	if [ -n "$LDTO_STAGED" ]; then rm -f "$LDTO_STAGED"; fi
+	if [ ${#LDTO_CLEANUP[@]} -gt 0 ]; then rm -f "${LDTO_CLEANUP[@]}"; fi
+}
+# Interrupted: undo what this enable applied (as a failed apply does), say
+# what a disable already removed, then exit (the EXIT trap cleans up).
+LDTO_onSignal()
+{
+	trap '' INT TERM
+	if [ ${#LDTO_APPLIED_NOW[@]} -gt 0 ] || [ -n "$LDTO_APPLYING" ]; then
+		echo "WARNING: interrupted -- rolling back this command's overlays: ${LDTO_APPLIED_NOW[*]} $LDTO_APPLYING" >&2
+		LDTO_rollbackConfigFS "${LDTO_APPLIED_NOW[@]}" ${LDTO_APPLYING:+"$LDTO_APPLYING"}
+	fi
+	if [ ${#LDTO_REMOVED_NOW[@]} -gt 0 ]; then
+		echo "WARNING: interrupted -- already removed: ${LDTO_REMOVED_NOW[*]}" >&2
+	fi
+	exit 130
+}
+trap LDTO_onExit EXIT
+trap LDTO_onSignal INT TERM
 LDTO_installDTB()
 {
 	local src="$1" dst="$2" dir
@@ -1218,6 +1250,20 @@ LDTO_stampDTB()
 	fdtput -p -ts "$f" /chosen "$LDTO_PROP_ID" "$id"
 }
 
+# What this boot last wrote to the override (its id and list), so that a
+# pending merge overwritten by another tool before the reboot can still be
+# named. Best effort: without it that case reads as "legacy".
+LDTO_noteWrite()
+{
+	local f="$1"
+	{
+		mkdir -p "$PATH_OF_RUN" &&
+		printf 'boot_id=%s\nid=%s\nmerged=%s\n' "$(LDTO_bootId)" \
+			"$(LDTO_dtbChosen "$f" "$LDTO_PROP_ID")" \
+			"$(LDTO_dtbChosen "$f" "$LDTO_PROP_MERGED")" > "$PATH_OF_RUN/written"
+	} 2>/dev/null || true
+}
+
 LDTO_bootId()
 {
 	if [ -r "$PATH_OF_BOOT_ID" ]; then
@@ -1257,9 +1303,17 @@ LDTO_nextBootState()
 	LDTO_importDTConfig 2>/dev/null || return 0
 	LDTO_findEFIDTBPath 2>/dev/null || return 0
 	local file="$PATH_OF_EFI_DTB/$DT_OVERRIDE"
-	local b f= c= blist flist
+	local b f= c= blist flist wid= lost bid
 	b=$(LDTO_bootedChosen "$LDTO_PROP_ID")
 	blist=$(LDTO_bootedChosen "$LDTO_PROP_MERGED")
+	lost=$blist
+	# This boot's own last write, if any: what the next boot was to load.
+	bid=$(LDTO_bootId)
+	if [ -n "$bid" ] && [ -f "$PATH_OF_RUN/written" ] &&
+			[ "$(sed -n 's/^boot_id=//p' "$PATH_OF_RUN/written")" = "$bid" ]; then
+		wid=$(sed -n 's/^id=//p' "$PATH_OF_RUN/written")
+		lost=$(sed -n 's/^merged=//p' "$PATH_OF_RUN/written")
+	fi
 	if [ -f "$file" ]; then
 		f=$(LDTO_dtbChosen "$file" "$LDTO_PROP_ID")
 		flist=$(LDTO_dtbChosen "$file" "$LDTO_PROP_MERGED")
@@ -1284,6 +1338,9 @@ LDTO_nextBootState()
 			else
 				LDTO_STATE=builtin
 			fi
+		elif [ -z "$f" ] && [ -n "$wid" ]; then
+			# ldto wrote the override in this boot; now it has no record
+			LDTO_STATE=replaced
 		elif [ -z "$f" ]; then
 			LDTO_STATE=legacy
 		elif [ "$c" != "$f" ]; then
@@ -1312,7 +1369,7 @@ LDTO_nextBootState()
 	pending-merge)
 		LDTO_STATE_MSG="the override was written after this boot${flist:+ (merged: $flist)} -- reboot to apply" ;;
 	replaced)
-		LDTO_STATE_MSG="$file was overwritten by another tool; the overlays merged in this boot's DT are not in it${blist:+: $blist} -- merge them again if still wanted" ;;
+		LDTO_STATE_MSG="$file was overwritten by another tool; the overlays merged for it are not in it${lost:+: $lost} -- merge them again if still wanted" ;;
 	tampered)
 		LDTO_STATE_MSG="$file was modified outside ldto; its merged-overlay record is advisory" ;;
 	esac
@@ -1811,6 +1868,14 @@ LDTO_merge()
 		if [ -n "$(LDTO_dtbChosen "$override" "$LDTO_PROP_EDITED")" ]; then
 			edited=1
 		fi
+	elif [ "$LDTO_STATE" = "removed" ]; then
+		# --force onto this boot's DT: it still holds what the removed
+		# override held, so the record starts from the booted one.
+		uboot=$(LDTO_bootedChosen "$LDTO_PROP_UBOOT")
+		rec_out=$(LDTO_bootedChosen "$LDTO_PROP_MERGED")
+		if [ -n "$rec_out" ]; then
+			read -r -a rec <<<"$rec_out"
+		fi
 	fi
 	for dto in "${rec[@]}"; do
 		if [ -n "$(LDTO_getDTBO "$dto")" ]; then
@@ -1948,6 +2013,7 @@ LDTO_merge()
 	elif [ "$irc" -ne 0 ]; then
 		return 1
 	fi
+	LDTO_noteWrite "$target_dtb"
 
 	for dto in "${new[@]}"; do
 		echo "Overlay $dto: merged for next boot" >&2
@@ -1988,10 +2054,25 @@ LDTO_show()
 
 LDTO_edit()
 {
+	if [ $# -gt 0 ]; then
+		case "$1" in
+			--help|-h)
+				echo "$0 edit" >&2
+				echo "  Opens the next-boot override DTB as DTS in \$EDITOR, recompiles it and" >&2
+				echo "  installs it; any failure leaves the override unchanged." >&2
+				return 0
+				;;
+			*)
+				echo "$FUNCNAME: unexpected argument '$1' (edit takes none)" >&2
+				return 1
+				;;
+		esac
+	fi
 	# R12: fail-closed — never write override if dtc decompile/recompile fails.
 	LDTO_checkOverrideDT RW
 	local dts staged err
 	dts=$(mktemp /tmp/ldto-edit.XXXXXX.dts) || return 1
+	LDTO_CLEANUP+=("$dts")
 	if ! err=$(dtc -I dtb -O dts "$PATH_OF_DTB_OVERRIDE" -o "$dts" 2>&1); then
 		echo "WARNING: edit aborted — dtc decompile failed; override unchanged" >&2
 		[ -n "$err" ] && echo "WARNING: dtc: $err" >&2
@@ -2007,6 +2088,7 @@ LDTO_edit()
 		rm -f "$dts"
 		return 1
 	}
+	LDTO_CLEANUP+=("$staged")
 	if ! err=$(dtc -I dts -O dtb "$dts" -o "$staged" 2>&1); then
 		echo "WARNING: edit aborted — dtc recompile failed; override unchanged" >&2
 		[ -n "$err" ] && echo "WARNING: dtc: $err" >&2
@@ -2034,6 +2116,7 @@ LDTO_edit()
 	elif [ "$irc" -ne 0 ]; then
 		return 1
 	fi
+	LDTO_noteWrite "$PATH_OF_DTB_OVERRIDE"
 	echo "Overlay: edited override written to $PATH_OF_DTB_OVERRIDE" >&2
 }
 
@@ -2045,31 +2128,53 @@ LDTO_current()
 
 LDTO_reset()
 {
-	LDTO_checkOverrideDT RW
-	local stamp base booted
-	stamp=$(LDTO_dtbChosen "$PATH_OF_DTB_OVERRIDE" "$LDTO_PROP_ID")
-	base=$(LDTO_dtbChosen "$PATH_OF_DTB_OVERRIDE" "$LDTO_PROP_BASE")
-	booted=$(LDTO_bootedChosen "$LDTO_PROP_ID")
-	if ! rm -f "$PATH_OF_DTB_OVERRIDE"; then
-		echo "WARNING: reset failed — cannot remove $PATH_OF_DTB_OVERRIDE" >&2
-		return 1
-	fi
-	sync "${PATH_OF_DTB_OVERRIDE%/*}" 2>/dev/null || sync
-	# A stamped boot DT already tells merge/status that this boot ran an
-	# override. Without one, leave a per-boot marker -- unless the removed
-	# file was merged onto the built-in DT in this boot, which proves this
-	# boot's DT is the built-in one and a merge base built from it is right.
-	if [ -z "$booted" ] && [ -d "$PATH_OF_PROC_DT" ]; then
-		case "$base" in
-		builtin:*) ;;
-		*)
-			mkdir -p "$PATH_OF_RUN"
-			printf 'boot_id=%s\nremoved=%s\nstamp=%s\n' "$(LDTO_bootId)" \
-				"$PATH_OF_DTB_OVERRIDE" "${stamp:-none}" > "$PATH_OF_RUN/reset-pending"
-			;;
+	if [ $# -gt 0 ]; then
+		case "$1" in
+			--help|-h)
+				echo "$0 reset" >&2
+				echo "  Removes the next-boot override DTB: the next boot uses U-Boot's built-in DT." >&2
+				return 0
+				;;
+			*)
+				echo "$FUNCNAME: unexpected argument '$1' (reset takes none)" >&2
+				return 1
+				;;
 		esac
 	fi
-	echo "Overlay: reset for next boot -- the next boot uses U-Boot's built-in DT; reboot before the next 'ldto merge' (this boot's DT still holds the removed overlays)" >&2
+	LDTO_checkOverrideDT RW
+	local stamp origin booted marker=0
+	stamp=$(LDTO_dtbChosen "$PATH_OF_DTB_OVERRIDE" "$LDTO_PROP_ID")
+	origin=$(LDTO_dtbChosen "$PATH_OF_DTB_OVERRIDE" "$LDTO_PROP_UBOOT")
+	booted=$(LDTO_bootedChosen "$LDTO_PROP_ID")
+	# A stamped boot DT already tells merge/status that this boot ran an
+	# override. Without one, this boot ran the built-in DT or an override
+	# with no record. The file's chain starting on the built-in DT (it
+	# carries ldto-u-boot) while this boot ran no stamped override shows
+	# the former, and a merge base built from this boot's DT is right.
+	# Otherwise leave a per-boot marker, written BEFORE the file goes: a
+	# reset that cannot record itself does not remove anything.
+	if [ -z "$booted" ] && [ -d "$PATH_OF_PROC_DT" ] && [ -z "$origin" ]; then
+		marker=1
+		if ! { mkdir -p "$PATH_OF_RUN" && printf 'boot_id=%s\nremoved=%s\nstamp=%s\n' "$(LDTO_bootId)" \
+				"$PATH_OF_DTB_OVERRIDE" "${stamp:-none}" > "$PATH_OF_RUN/reset-pending"; } 2>/dev/null; then
+			echo "WARNING: reset refused — cannot record it in $PATH_OF_RUN (needed: this boot runs an override with no ldto record); override unchanged" >&2
+			return 1
+		fi
+	fi
+	if ! rm -f "$PATH_OF_DTB_OVERRIDE"; then
+		echo "WARNING: reset failed — cannot remove $PATH_OF_DTB_OVERRIDE" >&2
+		if [ "$marker" -eq 1 ]; then
+			rm -f "$PATH_OF_RUN/reset-pending"
+		fi
+		return 1
+	fi
+	rm -f "$PATH_OF_RUN/written"
+	sync "${PATH_OF_DTB_OVERRIDE%/*}" 2>/dev/null || sync
+	if [ -n "$booted" ] || [ "$marker" -eq 1 ]; then
+		echo "Overlay: reset for next boot -- the next boot uses U-Boot's built-in DT; reboot before the next 'ldto merge' (this boot's DT still holds the removed overlays)" >&2
+	else
+		echo "Overlay: reset for next boot -- the next boot uses U-Boot's built-in DT, as this boot does" >&2
+	fi
 }
 
 
@@ -2964,9 +3069,15 @@ LDTO_requireConfigFS()
 # enable/disable race on configfs the same way. Waits LDTO_LOCK_WAIT seconds.
 LDTO_lock()
 {
-	command -v flock >/dev/null 2>&1 || return 0
+	if ! command -v flock >/dev/null 2>&1; then
+		echo "WARNING: flock not found (util-linux): running without the ldto lock" >&2
+		return 0
+	fi
 	mkdir -p "$PATH_OF_RUN" 2>/dev/null || true
-	[ -w "$PATH_OF_RUN" ] || return 0
+	if [ ! -d "$PATH_OF_RUN" ] || [ ! -w "$PATH_OF_RUN" ]; then
+		echo "WARNING: cannot take the ldto lock in $PATH_OF_RUN (not writable -- sudo?); nothing changed" >&2
+		return 1
+	fi
 	exec 9>>"$PATH_OF_RUN/lock"
 	if ! flock -w "${LDTO_LOCK_WAIT:-10}" 9; then
 		echo "WARNING: another ldto command is still running (lock $PATH_OF_RUN/lock); nothing changed -- try again" >&2
@@ -2987,8 +3098,12 @@ if ! declare -F "LDTO_${cmd_lc}" >/dev/null 2>&1; then
 	exit 1
 fi
 dry=0
+help=0
 for a in "$@"; do
-	case "$a" in --dry-run|-n|--help|-h) dry=1 ;; esac
+	case "$a" in
+		--dry-run|-n) dry=1 ;;
+		--help|-h) help=1 ;;
+	esac
 done
 case "$cmd_lc" in
 	help|list|info|conflicts)
@@ -2996,14 +3111,20 @@ case "$cmd_lc" in
 		;;
 	enable)
 		# enable --dry-run does not need configfs
-		if [ "$dry" -eq 0 ]; then
+		if [ "$dry" -eq 0 ] && [ "$help" -eq 0 ]; then
 			LDTO_requireConfigFS || exit 1
 			LDTO_lock || exit 1
 		fi
 		;;
-	merge|reset|edit)
+	merge)
 		# EFI override DTB, not configfs
-		if [ "$dry" -eq 0 ]; then
+		if [ "$dry" -eq 0 ] && [ "$help" -eq 0 ]; then
+			LDTO_lock || exit 1
+		fi
+		;;
+	reset|edit)
+		# no dry-run: only --help skips the lock
+		if [ "$help" -eq 0 ]; then
 			LDTO_lock || exit 1
 		fi
 		;;
