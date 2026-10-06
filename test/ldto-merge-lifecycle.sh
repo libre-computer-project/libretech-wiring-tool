@@ -501,6 +501,29 @@ run reset
 check "reset of an ignored override: marker" [ -f "$S/run/ldto/reset-pending" ]
 boot
 run merge pwm-a
+
+# --- review round 7 -----------------------------------------------------------
+# a hand-edited record is advisory: enable and merge say so when they rely on it
+boot
+EDITOR="sed -i s/Libre/LIBRE/" run edit
+boot
+run enable --dry-run pwm-a
+check "enable on a hand-edited boot DT: record called advisory" says "hand-edited (ldto edit) after its overlays were merged"
+run merge pwm-a
+check "merge onto a hand-edited override: record called advisory" says "hand-edited after its overlays were merged"
+# Ctrl-C reaching ldto while the editor runs does not discard the saved edit
+EDITOR="kill -INT \$PPID; sed -i s/LIBRE/LiBRE/" run edit
+check "SIGINT during the editor: the saved edit is installed" bash -c "fdtget -ts '$OVR' / model | grep -q LiBRE"
+# interrupted right after the rename: says so and records the write
+mkdir -p "$S/shim"
+printf '#!/bin/sh\nif [ -d "$1" ]; then kill -INT $PPID; sleep 1; fi\nexit 0\n' > "$S/shim/sync"
+chmod +x "$S/shim/sync"
+PATH="$S/shim:$PATH" run merge pwm-e
+check "interrupted after the rename: says the override was replaced" says "was already replaced by the new file"
+check "...and the write is recorded for this boot" bash -c "grep -q '^merged=.*pwm-e' '$S/run/ldto/written'"
+run reset
+boot
+run merge pwm-a
 # a stamped backup restored during a boot is pending, not ignored
 boot
 cp -f "$OVR" "$S/backup.dtb"

@@ -737,6 +737,9 @@ LDTO_enable()
 			echo "WARNING: overlay '$b' merged in this boot's DT is not in this LWT package any more; not conflict-checked" >&2
 		fi
 	done
+	if [ ${#booted[@]} -gt 0 ] && [ -n "$(LDTO_bootedChosen "$LDTO_PROP_EDITED")" ]; then
+		echo "WARNING: this boot's DT was hand-edited (ldto edit) after its overlays were merged; its record (${booted[*]}) is advisory -- an overlay listed there is skipped and conflict-checked as live, but may have been changed or disabled by hand (check with 'ldto current')" >&2
+	fi
 
 	if [ "$dry_run" -eq 1 ]; then
 		echo "DRY-RUN: no configfs changes" >&2
@@ -1141,6 +1144,9 @@ LDTO_CLEANUP=()
 LDTO_APPLIED_NOW=()
 LDTO_APPLYING=
 LDTO_REMOVED_NOW=()
+LDTO_ESP_PHASE=       # staging | renaming while LDTO_installDTB runs
+LDTO_ESP_TARGET=
+LDTO_ESP_CHAIN=0      # builtin_chain for the write (see LDTO_noteWrite)
 LDTO_onExit()
 {
 	if [ -n "$LDTO_STAGED" ]; then rm -f "$LDTO_STAGED"; fi
@@ -1158,6 +1164,19 @@ LDTO_onSignal()
 	if [ ${#LDTO_REMOVED_NOW[@]} -gt 0 ]; then
 		echo "WARNING: interrupted -- already removed: ${LDTO_REMOVED_NOW[*]}" >&2
 	fi
+	# An override write in flight: say which file the next boot gets.
+	case "$LDTO_ESP_PHASE" in
+	staging)
+		echo "WARNING: interrupted -- $LDTO_ESP_TARGET unchanged" >&2 ;;
+	renaming)
+		if [ -n "$LDTO_STAGED" ] && [ -e "$LDTO_STAGED" ]; then
+			echo "WARNING: interrupted -- $LDTO_ESP_TARGET unchanged" >&2
+		else
+			LDTO_STAGED=
+			LDTO_noteWrite "$LDTO_ESP_TARGET" "$LDTO_ESP_CHAIN"
+			echo "WARNING: interrupted -- $LDTO_ESP_TARGET was already replaced by the new file; reboot to apply" >&2
+		fi ;;
+	esac
 	exit 130
 }
 trap LDTO_onExit EXIT
@@ -1166,25 +1185,29 @@ LDTO_installDTB()
 {
 	local src="$1" dst="$2" dir
 	dir=${dst%/*}
+	LDTO_ESP_TARGET=$dst
+	LDTO_ESP_PHASE=staging
 	if ! LDTO_STAGED=$(mktemp "$dir/.ldto-new.XXXXXX" 2>/dev/null); then
 		LDTO_STAGED=
+		LDTO_ESP_PHASE=
 		echo "WARNING: cannot create a staging file in $dir" >&2
 		return 1
 	fi
 	if ! cp -f "$src" "$LDTO_STAGED"; then
 		echo "WARNING: writing $LDTO_STAGED failed (ESP full?)" >&2
-		rm -f "$LDTO_STAGED"; LDTO_STAGED=
+		rm -f "$LDTO_STAGED"; LDTO_STAGED=; LDTO_ESP_PHASE=
 		return 1
 	fi
 	sync "$LDTO_STAGED" 2>/dev/null || sync
 	if ! cmp -s "$src" "$LDTO_STAGED"; then
 		echo "WARNING: the copy on $dir does not read back identical" >&2
-		rm -f "$LDTO_STAGED"; LDTO_STAGED=
+		rm -f "$LDTO_STAGED"; LDTO_STAGED=; LDTO_ESP_PHASE=
 		return 1
 	fi
+	LDTO_ESP_PHASE=renaming
 	if ! mv -f "$LDTO_STAGED" "$dst"; then
 		echo "WARNING: renaming the staged copy over $dst failed" >&2
-		rm -f "$LDTO_STAGED"; LDTO_STAGED=
+		rm -f "$LDTO_STAGED"; LDTO_STAGED=; LDTO_ESP_PHASE=
 		return 1
 	fi
 	LDTO_STAGED=
@@ -1970,6 +1993,9 @@ LDTO_merge()
 			echo "WARNING: merged overlay '$dto' is not in this LWT package any more; not conflict-checked" >&2
 		fi
 	done
+	if [ ${#rec[@]} -gt 0 ] && [ "$edited" -eq 1 ]; then
+		echo "WARNING: the override was hand-edited after its overlays were merged; its record (${rec[*]}) is advisory -- an overlay listed there is skipped and conflict-checked as merged, but may have been changed or disabled by hand (check with 'ldto show'; to start clean: ldto reset, reboot, merge again)" >&2
+	fi
 	for dto in "${seq[@]}"; do
 		inrec=0
 		for r in "${rec[@]}"; do
@@ -2099,6 +2125,7 @@ LDTO_merge()
 		}
 	fi
 	local irc=0
+	LDTO_ESP_CHAIN=$chain
 	LDTO_installDTB "$out" "$target_dtb" || irc=$?
 	rm -f "$out"
 	if [ "$irc" -eq 1 ]; then
@@ -2106,6 +2133,7 @@ LDTO_merge()
 		return 1
 	fi
 	LDTO_noteWrite "$target_dtb" "$chain"
+	LDTO_ESP_PHASE=
 	if [ "$irc" -ne 0 ]; then
 		return 1
 	fi
@@ -2186,8 +2214,15 @@ LDTO_edit()
 	cp -f "$dts" "$orig"
 	# $EDITOR may carry arguments ("code -w"), as git and others allow.
 	# It must not keep the lock (fd 9), and must wait until the file is
-	# saved and closed (gvim -f, code -w), as for git.
-	sh -c "${EDITOR:-vim} \"\$1\"" ldto-edit "$dts" 9>&- || {
+	# saved and closed (gvim -f, code -w), as for git. Like git, ignore
+	# Ctrl-C while it runs: the terminal sends it to the whole process
+	# group (e.g. from a shell-out inside the editor), and the edit the user
+	# then saves must not be thrown away.
+	trap '' INT TERM
+	local erc=0
+	sh -c "${EDITOR:-vim} \"\$1\"" ldto-edit "$dts" 9>&- || erc=$?
+	trap LDTO_onSignal INT TERM
+	[ "$erc" -eq 0 ] || {
 		echo "WARNING: edit aborted — editor failed; override unchanged" >&2
 		rm -f "$dts" "$orig"
 		return 1
@@ -2230,6 +2265,7 @@ LDTO_edit()
 	fi
 	rm -f "$before"
 	local irc=0
+	LDTO_ESP_CHAIN=$chain
 	LDTO_installDTB "$staged" "$PATH_OF_DTB_OVERRIDE" || irc=$?
 	rm -f "$dts" "$staged"
 	if [ "$irc" -eq 1 ]; then
@@ -2237,6 +2273,7 @@ LDTO_edit()
 		return 1
 	fi
 	LDTO_noteWrite "$PATH_OF_DTB_OVERRIDE" "$chain"
+	LDTO_ESP_PHASE=
 	if [ "$irc" -ne 0 ]; then
 		return 1
 	fi
@@ -2300,8 +2337,10 @@ LDTO_reset()
 	fi
 	rm -f "$PATH_OF_RUN/written"
 	sync "${PATH_OF_DTB_OVERRIDE%/*}" 2>/dev/null || sync
-	if [ -n "$booted" ] || [ "$marker" -eq 1 ]; then
+	if [ -n "$booted" ]; then
 		echo "Overlay: reset for next boot -- the next boot uses U-Boot's built-in DT; reboot before the next 'ldto merge' (this boot's DT still holds the removed overlays)" >&2
+	elif [ "$marker" -eq 1 ]; then
+		echo "Overlay: reset for next boot -- the next boot uses U-Boot's built-in DT; reboot before the next 'ldto merge' (ldto cannot prove this boot ran the built-in DT rather than the removed file)" >&2
 	else
 		echo "Overlay: reset for next boot -- the next boot uses U-Boot's built-in DT, as this boot does" >&2
 	fi
