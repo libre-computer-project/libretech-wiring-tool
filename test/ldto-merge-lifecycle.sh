@@ -38,9 +38,12 @@ OUT=
 RC=0
 
 # boot: U-Boot loads the override if present, else its built-in DT.
+# boot ignore-override: a bootloader that does not read the override.
 boot() {
 	local src=$BASE p v
-	[ -f "$OVR" ] && src=$OVR
+	if [ -f "$OVR" ] && [ "${1:-}" != ignore-override ]; then
+		src=$OVR
+	fi
 	mkdir -p "$S/sys/firmware" "$S/proc/sys/kernel/random"
 	cp -f "$src" "$S/sys/firmware/fdt"
 	fdtput -p -ts "$S/sys/firmware/fdt" /chosen u-boot,version "2026.07-test"
@@ -262,6 +265,58 @@ VENDOR=$V run merge --dry-run test-uart-pins
 check "debugfs: the same group is reported once, not again per pad" bash -c "printf '%s' \"\$1\" | grep -q 'pinctrl group' && ! printf '%s' \"\$1\" | grep -q 'pad GPIOAO'" _ "$OUT"
 VENDOR=$V run merge --dry-run pwm-e
 check "debugfs: a clean overlay still merges" rc_is 0
+
+# --- runtime (configfs) against what this boot's DT already holds ----------
+CFG=$S/sys/kernel/config/device-tree/overlays
+fake_active() { mkdir -p "$CFG/$1"; echo applied > "$CFG/$1/status"; }
+run reset
+boot
+run merge spi-cc-1cs-ili9341
+boot
+mkdir -p "$CFG"
+run enable --dry-run spi-cc-1cs-ili9341
+check "enable of an overlay merged in this boot's DT: not applied again" says "spi-cc-1cs-ili9341: already merged in this boot's DT"
+run enable --dry-run spi-cc-1cs-enc28j60
+check "enable conflicting with an overlay merged in this boot's DT: refused" rc_is 1
+run disable spi-cc-1cs-ili9341
+check "disable of a merged overlay: refused with the reason" says "merged into this boot's DT, not a runtime overlay"
+run reset
+boot
+fake_active spi-cc-1cs
+fake_active spi-cc-1cs-enc28j60
+run disable spi-cc-1cs
+check "disable of a provider an active overlay needs: refused" says "'spi-cc-1cs' is required by active overlay 'spi-cc-1cs-enc28j60'"
+check "...and nothing removed" [ -d "$CFG/spi-cc-1cs" ]
+rm -rf "$CFG"
+
+# --- the bootloader does not load the override -----------------------------
+run merge pwm-a
+boot ignore-override
+check "override written in an earlier boot and not loaded: ignored" state_is ignored
+check "...naming the cause" says "the bootloader does not read this override"
+boot
+
+# --- one changing command at a time ----------------------------------------
+mkdir -p "$S/run/ldto"
+flock "$S/run/ldto/lock" sleep 5 &
+lockpid=$!
+sleep 1
+LDTO_LOCK_WAIT=0 run merge pwm-e
+check "a second changing command while one runs: refused" says "another ldto command is still running"
+wait "$lockpid"
+check "...and the override is unchanged" [ "$(chosen libretech,ldto-merged)" = "pwm-a" ]
+
+# --- a failed ESP write leaves the override as it was ----------------------
+if [ "$(id -u)" -ne 0 ]; then
+	cp -f "$OVR" "$S/ovr-before.dtb"
+	chmod a-w "${OVR%/*}"
+	run merge pwm-e
+	chmod u+w "${OVR%/*}"
+	check "ESP not writable: merge fails" rc_is 1
+	check "...saying the override was not modified" says "ESP override not modified"
+	check "...and it is byte-identical" cmp -s "$OVR" "$S/ovr-before.dtb"
+	check "...with no staging file left behind" bash -c "! ls -A '${OVR%/*}' | grep -q '^\.ldto-new'"
+fi
 
 echo "ldto merge lifecycle: $pass pass, $fail fail"
 [ "$fail" -eq 0 ]

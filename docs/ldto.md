@@ -161,7 +161,8 @@ started from, carried across later merges),
 `libretech,ldto-base` (`builtin:<u-boot version>`, `override:<id>`, or
 `override-unstamped` when it was merged onto an override with no record --
 then the list holds only what ldto added), `libretech,ldto-edited` after
-`edit`, and `libretech,ldto-id`, a hash of the DTB that changes with every
+`edit`, `libretech,ldto-boot-id` (the boot that wrote it), and
+`libretech,ldto-id`, a hash of the DTB that changes with every
 write. U-Boot and the EFI stub keep them, so the running system shows the
 record of the DT it booted under `/proc/device-tree/chosen`.
 
@@ -208,6 +209,7 @@ DT's `libretech,ldto-id` with the override file:
 | `builtin` | no override; this boot used the built-in DT too |
 | `sync` | the next boot loads the override this boot used |
 | `pending-merge` / `changed` | the override was written or edited after this boot -- reboot to apply |
+| `ignored` | the override was written in an earlier boot, yet this boot did not load it: the bootloader does not read it (boot path, `fdtfile`) |
 | `removed` | this boot runs an override that has since been removed (`reset`, deleted) -- reboot to apply |
 | `replaced` | the override was overwritten by another tool (e.g. a kernel deploy); the overlays merged in this boot's DT are not in it |
 | `tampered` | the override changed outside ldto; its record is advisory |
@@ -220,6 +222,23 @@ this boot's DT, which still holds the removed overlays. Reboot first, or
 
 A kernel package or deploy that writes the ESP DTB path replaces the override
 (state `replaced`); merge the overlays again afterwards.
+
+**Runtime and merged together:** `enable` / `disable` act on this boot's
+tree, which already holds the overlays merged into the DT it booted
+(`/proc/device-tree/chosen/libretech,ldto-merged`). `enable` does not apply
+those again and checks new overlays for conflicts against them; `disable`
+cannot remove them (reset, merge the rest again, reboot). `disable` refuses
+to remove a provider (a bus) while an active overlay that needs it stays.
+Runtime overlays are gone after a reboot; `merge` names the ones it does not
+include.
+
+**Failures:** one changing command runs at a time (lock in `/run/ldto`; a
+second waits `LDTO_LOCK_WAIT` seconds, default 10, then gives up having
+changed nothing). The override is never written in place: the new DTB is
+staged in the same directory, flushed, read back, renamed over the old one
+and read back again, so a power cut leaves the old file or the new one. If
+a merged DTB does not boot, remove `dtb/<path>` from the boot partition (on
+another machine): the board then boots U-Boot's built-in DT.
 
 ## Aliases (dt.map)
 
