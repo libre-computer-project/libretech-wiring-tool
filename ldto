@@ -1290,10 +1290,11 @@ LDTO_bootId()
 }
 
 # Was file $1 on the ESP before this boot (mtime older than the boot time)?
-# 0 yes, 1 no (put there during this boot), 2 cannot tell. Wall-clock based:
-# a board without an RTC that syncs its clock after writing the file can
-# read a file written in this boot as older -- the callers treat "yes" as
-# the cautious answer.
+# 0 yes, 1 no (put there during this boot), 2 cannot tell. Wall-clock based,
+# so a board without an RTC can be wrong either way: a clock set after the
+# write reads a file of this boot as older; a clock that starts behind the
+# previous boot's write reads an older file as new (an override the
+# bootloader ignores then shows as pending-merge instead of ignored).
 LDTO_fileBeforeBoot()
 {
 	local bt mt
@@ -2127,7 +2128,9 @@ LDTO_edit()
 	fi
 	cp -f "$dts" "$orig"
 	# $EDITOR may carry arguments ("code -w"), as git and others allow.
-	sh -c "${EDITOR:-vim} \"\$1\"" ldto-edit "$dts" || {
+	# It must not keep the lock (fd 9), and must wait until the file is
+	# saved and closed (gvim -f, code -w), as for git.
+	sh -c "${EDITOR:-vim} \"\$1\"" ldto-edit "$dts" 9>&- || {
 		echo "WARNING: edit aborted — editor failed; override unchanged" >&2
 		rm -f "$dts" "$orig"
 		return 1
@@ -2206,13 +2209,13 @@ LDTO_reset()
 	# with no record. The file's chain starting on the built-in DT (it
 	# carries ldto-u-boot) while this boot ran no stamped override shows
 	# the former, and a merge base built from this boot's DT is right.
-	# So does a file put on the ESP during this boot (another tool's DTB):
-	# this boot cannot have loaded it. Otherwise leave a per-boot marker,
-	# written BEFORE the file goes: a reset that cannot record itself does
-	# not remove anything.
-	local fbb=0
-	LDTO_fileBeforeBoot "$PATH_OF_DTB_OVERRIDE" || fbb=$?
-	if [ -z "$booted" ] && [ -d "$PATH_OF_PROC_DT" ] && [ -z "$origin" ] && [ "$fbb" -ne 1 ]; then
+	# Otherwise leave a per-boot marker, written BEFORE the file goes: a
+	# reset that cannot record itself does not remove anything. The file's
+	# time does not help here: this boot may have loaded an earlier version
+	# of it (a deploy or a merge rewrote it since), so a file put on the ESP
+	# during a built-in boot also gets the marker -- the merge after it is
+	# refused until a reboot, the safe side.
+	if [ -z "$booted" ] && [ -d "$PATH_OF_PROC_DT" ] && [ -z "$origin" ]; then
 		marker=1
 		if ! { mkdir -p "$PATH_OF_RUN" && printf 'boot_id=%s\nremoved=%s\nstamp=%s\n' "$(LDTO_bootId)" \
 				"$PATH_OF_DTB_OVERRIDE" "${stamp:-none}" > "$PATH_OF_RUN/reset-pending"; } 2>/dev/null; then

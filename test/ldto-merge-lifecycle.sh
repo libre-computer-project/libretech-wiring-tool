@@ -387,16 +387,36 @@ check "lock directory unusable: refused" says "cannot take the ldto lock"
 check "...and the override is still there" [ -f "$OVR" ]
 rm -f "$S/run"
 
-# --- review round 3 -----------------------------------------------------------
-# another tool's DTB dropped on the ESP during a built-in boot, then reset
+# --- reset after this boot's legacy override was rewritten --------------------
+# by ldto itself (merge onto it), then reset: this boot still runs the legacy
 run reset
+cp -f "$BASE" "$OVR"
+fdtput -ts "$OVR" / model "legacy override"
+boot
+run merge pwm-a
+run reset
+check "legacy boot, merged onto, reset: marker" [ -f "$S/run/ldto/reset-pending" ]
+run merge pwm-e
+check "...and the next merge is refused (its base would be the legacy tree)" says "merge refused"
+# by a kernel deploy, then reset
+cp -f "$BASE" "$OVR"
+fdtput -ts "$OVR" / model "legacy override OLD"
 boot
 cp -f "$BASE" "$OVR"
+fdtput -ts "$OVR" / model "legacy override NEW"
 run reset
-check "reset of a DTB put there during this boot: no marker" [ ! -f "$S/run/ldto/reset-pending" ]
-check "...state builtin" state_is builtin
+check "legacy boot, override rewritten by a deploy, reset: marker" [ -f "$S/run/ldto/reset-pending" ]
+check "...state removed" state_is removed
+boot
 run merge pwm-a
-check "...merge allowed" rc_is 0
+check "after the reboot, merge allowed" rc_is 0
+# an editor that leaves a child running does not keep the lock
+EDITOR='sleep 5 >/dev/null 2>&1 </dev/null & true' run edit
+LDTO_LOCK_WAIT=0 run merge pwm-e
+check "editor's background child does not hold the ldto lock" bash -c "! printf '%s' \"\$1\" | grep -q 'another ldto command'" _ "$OUT"
+run reset
+boot
+run merge pwm-a
 # a stamped backup restored during a boot is pending, not ignored
 boot
 cp -f "$OVR" "$S/backup.dtb"
