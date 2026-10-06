@@ -5,6 +5,7 @@
 # when the provider is not already in the request list.
 
 enc28j60-overlay	spi-cc-1cs
+i2c-a-at24c32	i2c-a
 i2c-a-ds3231	i2c-a
 i2c-a-ssd1306-128x32	i2c-a
 i2c-a-ssd1306-128x64	i2c-a
