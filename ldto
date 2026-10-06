@@ -881,6 +881,7 @@ LDTO_enable()
 	done
 	LDTO_APPLYING=
 	LDTO_APPLIED_NOW=()
+	LDTO_DONE="every planned overlay is applied (${seq[*]})"
 }
 
 LDTO_disable()
@@ -989,6 +990,7 @@ LDTO_disable()
 		echo "Overlay $dto: removed" >&2
 	done
 	LDTO_REMOVED_NOW=()
+	LDTO_DONE="every named overlay is removed (${to_remove[*]})"
 }
 
 LDTO_status()
@@ -1146,6 +1148,7 @@ LDTO_REMOVED_NOW=()
 LDTO_ESP_PHASE=       # staging | renaming while LDTO_installDTB runs
 LDTO_ESP_TARGET=
 LDTO_ESP_CHAIN=0      # builtin_chain for the write (see LDTO_noteWrite)
+LDTO_DONE=            # set once a command's change is complete
 LDTO_onExit()
 {
 	if [ -n "$LDTO_STAGED" ]; then rm -f "$LDTO_STAGED"; fi
@@ -1178,6 +1181,10 @@ LDTO_onSignal()
 			echo "WARNING: interrupted -- $LDTO_ESP_TARGET was already replaced by the new file; reboot to apply" >&2
 		fi ;;
 	esac
+	# Too late to undo anything: say the change went through.
+	if [ -n "$LDTO_DONE" ]; then
+		echo "WARNING: interrupted after the command had finished -- $LDTO_DONE" >&2
+	fi
 	exit 130
 }
 trap LDTO_onExit EXIT
@@ -2119,6 +2126,7 @@ LDTO_merge()
 		return 1
 	fi
 	LDTO_noteWrite "$target_dtb" "$chain"
+	LDTO_DONE="the override is written ($target_dtb); reboot to apply"
 	LDTO_ESP_PHASE=
 	if [ "$irc" -ne 0 ]; then
 		return 1
@@ -2262,6 +2270,7 @@ LDTO_edit()
 		return 1
 	fi
 	LDTO_noteWrite "$PATH_OF_DTB_OVERRIDE" "$chain"
+	LDTO_DONE="the edited override is written ($PATH_OF_DTB_OVERRIDE); reboot to apply"
 	LDTO_ESP_PHASE=
 	if [ "$irc" -ne 0 ]; then
 		return 1
@@ -2325,6 +2334,7 @@ LDTO_reset()
 		return 1
 	fi
 	rm -f "$PATH_OF_RUN/written"
+	LDTO_DONE="the override is removed; the next boot uses U-Boot's built-in DT"
 	sync "${PATH_OF_DTB_OVERRIDE%/*}" 2>/dev/null || sync
 	if [ -n "$booted" ]; then
 		echo "Overlay: reset for next boot -- the next boot uses U-Boot's built-in DT; reboot before the next 'ldto merge' (this boot's DT still holds the removed overlays)" >&2
