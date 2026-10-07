@@ -1,0 +1,87 @@
+// SPDX-License-Identifier: (GPL-2.0-or-later OR MIT)
+/*
+ * Copyright (C) 2026 Libre Computer, Inc.
+ */
+/*
+ * Summary: Raspberry Pi Touch Display 2 on DSI0 (ILI9881C, 720x1280)
+ *
+ * Resource-provides: bus:dsi0, i2c:i2c0@0x45, label:backlight
+ *
+ * Notes:
+ *   The board DTB enables i2c0 and the vcc-3v3-lcm rail.
+ *   This overlay adds the panel MCU at I2C 0x45, its PWM backlight,
+ *   and the ILI9881C panel on dsi0. Lane count is the
+ *   raspberrypi,dsi-7inch driver descriptor (2), not a DT property.
+ *   GT9271 touch at 0x5d is not described here.
+ */
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/gpio/gpio.h>
+
+/ {
+	compatible = "libre-computer,med-mt83-ace",
+		     "libretech,med-mt83-ace",
+		     "librecomputer,med-mt83-ace",
+		     "mediatek,mt8183";
+
+	fragment@0 {
+		target = <&i2c0>;
+
+		__overlay__ {
+			display_mcu: regulator@45 {
+				compatible = "raspberrypi,touchscreen-panel-regulator-v2";
+				reg = <0x45>;
+				gpio-controller;
+				#gpio-cells = <2>;
+				#pwm-cells = <3>;
+			};
+		};
+	};
+
+	fragment@1 {
+		target-path = "/";
+
+		__overlay__ {
+			backlight: backlight {
+				compatible = "pwm-backlight";
+				pwms = <&display_mcu 0 200000 0>;
+				brightness-levels = <0 31>;
+				num-interpolated-steps = <31>;
+				default-brightness-level = <15>;
+			};
+		};
+	};
+
+	fragment@2 {
+		target = <&dsi0>;
+
+		__overlay__ {
+			status = "okay";
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			panel@0 {
+				compatible = "raspberrypi,dsi-7inch", "ilitek,ili9881c";
+				reg = <0>;
+				power-supply = <&vcc_lcm>;
+				reset-gpios = <&display_mcu 0 GPIO_ACTIVE_LOW>;
+				backlight = <&backlight>;
+
+				port {
+					panel_in: endpoint {
+						remote-endpoint = <&dsi_out>;
+					};
+				};
+			};
+		};
+	};
+
+	fragment@3 {
+		target = <&dsi_out>;
+
+		__overlay__ {
+			remote-endpoint = <&panel_in>;
+		};
+	};
+};
