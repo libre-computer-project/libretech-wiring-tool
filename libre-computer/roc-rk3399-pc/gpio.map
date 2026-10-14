@@ -1,10 +1,12 @@
 # Copyright (C) 2026 Da Xue <da@libre.computer>
 # SPDX-License-Identifier: MIT
 #
-# ROC-RK3399-PC. One product, successive board revisions: V0.1 -> V1.1-A ->
+# ROC-RK3399-PC. One product, successive board revisions: V1.0 -> V1.1-A ->
 # V1.2A, treated here as ONE board: no per-revision map, no per-revision
-# directory. They are not distinguishable at runtime today -- the practical
-# discriminator is the DDR model, which nothing reads.
+# directory. U-Boot reads the LPDDR4 rank count and reports v1.2 (one rank
+# per channel) or v1.1 (two ranks). Production of the two-rank population
+# was V1.1-A, so that population is handled as v1.1. A failed read stays
+# unknown. The rows below are that V1.1-A wiring.
 #
 # Five pins differ across the revisions; the rest of J1/J6/J12/J15/J20/J21 is
 # identical in all three. Rows are stated on the V1.1-A basis and name the
