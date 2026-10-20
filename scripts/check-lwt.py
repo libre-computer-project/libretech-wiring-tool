@@ -51,6 +51,7 @@ see.  These run for EVERY board, including the SoCs with no binding table.
 from __future__ import annotations
 
 import argparse
+import json
 import re
 import sys
 from pathlib import Path
@@ -839,6 +840,71 @@ PINS_CASES = [
 ]
 
 
+EXPORT_FORMAT = "lwt-gpio-export/1"
+
+
+def export_board(bname: str, rows: list[dict], rpi: str | None) -> tuple[dict | None, list[str]]:
+    """One board's gpio.map as JSON for programs that are not LWT (the Libre
+    Computer app embeds it), so gpio.map keeps one parser: this one.
+
+    Refused (None, the reasons) when the map has a malformed row or any
+    identity or SoC-formula warning: an export is never made from a map the
+    checks reject.  Rows keep the file's order; `row` is the row's index among
+    the rows of its header position (row 0 is the pin's first SoC line, a
+    higher one a second line wired to the same pin); `rail` marks a row whose
+    Chip is a rail/function class, which carries no line.
+    """
+    bad = [f"{bname}: gpio.map L{r['_line']}: {r.get('cols')} tab fields" for r in rows if r.get("_bad")]
+    if bad:
+        return None, bad
+    why = map_identity_warnings(bname, rows) + soc_formula_warnings(bname, rows, soc_family(bname))
+    if why:
+        return None, why
+    seen: dict[tuple[str, str], int] = {}
+    pins = []
+    for r in rows:
+        key = (r["header"], r["pin"])
+        n = seen.get(key, 0)
+        seen[key] = n + 1
+        rail = not r["chip"].isdigit()
+        pins.append({
+            "header": r["header"],
+            "pin": int(r["pin"]),
+            "row": n,
+            "rail": rail,
+            "chip": r["chip"] if rail else int(r["chip"]),
+            "line": None if rail else int(r["line"]),
+            "name": r["name"],
+            "pad": r["pad"],
+            "ref": r["ref"],
+            "functions": r["desc"].split(),
+        })
+    return {"format": EXPORT_FORMAT, "board": bname, "rpiHeader": rpi, "pins": pins}, []
+
+
+EXPORT_CASES = [
+    # (label, rows, expect: warning substring, or the (pin, row, rail) list)
+    ("rail, GPIO and a second line on one pin",
+     ["7J1\t1\t3.3V\t3.3V\t3.3V\t3.3V\t3.3V\tVCC3.3V\t3.3V",
+      "7J1\t2\t0\t5\t5\tGPIOA_5\tA1\tGPIOA_5\tPWM_A",
+      "7J1\t2\t0\t6\t6\tGPIOA_6\tA2\tGPIOA_6\tPWM_B"],
+     [(1, 0, True), (2, 0, False), (2, 1, False)]),
+    ("a malformed row refuses the export",
+     ["7J1\t1\t0\t5\t5\tGPIOA_5"], "tab fields"),
+    ("an identity contradiction refuses the export",
+     ["7J1\t1\t0\t5\t5\tGPIOA_5\tA1\tGPIOA_5\tPWM_A",
+      "7J1\t2\t0\t6\t6\tGPIOA_6\tA1\tGPIOA_6\tPWM_B"], "A1"),
+]
+
+
+def _export_case_rows(raw: list[str]) -> list[dict]:
+    rows = _parse_rows(raw)
+    for r in rows:
+        if len(r) < 11:  # _bad, _line and the nine columns
+            r["_bad"], r["cols"] = True, len(r) - 2
+    return rows
+
+
 def self_test() -> int:
     """Every checker against cases that must fire and cases that must not."""
     failed = 0
@@ -884,10 +950,17 @@ def self_test() -> int:
         got_slot = got[0] if got else None
         judge("dt.map-grammar", key,
               [] if got_slot == want else [f"slot {got_slot!r} != {want!r}"], None)
+    for label, raw, expect in EXPORT_CASES:
+        doc, why = export_board("case", _export_case_rows(raw), "7J1")
+        if isinstance(expect, str):
+            judge("export", label, why if doc is None else [], expect)
+        else:
+            got = [(p["pin"], p["row"], p["rail"]) for p in doc["pins"]] if doc else why
+            judge("export", label, [] if got == expect else [f"{got} != {expect}"], None)
 
     print(f"check-lwt --self-test: {total - failed}/{total} cases pass "
           f"(identity, formula, rpi-header, lgpio-bcm, overlay-pins, requires, "
-          f"dt.map-grammar)",
+          f"dt.map-grammar, export)",
           file=sys.stderr)
     return 1 if failed else 0
 
@@ -1195,9 +1268,29 @@ def main() -> int:
         action="store_true",
         help="run the gpio.map identity checks against their case table",
     )
+    ap.add_argument(
+        "--export",
+        metavar="BOARD",
+        default=None,
+        help=f"print libre-computer/BOARD/gpio.map as JSON ({EXPORT_FORMAT}); "
+             "exit 1, printing nothing, when the checks reject the map",
+    )
     args = ap.parse_args()
     if args.self_test:
         return self_test()
+    if args.export:
+        board = LC / args.export
+        gpath = board / "gpio.map"
+        if not gpath.is_file():
+            print(f"check-lwt --export: {gpath} does not exist", file=sys.stderr)
+            return 1
+        doc, why = export_board(board.name, load_gpio_map(gpath), read_rpi_header(gpath))
+        if doc is None:
+            for w in why:
+                print(f"check-lwt --export: {w}", file=sys.stderr)
+            return 1
+        print(json.dumps(doc, indent=1))
+        return 0
     c = Checker()
     n = c.run(args.board)
     if args.strict and n:

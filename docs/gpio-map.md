@@ -241,6 +241,24 @@ comparing against the RK3399 datasheet ball table; only the twelfth (the blank
 one) trips a rule here. The external `Pad` check is `check-pinmux.py --rails`
 (above), which covers every board with a map.
 
+### JSON export (`check-lwt.py --export`)
+
+Programs outside LWT (the Libre Computer app embeds one per board) read a map
+through its JSON export, never `gpio.map` itself, so the format keeps one
+parser:
+
+```bash
+python3 scripts/check-lwt.py --export aml-s905d3-cc > aml-s905d3-cc.json
+```
+
+The document is `{"format": "lwt-gpio-export/1", "board", "rpiHeader",
+"pins": [...]}`; each pin carries `header`, `pin`, `row` (0 = the position's
+first SoC line, 1+ = a second line wired to the same pin), `rail` (a non-numeric
+`Chip`: no line), `chip`, `line`, `name`, `pad`, `ref` and `functions` (the
+`Desc` tokens), in file order. A map with a malformed row or any identity or
+SoC-formula warning is **not exported**: exit 1, nothing on stdout, the reasons
+on stderr. The `--self-test` cases cover both refusals.
+
 ### Desc completeness (`make check-pinmux`)
 
 `check-lwt.py` validates the *offsets*; `scripts/check-pinmux.py` validates the
