@@ -772,6 +772,22 @@ _UART_PINS = re.compile(r"^UART_P(\d+)_P(\d+)$")
 _PWM_PIN = re.compile(r"^PWM_P(\d+)$")
 
 
+_DSI_KEY = re.compile(r"^DSI_(\d+)_[A-Z0-9]+(?:_[A-Z0-9]+)*$")
+
+
+def dsi_slot(key: str) -> tuple[str, bool] | None:
+    """(slot, has_device) for DSI_<n>_<DEVICE>, or None.
+
+    n is that board's DSI connector number. A device token is required.
+    The key names a connector, not a 40-pin header position, so it has no
+    pin set and does not wait for a second board. docs/ldto.md "Aliases".
+    """
+    m = _DSI_KEY.match(key)
+    if not m:
+        return None
+    return f"DSI_{m.group(1)}", True
+
+
 def h40p_slot(key: str) -> tuple[str, frozenset[int], bool] | None:
     """(slot, pins, has_device_suffix) for a dt.map key, or None when the key
     is outside the grammar H40P_<SLOT>[_<DEVICE>]."""
@@ -803,6 +819,16 @@ SLOT_CASES = [
     ("CSI_0_I2C", None),
     ("H40P_I2S_1", None),
     ("H40P_I2S_0", None),   # audio is not a header slot (/lwt H40P policy rule 4)
+]
+
+# (key, expected connector slot or None). Must reject a bare index, a missing
+# index, and an H40P-prefixed DSI name.
+DSI_CASES = [
+    ("DSI_0_LCD_7_RPI", "DSI_0"),
+    ("DSI_1_LCD_7_RPI", "DSI_1"),
+    ("DSI_0", None),
+    ("DSI_LCD_7_RPI", None),
+    ("H40P_DSI_0_LCD_7_RPI", None),
 ]
 
 
@@ -947,6 +973,11 @@ def self_test() -> int:
         judge("requires", label, [w] if w else [], expect)
     for key, want in SLOT_CASES:
         got = h40p_slot(key)
+        got_slot = got[0] if got else None
+        judge("dt.map-grammar", key,
+              [] if got_slot == want else [f"slot {got_slot!r} != {want!r}"], None)
+    for key, want in DSI_CASES:
+        got = dsi_slot(key)
         got_slot = got[0] if got else None
         judge("dt.map-grammar", key,
               [] if got_slot == want else [f"slot {got_slot!r} != {want!r}"], None)
@@ -1103,9 +1134,10 @@ class Checker:
             if not alias or not target:
                 self.warn(f"{board.name}: dt.map L{i}: empty key/value")
                 continue
-            if h40p_slot(alias) is None:
+            if h40p_slot(alias) is None and dsi_slot(alias) is None:
                 self.warn(
                     f"{board.name}: dt.map {alias} is not an H40P slot key "
+                    f"or a DSI_<n>_<DEVICE> connector key "
                     f"(docs/ldto.md 'Aliases'); enable {target} by name instead"
                 )
             if target not in basenames:

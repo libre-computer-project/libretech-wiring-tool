@@ -301,9 +301,20 @@ sensor). Three rules follow, and `make check` enforces all of them:
   slot's pins does not get that key. Its overlay is still there under its own
   name. For example, H3's SPI1 is on pins 22/32/36/37, so it has no
   `H40P_SPI_1_1CS`; `ldto enable spi-1-1cs` still works.
-- **Nothing outside the grammar.** CPU operating points, NOR flash, a carrier
-  board, a debug UART, a camera bus or audio (I2S) are not 40-pin header
-  slots. They are enabled by overlay name and never get a `dt.map` key.
+- **Nothing outside these two families.** CPU operating points, NOR flash, a
+  carrier board, a debug UART, a camera bus or audio (I2S) are enabled by
+  overlay name and never get a `dt.map` key.
+
+### DSI connectors
+
+`DSI_<n>_<DEVICE>` names DSI connector `n` on that board, then the panel.
+`n` starts at 0. A second connector is `DSI_1`. The device token follows
+the LCD keys: size, then product (`LCD_7_RPI`). The key has no header pin
+set, and one board is enough to have it.
+
+```
+DSI_0_LCD_7_RPI    dsi-rpi-7inch
+```
 
 Use `ldto list` / `ldto info <alias>` for the board’s actual mapping.
 Some PWM controllers expose two outputs via different overlays — only

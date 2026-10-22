@@ -1,0 +1,8 @@
+# Copyright (C) 2026 Da Xue <da@libre.computer>
+# SPDX-License-Identifier: MIT
+# Connector alias map: KEY<TAB><overlay-basename>
+# H40P_* is a 40-pin header slot. DSI_<n>_* is this board's DSI connector n.
+# Values name a real .dts under this board's dt/. Consumed by ldto.
+
+# DSI
+DSI_0_LCD_7_RPI	dsi-rpi-7inch

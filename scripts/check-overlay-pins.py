@@ -356,6 +356,10 @@ def shared_findings(keypins: dict[str, dict[str, frozenset[int]]]) -> list[str]:
     the same board here."""
     out = []
     for key in sorted(keypins):
+        # DSI_<n> names that board's connector n. It is not a header
+        # position shared across boards.
+        if lwt.dsi_slot(key):
+            continue
         by = keypins[key]
         if len(by) < 2:
             out.append(f"{key}: only {', '.join(sorted(by))} has it")
@@ -838,6 +842,10 @@ def self_test() -> int:
          slot_finding("H40P_SPI_0_2CS_LCD_35", {11, 18, 19, 21, 22, 23, 24, 26}), None),
         ("SHARED: a key only one board has fires",
          len(shared_findings({"H40P_PWM_P7": {"a": frozenset({7})}})), 1),
+        ("SHARED: a DSI connector key on one board passes",
+         len(shared_findings({"DSI_0_LCD_7_RPI": {"med-mt83-ace": frozenset()}})), 0),
+        ("SLOT: a DSI connector key has no header pins",
+         slot_finding("DSI_0_LCD_7_RPI", set()), None),
         ("SHARED: two boards at different pins fire",
          len(shared_findings({"H40P_I2C_0_X": {"a": frozenset({3, 5}),
                                                "b": frozenset({3, 5, 7})}})), 1),
