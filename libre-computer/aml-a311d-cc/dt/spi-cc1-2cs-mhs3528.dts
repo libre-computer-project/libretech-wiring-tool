@@ -9,7 +9,7 @@
  * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
  *   7J1.11   GPIOAO_7      AV46    GPIOAO_7/JTAG_TMS
  *   7J1.18   GPIOA_5       J13     GPIOA_5
- *   7J1.22   GPIOA_6       E15     GPIOA_6
+ *   7J1.24   GPIOA_6       E15     GPIOA_6
  *
  * Requires: spi-cc1-2cs
  * Resource-provides: spi:spicc1@0, spi:spicc1@1

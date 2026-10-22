@@ -7,7 +7,7 @@
  * Summary: ST7789V 240x240 SPI LCD on 40P header SPI0 CS0
  *
  * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
- *   7J1.22   GPIOA_6       E15     GPIOA_6
+ *   7J1.24   GPIOA_6       E15     GPIOA_6
  *   7J1.29   GPIOA_1       C19     GPIOA_1
  *   7J1.31   GPIOA_2       E17     GPIOA_2
  *
