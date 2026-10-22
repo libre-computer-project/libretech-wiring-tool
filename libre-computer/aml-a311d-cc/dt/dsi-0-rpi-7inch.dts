@@ -16,9 +16,9 @@
  *   Power is the board VCC_3V3 on pins 22 and 23.
  *   Lane count is the raspberrypi,dsi-7inch driver descriptor (2).
  *   Pins 17 and 18 are not claimed.
- *   i2c3 is left disabled by the Cottonwood and V01 base DTBs,
- *   so this fragment enables it. The Solitude production copy
- *   does not: its base DTB already does.
+ *   Production bases mux GPIOA_14/15 to i2c3. V01 must not:
+ *   those balls are 40-pin header pins 27 and 28. This fragment
+ *   still enables i2c3 so the V01 symlinks work.
  */
 /dts-v1/;
 /plugin/;
