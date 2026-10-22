@@ -4,4 +4,4 @@
 # Applied automatically by ldto enable/merge and U-Boot nor-config
 # when the provider is not already in the request list.
 
-dsi-0-rpi-7inch	dsi-0
+dsi-0-rpi-7inch	dsi-0 i2c-3

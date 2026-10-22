@@ -16,9 +16,8 @@
  *   Power is the board VCC_3V3 on pins 22 and 23.
  *   Lane count is the raspberrypi,dsi-7inch driver descriptor (2).
  *   Pins 17 and 18 are not claimed.
- *   Production bases mux GPIOA_14/15 to i2c3. V01 must not:
- *   those balls are 40-pin header pins 27 and 28. This fragment
- *   still enables i2c3 so the V01 symlinks work.
+ *   Production bases mux GPIOA_14/15 to i2c3. This fragment
+ *   repeats that mux. V01 does not use this file.
  */
 /dts-v1/;
 /plugin/;

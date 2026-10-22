@@ -1,1 +1,93 @@
-../../aml-a311d-cc/dt/dsi-0-rpi-7inch.dts
+// SPDX-License-Identifier: (GPL-2.0-or-later OR MIT)
+/*
+ * Copyright (C) 2026 Libre Computer, Inc.
+ */
+/*
+ * Summary: Raspberry Pi Touch Display 2 on DSI connector 0
+ *
+ * Requires: dsi-0 i2c-3
+ *
+ * Resource-requires: bus:mipi_dsi, bus:i2c3
+ * Resource-provides: i2c:i2c3@0x45, label:backlight
+ *
+ * Notes:
+ *   V01 only. The panel MCU at I2C 0x45 owns reset and the backlight
+ *   PWM. Connector I2C is I2C_M3 on pins 20 and 21, which are header
+ *   pins 27 and 28. H40P_I2C_1 (i2c-3) owns that mux. This fragment
+ *   does not. Power is VCC_3V3 on connector pins 22 and 23.
+ *   Lane count is the raspberrypi,dsi-7inch driver descriptor (2).
+ *   Connector pin 17 is GPIOA_10 and pin 18 is GPIOA_13. Neither
+ *   is claimed.
+ */
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/gpio/gpio.h>
+
+/ {
+	compatible = "libre-computer,aml-a311d-cc-v01",
+		"libretech,aml-a311d-cc-v01",
+		"libre-computer,aml-s905d3-cc-v01",
+		"libretech,aml-s905d3-cc-v01";
+
+	fragment@0 {
+		target = <&i2c3>;
+
+		__overlay__ {
+			display_mcu: regulator@45 {
+				compatible = "raspberrypi,touchscreen-panel-regulator-v2";
+				reg = <0x45>;
+				gpio-controller;
+				#gpio-cells = <2>;
+				#pwm-cells = <3>;
+			};
+		};
+	};
+
+	fragment@1 {
+		target-path = "/";
+
+		__overlay__ {
+			backlight: backlight {
+				compatible = "pwm-backlight";
+				pwms = <&display_mcu 0 200000 0>;
+				brightness-levels = <0 31>;
+				num-interpolated-steps = <31>;
+				default-brightness-level = <15>;
+			};
+		};
+	};
+
+	fragment@2 {
+		target = <&mipi_dsi>;
+
+		__overlay__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			panel@0 {
+				compatible = "raspberrypi,dsi-7inch", "ilitek,ili9881c";
+				reg = <0>;
+				power-supply = <&vcc_3v3>;
+				reset-gpios = <&display_mcu 0 GPIO_ACTIVE_LOW>;
+				backlight = <&backlight>;
+
+				port {
+					panel_in: endpoint {
+						remote-endpoint = <&dsi_panel_out>;
+					};
+				};
+			};
+		};
+	};
+
+	fragment@3 {
+		target = <&mipi_dsi_panel_port>;
+
+		__overlay__ {
+			dsi_panel_out: endpoint {
+				remote-endpoint = <&panel_in>;
+			};
+		};
+	};
+};

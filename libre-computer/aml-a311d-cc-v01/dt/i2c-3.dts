@@ -1,0 +1,36 @@
+// SPDX-License-Identifier: (GPL-2.0-or-later OR MIT)
+/*
+ * Copyright (C) 2026 Libre Computer, Inc.
+ */
+/*
+ * Summary: 40-pin header pins 27 (SDA) and 28 (SCL)
+ *
+ * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
+ *   7J1.27   GPIOA_14      L22     I2C_M3_SDA
+ *   7J1.28   GPIOA_15      J22     I2C_M3_SCL
+ *
+ * Resource-provides: bus:i2c3
+ *
+ * Notes:
+ *   V01 only. These balls are header pins 27 and 28 and the CSI
+ *   and DSI connector I2C. The base DTB leaves i2c3 disabled.
+ */
+/dts-v1/;
+/plugin/;
+
+/ {
+	compatible = "libre-computer,aml-a311d-cc-v01",
+		"libretech,aml-a311d-cc-v01",
+		"libre-computer,aml-s905d3-cc-v01",
+		"libretech,aml-s905d3-cc-v01";
+
+	fragment@0 {
+		target = <&i2c3>;
+
+		__overlay__ {
+			status = "okay";
+			pinctrl-0 = <&i2c3_sda_a_pins>, <&i2c3_sck_a_pins>;
+			pinctrl-names = "default";
+		};
+	};
+};
