@@ -6,3 +6,6 @@
 # v01 stub tree (opp + spifc only); header accessories use aml-a311d-cc map/overlays
 # No H40P slot is served here: enable cpu-b-opp-2304 / cpu-l-opp-2208 /
 # spifc-nor by their overlay names.
+
+# DSI connector 0. Pin 18 is the V01 status LED, and this panel does not use it.
+DSI_0_LCD_7_RPI	dsi-0-rpi-7inch

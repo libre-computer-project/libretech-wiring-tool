@@ -1,0 +1,56 @@
+// SPDX-License-Identifier: (GPL-2.0-or-later OR MIT)
+/*
+ * Copyright (C) 2026 Libre Computer, Inc.
+ */
+/*
+ * Summary: enable the MIPI DSI host on connector 0
+ *
+ * Resource-provides: bus:mipi_dsi
+ *
+ * Notes:
+ *   Connector 8J2 / CON22C, 0.5 mm, four data lanes plus clock.
+ *   Lane pins are the DSI balls, not a GPIO mux. The 3.3 V pins
+ *   are VCC_3V3 with no load-switch GPIO. Does not claim pin 17
+ *   or pin 18.
+ */
+/dts-v1/;
+/plugin/;
+
+/ {
+	compatible = "libre-computer,aml-a311d-cc",
+		"libretech,aml-a311d-cc",
+		"libre-computer,aml-a311d-cc-v01",
+		"libretech,aml-a311d-cc-v01",
+		"libre-computer,aml-s905d3-cc",
+		"libretech,aml-s905d3-cc",
+		"libre-computer,aml-s905d3-cc-v01",
+		"libretech,aml-s905d3-cc-v01",
+		"amlogic,a311d",
+		"amlogic,g12b",
+		"amlogic,s905d3",
+		"amlogic,sm1";
+
+	fragment@0 {
+		target = <&mipi_analog_dphy>;
+
+		__overlay__ {
+			status = "okay";
+		};
+	};
+
+	fragment@1 {
+		target = <&mipi_dphy>;
+
+		__overlay__ {
+			status = "okay";
+		};
+	};
+
+	fragment@2 {
+		target = <&mipi_dsi>;
+
+		__overlay__ {
+			status = "okay";
+		};
+	};
+};

@@ -4,6 +4,9 @@
 # Values MUST name a real .dts/.dtbo under this board's dt/ (canonical name,
 # not a same-dir legacy alias). Consumed by ldto (MAP_ALIAS_DT).
 
+# DSI connector 0. The Pi panel does not use pin 17 or pin 18.
+DSI_0_LCD_7_RPI	dsi-0-rpi-7inch
+
 # I2C
 H40P_I2C_0	i2c-ao
 H40P_I2C_0_SSD1306_128x64	i2c-ao-ssd1306-128x64

@@ -1,0 +1,106 @@
+// SPDX-License-Identifier: (GPL-2.0-or-later OR MIT)
+/*
+ * Copyright (C) 2026 Libre Computer, Inc.
+ */
+/*
+ * Summary: Raspberry Pi Touch Display 2 on DSI connector 0
+ *
+ * Requires: dsi-0
+ *
+ * Resource-requires: bus:mipi_dsi
+ * Resource-provides: i2c:i2c3@0x45, label:backlight
+ *
+ * Notes:
+ *   The panel MCU at I2C 0x45 owns reset and the backlight PWM.
+ *   Connector I2C is I2C_M3 (i2c3, GPIOA_14/15), pins 20 and 21.
+ *   Power is the board VCC_3V3 on pins 22 and 23.
+ *   Lane count is the raspberrypi,dsi-7inch driver descriptor (2).
+ *   Pins 17 and 18 are not claimed.
+ *   i2c3 is left disabled by the Cottonwood and V01 base DTBs,
+ *   so this fragment enables it. The Solitude production copy
+ *   does not: its base DTB already does.
+ */
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/gpio/gpio.h>
+
+/ {
+	compatible = "libre-computer,aml-a311d-cc",
+		"libretech,aml-a311d-cc",
+		"libre-computer,aml-a311d-cc-v01",
+		"libretech,aml-a311d-cc-v01",
+		"libre-computer,aml-s905d3-cc",
+		"libretech,aml-s905d3-cc",
+		"libre-computer,aml-s905d3-cc-v01",
+		"libretech,aml-s905d3-cc-v01",
+		"amlogic,a311d",
+		"amlogic,g12b",
+		"amlogic,s905d3",
+		"amlogic,sm1";
+
+	fragment@0 {
+		target = <&i2c3>;
+
+		__overlay__ {
+			status = "okay";
+			pinctrl-0 = <&i2c3_sda_a_pins>, <&i2c3_sck_a_pins>;
+			pinctrl-names = "default";
+
+			display_mcu: regulator@45 {
+				compatible = "raspberrypi,touchscreen-panel-regulator-v2";
+				reg = <0x45>;
+				gpio-controller;
+				#gpio-cells = <2>;
+				#pwm-cells = <3>;
+			};
+		};
+	};
+
+	fragment@1 {
+		target-path = "/";
+
+		__overlay__ {
+			backlight: backlight {
+				compatible = "pwm-backlight";
+				pwms = <&display_mcu 0 200000 0>;
+				brightness-levels = <0 31>;
+				num-interpolated-steps = <31>;
+				default-brightness-level = <15>;
+			};
+		};
+	};
+
+	fragment@2 {
+		target = <&mipi_dsi>;
+
+		__overlay__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			panel@0 {
+				compatible = "raspberrypi,dsi-7inch", "ilitek,ili9881c";
+				reg = <0>;
+				power-supply = <&vcc_3v3>;
+				reset-gpios = <&display_mcu 0 GPIO_ACTIVE_LOW>;
+				backlight = <&backlight>;
+
+				port {
+					panel_in: endpoint {
+						remote-endpoint = <&dsi_panel_out>;
+					};
+				};
+			};
+		};
+	};
+
+	fragment@3 {
+		target = <&mipi_dsi_panel_port>;
+
+		__overlay__ {
+			dsi_panel_out: endpoint {
+				remote-endpoint = <&panel_in>;
+			};
+		};
+	};
+};
