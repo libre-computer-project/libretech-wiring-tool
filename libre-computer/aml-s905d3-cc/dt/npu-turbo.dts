@@ -1,0 +1,37 @@
+// SPDX-License-Identifier: (GPL-2.0-or-later OR MIT)
+/*
+ * Copyright (c) 2026 Da Xue <da@libre.computer>
+ * Author: Da Xue <da@libre.computer>
+ */
+/*
+ * Summary: Run the NPU's bus clock at 1 GHz instead of 800 MHz
+ *
+ * The NPU is bound by its AXI (bus) clock; the core stays at 800 MHz.
+ * No fixed divider makes 1 GHz, so the clock framework picks a free
+ * GP0 or HiFi PLL for it, and etnaviv holds that rate while it runs.
+ * No parent is named here on purpose: the framework chooses one that
+ * no other running consumer holds. With both PLLs held at other rates
+ * the bus stays at 800 MHz. Needs a kernel whose NNA clock muxes can
+ * reach a PLL (CLK_SET_RATE_PARENT on nna_axi_clk_sel).
+ */
+/dts-v1/;
+/plugin/;
+
+/ {
+	compatible = "libre-computer,aml-s905d3-cc",
+		"libretech,aml-s905d3-cc",
+		"libre-computer,aml-s905d3-cc-v01",
+		"libretech,aml-s905d3-cc-v01",
+		"amlogic,s905d3",
+		"amlogic,sm1";
+
+	fragment@0 {
+		target = <&npu>;
+
+		__overlay__ {
+			/* CLKID_NNA_CORE_CLK (267), CLKID_NNA_AXI_CLK (264): g12a-clkc.h */
+			assigned-clocks = <&clkc 267>, <&clkc 264>;
+			assigned-clock-rates = <800000000>, <1000000000>;
+		};
+	};
+};
