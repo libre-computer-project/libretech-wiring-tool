@@ -13,6 +13,11 @@
  * no other running consumer holds. With both PLLs held at other rates
  * the bus stays at 800 MHz. Needs a kernel whose NNA clock muxes can
  * reach a PLL (CLK_SET_RATE_PARENT on nna_axi_clk_sel).
+ *
+ * The rate is applied when the NPU driver probes: `ldto merge` takes
+ * effect on the next boot; after `ldto enable`, rebind etnaviv
+ * (unbind, then bind ff100000.npu in
+ * /sys/bus/platform/drivers/etnaviv-gpu/).
  */
 /dts-v1/;
 /plugin/;
