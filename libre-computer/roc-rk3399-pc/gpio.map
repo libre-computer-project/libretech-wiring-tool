@@ -48,15 +48,18 @@
 #   J1   CON6A      SMD_PH_3x2_2d0   2x3  2.0 mm   Extension Interface sheet
 #   J6   CON6A      SMD_PH_3x2_2d0   2x3  2.0 mm   Extension Interface sheet
 #   J13  sip3_2d54                   1x3  2.54 mm  KEY/LED/DEBUG sheet
-#   J16  SIP4_2D0                    1x4  2.0 mm   Memory-eMMC/SPI FLASH sheet
 #
 # The four CON30A and the two CON6A are all on the Extension Interface sheet
 # (page 28 of V0.1 and V1.1-A, page 29 of V1.2A), same parts and same
 # footprints in all three revisions. J13 is the debug serial port the product
-# spec lists as "Debug serial port x 1"; J16 breaks the SPI NOR out for
-# programming. "SIP" is single-in-line, so J13 and J16 are 1xN and must not be
-# drawn 2xN -- see the DUAL_ROW_HEADERS comment in hardware-gpio
-# tools/gen-pinout-data.py. lgpio bcm does not apply.
+# spec lists as "Debug serial port x 1". "SIP" is single-in-line, so J13 is
+# 1xN and must not be drawn 2xN -- see the DUAL_ROW_HEADERS comment in
+# hardware-gpio tools/gen-pinout-data.py. lgpio bcm does not apply.
+#
+# J16 (SIP4_2D0, 1x4 2.0 mm, Memory-eMMC/SPI FLASH sheet: GND, SPI1_CLK,
+# FLASH_WP, VCC3V3_SYS) breaks the SPI NOR out for programming, but it is a
+# footprint only: no header is fitted on production boards (owner,
+# 2026-11-02), so it is not listed here.
 #
 # J1 and J6 carry no SoC-routed signal at all -- J6 is the 12 V pair in and
 # out, J1 is the four PoE conductors off the RJ45 magnetics. Every other
@@ -200,10 +203,6 @@ J15	27	ADC	ADC	ADC_IN0	ADC_IN0	-	ADC_IN0	ADC_IN0
 J15	28	0	4	4	GPIO0_A4	AA25	BT_HOST_WAKE_L	SDIO0_INTn_d/PMU_DEBUG2
 J15	29	ADC	ADC	ADC_IN2	ADC_IN2	-	ADC_IN2	ADC_IN2
 J15	30	ADC	ADC	ADC_IN3	ADC_IN3	-	ADC_IN3	ADC_IN3
-J16	1	GND	GND	GND	GND	-	GND	GND
-J16	2	1	9	41	GPIO1_B1	P28	SPI1_CLK	SPI1_CLK/PMCU_JTAG_TCK_u/PMUM0JTAG_TCK
-J16	3	FLASH	FLASH	FLASH	FLASH_WP	-	FLASH_WP	-
-J16	4	3.3V	3.3V	3.3V	VCC3V3_SYS	-	VCC3V3_SYS	VCC3V3_SYS
 J20	1	3	26	122	GPIO3_D2	AJ2	I2S0_LRCK_TX	I2S0_LRCK_TX_d/TRACE_DATA2/A53CORE0_WFI
 J20	2	4	0	128	GPIO4_A0	AC7	I2S_CLK_0	I2S_CLK_d/TRACE_CTL/LPM0_WFI
 J20	3	3	30	126	GPIO3_D6	AH2	I2S0_SDI3SDO1	I2S0_SDI3SDO1_d/TRACE_DATA6/A72L2_WFI
