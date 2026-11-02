@@ -498,13 +498,19 @@ def desc_tokens(desc: str) -> list[str]:
 # Tritium's rail is literally named VCC3V3-OUT.
 CONTROL_SUFFIX = ("EN", "ON", "OFF", "SEL", "CTL", "CTRL", "DET", "PG",
                   "PWRGD", "PWROK", "OK", "FAULT", "TRIG", "HOLD")
+# A name with one of these parts ANYWHERE is an indicator driven from a rail,
+# not the rail: the Amlogic CM modules' VDDAO_LED_RED / VDDEE_LED_GREEN are
+# open-collector LED outputs.
+CONTROL_PART = ("LED",)
 
 # Voltages are read as millivolts, not sorted into three named classes. The
 # headers are not only 3.3V/5V/GND: roc-rk3399-pc brings out VCC_1V8 (1.8V) on
 # J15.16 and VCCA3V0_CODEC (3.0V) on J20.16, and rounding those to the nearest
-# of three would either invent a disagreement or hide a real one.
+# of three would either invent a disagreement or hide a real one. The decimal
+# point may be '.' or '_': the Amlogic CC drawings name their always-on rail
+# VDDAO_3_3V, which is 3.3V, not 3V.
 VOLTAGE = re.compile(
-    r"(?<![0-9])(?:(\d+)[.](\d+)\s*V|(\d+)V(\d+)|(\d+)\s*V)(?![0-9A-Za-z])")
+    r"(?<![0-9])(?:(\d+)[._](\d+)\s*V|(\d+)V(\d+)|(\d+)\s*V)(?![0-9A-Za-z])")
 GROUND_NAME = re.compile(r"[AD]?GND\d*|VSS[A-Z0-9_]*", re.I)
 SUPPLY_NAME = re.compile(r"(?:[AD])?(?:VCC|VDD|VBUS|VBAT|VIN|VPP)[A-Z0-9._+-]*"
                          r"|\d+(?:[.]\d+)?V\d*", re.I)
@@ -545,7 +551,8 @@ def rail_class(name: str) -> tuple[str, int | None] | None:
     if SUPPLY_NAME.fullmatch(n) or (
             NET_NAME.fullmatch(n)
             and any(VOLTAGE_PART.fullmatch(p) for p in re.split(r"[_-]", n))):
-        if re.split(r"[._-]", n.upper())[-1] in CONTROL_SUFFIX:
+        parts = re.split(r"[._-]", n.upper())
+        if parts[-1] in CONTROL_SUFFIX or any(p in CONTROL_PART for p in parts):
             return None
         return "SUPPLY", rail_mv(n)
     return None
@@ -761,6 +768,8 @@ SELF_TEST = [
     ("3.0V", "VCCA3V0_CODEC", False),       # roc-rk3399-pc J20.16
     ("3.3V", "VCC3V3_SYS", False),          # roc-rk3399-pc J15.18
     ("3.3V", "VDDIO_AO3.3V", False),        # aml-s905x-cc 2J3.8
+    ("3.3V", "VDDAO_3_3V", False),          # aml-a311d-cc / aml-s905d3-cc 7J1.1
+    ("5V", "VDDAO_3_3V", True),             # same net, wrong voltage
     ("12V", "DC_12V", False),               # roc-rk3399-pc J6.3, jack-side 12V
     ("12V", "SYS_12V", False),              # roc-rk3399-pc J21.3
     ("GND", "SYS_12V", True),               # same row published as ground
@@ -779,6 +788,9 @@ SELF_TEST = [
     ("AUDIO", "MIC_IN1P", False),
     ("CLK", "RTC_CLKO_WIFI", False),
     ("0", "VCC5V_EN", False),               # names a rail, IS an enable signal
+    ("CTRL", "VDDAO_LED_RED", False),       # aml-a311d-cm J1.95, an LED output
+    ("CTRL", "VDDEE_LED_GREEN", False),     # aml-a311d-cm J1.21
+    ("GND", "VDDAO_LED_RED", False),        # not a rail, so no sign to check
     ("GND", "-", False),
 ]
 

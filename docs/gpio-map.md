@@ -315,12 +315,13 @@ python3 scripts/check-pinmux.py --self-test
 - A rail-ish *substring* is never enough. A row is in scope only when `Chip` is
   a rail class, or when `Ref` is **wholly** a rail name — a GPIO's net name may
   legitimately mention one (`TCPD_VBUS_BDIS_d`), and a name ending in a control
-  suffix (`VCC5V_EN`) is a signal about a rail, not the rail.
+  suffix (`VCC5V_EN`) or containing `LED` (`VDDAO_LED_RED`) is a signal about a
+  rail, not the rail.
 - A supply name that states no voltage (`VCC_IO`, `VCC_SYS`) constrains only
   supply-vs-ground; `Chip=5V Ref=VCC_SYS` passes, `Chip=GND Ref=VCC_SYS` does
   not. Voltages that *are* spelled out compare as millivolts, so `VCC_1V8` and
   `VCCA3V0_CODEC` are checked as 1.8V and 3.0V rather than rounded into one of
-  three classes.
+  three classes; the decimal point may be `.` or `_` (`VDDAO_3_3V` is 3.3V).
 
 This is what four boards needed and did not have: `all-h3-cc-h3`,
 `all-h3-cc-h5`, `roc-rk3328-cc` and `roc-rk3328-cc-v2` published header pin 17
