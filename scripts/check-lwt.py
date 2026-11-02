@@ -900,7 +900,8 @@ def export_board(bname: str, rows: list[dict], rpi: str | None) -> tuple[dict | 
             "rail": rail,
             "chip": r["chip"] if rail else int(r["chip"]),
             "line": None if rail else int(r["line"]),
-            "name": r["name"],
+            # A trailing '*' / '**' is a footnote marker on the map's name, not the line's.
+            "name": r["name"].rstrip("*"),
             "pad": r["pad"],
             "ref": r["ref"],
             "functions": r["desc"].split(),
@@ -988,6 +989,11 @@ def self_test() -> int:
         else:
             got = [(p["pin"], p["row"], p["rail"]) for p in doc["pins"]] if doc else why
             judge("export", label, [] if got == expect else [f"{got} != {expect}"], None)
+    # A footnote marker on the map's name is not the line's name (aml-s805x-ac-v2 7J1.11
+    # GPIOAO_8*): the export carries the bare name, as every checker reads it.
+    doc, why = export_board("case", _export_case_rows(["7J1\t1\t0\t8\t509\tGPIOAO_8*\tE15\tPWM\tPWM_AO_A"]), "7J1")
+    got = [p["name"] for p in doc["pins"]] if doc else why
+    judge("export", "a footnoted name exports bare", [] if got == ["GPIOAO_8"] else [f"{got}"], None)
 
     print(f"check-lwt --self-test: {total - failed}/{total} cases pass "
           f"(identity, formula, rpi-header, lgpio-bcm, overlay-pins, requires, "
