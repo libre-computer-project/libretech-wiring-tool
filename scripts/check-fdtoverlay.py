@@ -266,12 +266,17 @@ def overlay_aliases(dts_text: str) -> dict[str, str | None]:
     return out
 
 
-def alias_problems(aliases: dict[str, str | None], node_exists) -> list[str]:
-    """Each alias must be a path string naming a node in the merged tree.
+def alias_problems(aliases: dict[str, str | None], node_exists,
+                   base: dict[str, str] | None = None) -> list[str]:
+    """Each alias must be a path string naming a node in the merged tree, and
+    must not take a name the base tree already gives another node.
 
     A path that names no node is dropped by the kernel without a word, so the
     device silently gets the next free number (serial1 becomes serial2, spi0
-    becomes spi1) -- which an apply-only check never sees.
+    becomes spi1) -- which an apply-only check never sees. A name the base
+    already uses moves the base's device off its number in Linux and U-Boot
+    alike: spi0 = SPICC on a board whose spi0 is its SPI NOR controller left
+    U-Boot's `sf probe` and the NOR's DFU alternates on a bus with no flash.
     """
     bad = []
     for name, path in sorted(aliases.items()):
@@ -279,6 +284,9 @@ def alias_problems(aliases: dict[str, str | None], node_exists) -> list[str]:
             bad.append(f"alias {name} is not a path string")
         elif not node_exists(path):
             bad.append(f"alias {name} = \"{path}\" names no node in the merged tree")
+        elif base and name in base and base[name] != path:
+            bad.append(f"alias {name} = \"{path}\" takes the base's {name} "
+                       f"(\"{base[name]}\") from it")
     return bad
 
 
@@ -314,6 +322,19 @@ def dtb_node_exists(dtb: Path, node: str) -> bool:
     return r.returncode == 0
 
 
+def dtb_aliases(dtb: Path) -> dict[str, str]:
+    """The base tree's /aliases: {name: path}; empty when it has none."""
+    r = subprocess.run(["fdtget", "-p", str(dtb), "/aliases"],
+                       capture_output=True, text=True, timeout=60)
+    out: dict[str, str] = {}
+    for name in r.stdout.split() if r.returncode == 0 else []:
+        v = subprocess.run(["fdtget", "-t", "s", str(dtb), "/aliases", name],
+                           capture_output=True, text=True, timeout=60)
+        if v.returncode == 0:
+            out[name] = v.stdout.strip()
+    return out
+
+
 SELF_TEST = [
     # (description, dtbo-as-dts text, nodes present in the merged tree, want)
     ("path alias that resolves passes",
@@ -328,6 +349,20 @@ SELF_TEST = [
     ("no aliases fragment, nothing to check",
      '\t\ttarget = <0xffffffff>;\n\t\t__overlay__ {\n\t\t\tstatus = "okay";\n\t\t};',
      set(), 0),
+]
+
+# (description, overlay text, the base tree's aliases, problems wanted); every
+# alias path resolves, so only the base-name rule can fire.
+BASE_ALIAS_TEST = [
+    ("taking the base's spi0 from its NOR controller fires (AC-V2, CC-V2)",
+     '\t\ttarget-path = "/aliases";\n\t\t__overlay__ {\n\t\t\tspi0 = "/soc/bus@c1100000/spi@8d80";\n\t\t};',
+     {"spi0": "/soc/bus@c1100000/spi@8c80"}, 1),
+    ("a name the base does not use passes (Le Potato: no spi alias)",
+     '\t\ttarget-path = "/aliases";\n\t\t__overlay__ {\n\t\t\tspi0 = "/soc/bus@c1100000/spi@8d80";\n\t\t};',
+     {"serial0": "/soc/bus@c8100000/serial@4c0"}, 0),
+    ("restating the base's own alias passes",
+     '\t\ttarget-path = "/aliases";\n\t\t__overlay__ {\n\t\t\tspi1 = "/soc/bus@ffd00000/spi@15000";\n\t\t};',
+     {"spi1": "/soc/bus@ffd00000/spi@15000"}, 0),
 ]
 
 
@@ -351,6 +386,11 @@ def self_test() -> int:
         if got != want:
             fails += 1
             print(f"SELFTEST FAIL: {what}: expected {want} problem(s), got {got}")
+    for what, text, base, want in BASE_ALIAS_TEST:
+        got = len(alias_problems(overlay_aliases(text), lambda p: True, base))
+        if got != want:
+            fails += 1
+            print(f"SELFTEST FAIL: {what}: expected {want} problem(s), got {got}")
     for what, ov, base, want in CLAIM_TEST:
         if claims_board(ov, base) != want:
             fails += 1
@@ -371,7 +411,7 @@ def self_test() -> int:
         print("SELFTEST FAIL: chain cycle a -> b -> a was not reported")
     except ValueError:
         pass
-    n = len(SELF_TEST) + len(CLAIM_TEST) + len(chain_cases) + 1
+    n = len(SELF_TEST) + len(BASE_ALIAS_TEST) + len(CLAIM_TEST) + len(chain_cases) + 1
     print(f"check-fdtoverlay --self-test: {n - fails}/{n} cases pass (alias, claim, chain)")
     return 1 if fails else 0
 
@@ -557,7 +597,8 @@ def check_board(
                 aliases = overlay_aliases(dtb_to_dts(chain_paths[-1]))
                 stats.aliases += len(aliases)
                 for problem in alias_problems(
-                        aliases, lambda p, o=out: dtb_node_exists(o, p)):
+                        aliases, lambda p, o=out: dtb_node_exists(o, p),
+                        dtb_aliases(base)):
                     stats.alias_bad += 1
                     stats.warnings += 1
                     warn(f"{name}: {stem}: {problem}")

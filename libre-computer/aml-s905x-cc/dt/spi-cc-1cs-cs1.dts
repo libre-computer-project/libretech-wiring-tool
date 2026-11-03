@@ -30,13 +30,7 @@
 		"amlogic,s905x",
 		"amlogic,meson-gxl";
 
-	fragment@0 {
-		target-path = "/aliases";
-
-		__overlay__ {
-			spi0 = "/soc/bus@c1100000/spi@8d80";
-		};
-	};
+	/* No spi alias: the CC-V2's spi0 is its SPI NOR (spifc); the bus takes the next free number. */
 
 	fragment@1 {
 		target = <&spicc>;
