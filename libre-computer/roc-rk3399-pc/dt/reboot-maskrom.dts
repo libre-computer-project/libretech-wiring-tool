@@ -1,0 +1,35 @@
+// SPDX-License-Identifier: (GPL-2.0-or-later OR MIT)
+/*
+ * Copyright (c) 2026 Da Xue <da@libre.computer>
+ * Author: Da Xue <da@libre.computer>
+ */
+/*
+ * Summary: `reboot maskrom` resets into the MaskROM's USB download mode (PSCI SYSTEM_RESET2)
+ *
+ * Notes: maps the reboot command "maskrom" to the firmware's vendor
+ * SYSTEM_RESET2 type 0x80000001 ("BootROM USB"): TF-A sets the boot-mode
+ * flag BOOT_BROM_DOWNLOAD and resets, and the TPL on the next boot returns
+ * to the MaskROM, which then waits for a USB host.  Needs a kernel whose PSCI
+ * driver reads psci/reset-types and TF-A that reports SYSTEM_RESET2;
+ * otherwise `reboot maskrom` is a plain reboot.  U-Boot removes the mapping
+ * when wdt_handoff=1.  From a SPI NOR boot, an eMMC or SD card holding a
+ * loader boots instead of the MaskROM.
+ */
+/dts-v1/;
+/plugin/;
+
+/ {
+	compatible = "libre-computer,roc-rk3399-pc",
+		"libretech,roc-rk3399-pc",
+		"rockchip,rk3399";
+
+	fragment@0 {
+		target-path = "/psci";
+
+		__overlay__ {
+			reset-types {
+				mode-maskrom = <0x80000001 0>;
+			};
+		};
+	};
+};
