@@ -1,0 +1,36 @@
+// SPDX-License-Identifier: (GPL-2.0-or-later OR MIT)
+/*
+ * Copyright (c) 2026 Da Xue <da@libre.computer>
+ * Author: Da Xue <da@libre.computer>
+ */
+/*
+ * Summary: `reboot maskrom` resets into the BootROM's USB wait (PSCI SYSTEM_RESET2)
+ *
+ * Notes: maps the reboot command "maskrom" to the firmware's vendor
+ * SYSTEM_RESET2 type 0x80000001 ("BootROM USB"): TF-A sets the SM1 USB
+ * override word and resets, and the board then waits for a USB host with no
+ * timeout (a power cut clears it).  Needs a kernel whose PSCI driver reads
+ * psci/reset-types and TF-A that reports SYSTEM_RESET2; otherwise `reboot
+ * maskrom` is a plain reboot.  U-Boot removes the mapping when wdt_handoff=1.
+ */
+/dts-v1/;
+/plugin/;
+
+/ {
+	compatible = "libre-computer,aml-s905d3-cc",
+		"libretech,aml-s905d3-cc",
+		"libre-computer,aml-s905d3-cc-v01",
+		"libretech,aml-s905d3-cc-v01",
+		"amlogic,s905d3",
+		"amlogic,sm1";
+
+	fragment@0 {
+		target-path = "/psci";
+
+		__overlay__ {
+			reset-types {
+				mode-maskrom = <0x80000001 0>;
+			};
+		};
+	};
+};
