@@ -2,7 +2,9 @@
 # SPDX-License-Identifier: GPL-2.0-only
 # build-rpm.sh -- build libretech-gpio and libretech-dtoverlay for Fedora (noarch RPMs), the same files as the .deb.
 #
-#   build-rpm.sh --src <exported source tree> --version YYYY.MM.DD [--out DIR]
+#   build-rpm.sh --src <exported source tree> --version YYYY.MM.DD [--release N] [--out DIR]
+#
+# --release [1]: a packaging fix on the same source gets a new release -- a published file name never changes.
 #
 # --src is an exported commit (git archive), never a working tree: an untracked overlay must not reach a package.
 # Needs make, cpp, dtc, python3 and rpmbuild. The packages are unsigned: they are signed with the repository key when
@@ -12,17 +14,19 @@ set -euo pipefail
 IFS=$'\n\t'
 . "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/packaging/lib.sh"
 
-src="" version="" out=""
+src="" version="" release=1 out=""
 while (($#)); do
   case $1 in
     --src) src=${2:?}; shift 2 ;;
     --version) version=${2:?}; shift 2 ;;
+    --release) release=${2:?}; shift 2 ;;
     --out) out=${2:?}; shift 2 ;;
-    *) die "usage: build-rpm.sh --src <tree> --version YYYY.MM.DD [--out DIR]" ;;
+    *) die "usage: build-rpm.sh --src <tree> --version YYYY.MM.DD [--release N] [--out DIR]" ;;
   esac
 done
-[[ -n $src && -n $version ]] || die "usage: build-rpm.sh --src <tree> --version YYYY.MM.DD [--out DIR]"
+[[ -n $src && -n $version ]] || die "usage: build-rpm.sh --src <tree> --version YYYY.MM.DD [--release N] [--out DIR]"
 check_version "$version"
+[[ $release =~ ^[1-9][0-9]{0,2}$ ]] || die "--release $release is not 1-999"
 out=${out:-$PWD/out/$version}
 command -v rpmbuild >/dev/null || die "rpmbuild not found (the rpm package)"
 
@@ -46,10 +50,10 @@ done
 mkdir -p "$T/rpm/SPECS" "$out"
 cp "$PKG_ROOT/packaging/rpm/libretech-wiring-tool.spec" "$T/rpm/SPECS/"
 log "building libretech-gpio, libretech-dtoverlay $version"
-rpmbuild --define "_topdir $T/rpm" --define "_buildhost $BUILD_HOST" --define "lc_version $version" \
+rpmbuild --define "_topdir $T/rpm" --define "_buildhost $BUILD_HOST" --define "lc_version $version" --define "lc_release $release" \
   --define "lc_stage $T/root" --define "lc_lists $T" -bb "$T/rpm/SPECS/libretech-wiring-tool.spec" \
   >"$T/rpmbuild.log" 2>&1 || { tail -20 "$T/rpmbuild.log" >&2; die "rpmbuild failed"; }
 for p in "${PACKAGES[@]}"; do
-  cp "$T/rpm/RPMS/noarch/$p-$version-1.noarch.rpm" "$out/"
-  echo "$out/$p-$version-1.noarch.rpm"
+  cp "$T/rpm/RPMS/noarch/$p-$version-$release.noarch.rpm" "$out/"
+  echo "$out/$p-$version-$release.noarch.rpm"
 done

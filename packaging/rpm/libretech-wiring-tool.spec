@@ -9,7 +9,8 @@
 
 Name: libretech-wiring-tool
 Version: %{lc_version}
-Release: 1
+# a package fix on the same source: a served file name never changes, so the fix is a new release
+Release: %{?lc_release}%{!?lc_release:1}
 Summary: Libre Computer header GPIO and device-tree overlay tools
 License: GPL-2.0-only
 URL: https://github.com/libre-computer-project/libretech-wiring-tool
@@ -36,6 +37,7 @@ Summary: Libre Computer device-tree overlays and ldto tool
 Requires: dtc
 Requires: libretech-gpio = %{version}-%{release}
 Recommends: i2c-tools
+Recommends: spi-tools
 Requires(post): /usr/sbin/alternatives
 Requires(preun): /usr/sbin/alternatives
 
