@@ -1,0 +1,38 @@
+# SPDX-License-Identifier: GPL-2.0-only
+# Arch packages of libretech-wiring-tool: the same two packages, files and commands as the .deb (debian/control).
+# Built by build-arch.sh, which puts the staged tree in $startdir/root and the per-package file lists beside it, and
+# sets LC_VERSION; nothing is built here. Arch has no alternatives: each command is a plain /usr/bin link.
+pkgbase=libretech-wiring-tool
+pkgname=(libretech-gpio libretech-dtoverlay)
+pkgver=${LC_VERSION:?}
+pkgrel=1
+arch=(any)
+url='https://github.com/libre-computer-project/libretech-wiring-tool'
+license=(GPL-2.0-only)
+options=(!strip !debug !emptydirs)
+_prefix=opt/librecomputer/libretech-wiring-tool
+
+_install_list() { # <list>: copy each listed path from the staged tree, links and directories as they are
+  local rel
+  while IFS= read -r rel; do
+    mkdir -p "$pkgdir/$(dirname "$rel")"
+    cp -a "$startdir/root/$rel" "$pkgdir/$rel"
+  done <"$startdir/$1"
+}
+
+package_libretech-gpio() {
+  pkgdesc='Libre Computer header GPIO lookup and control (lgpio)'
+  depends=(libgpiod)
+  _install_list libretech-gpio.list
+  mkdir -p "$pkgdir/usr/bin"
+  ln -s "/$_prefix/lgpio" "$pkgdir/usr/bin/lgpio"
+}
+
+package_libretech-dtoverlay() {
+  pkgdesc='Libre Computer device-tree overlays and ldto tool'
+  depends=(dtc "libretech-gpio=$pkgver-$pkgrel")
+  optdepends=('i2c-tools: I2C bus tools for header I2C overlays')
+  _install_list libretech-dtoverlay.list
+  mkdir -p "$pkgdir/usr/bin"
+  ln -s "/$_prefix/ldto" "$pkgdir/usr/bin/ldto"
+}
