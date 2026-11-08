@@ -1,19 +1,17 @@
 // SPDX-License-Identifier: (GPL-2.0-or-later OR MIT)
 /*
  * Copyright (C) 2026 Libre Computer, Inc.
- * Enable OV5647 camera on camera connector (J1) for AML-S905D3-CC
- * I2C3_SDA on GPIOA_14, I2C3_SCL on GPIOA_15
- * PWDN on GPIOA_12 (active low)
- * CAM_EN LED on GPIOAO_10 (active high)
- * NOTE: Uses fixed-clock for OV5647 XCLK. Pi Camera V1 has onboard
- * 25MHz crystal oscillator.
  */
 /*
- * Summary: OV5647 camera on the MIPI CSI connector (sensor on I2C3)
+ * Summary: OV5647 camera (Raspberry Pi Camera v1) on the MIPI CSI connector
  *
- * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
- *   ?.?    GPIOAO_10     ?       (not in gpio.map)
- *   ?.?    GPIOA_12      ?       (not in gpio.map)
+ * Notes:
+ *   The base DT enables the CSI-2 receiver, the D-PHY with this connector's
+ *   lane order, the capture bridge and the connector's I2C bus (i2c3); this
+ *   overlay adds the sensor and its link to the receiver. No 40-pin header
+ *   pin is claimed: PWDN (GPIOA_12, active low) and the camera-enable LED
+ *   (GPIOAO_10) are connector signals. The module's 25 MHz oscillator is
+ *   the sensor clock, so XCLK is a fixed clock.
  */
 /dts-v1/;
 /plugin/;
