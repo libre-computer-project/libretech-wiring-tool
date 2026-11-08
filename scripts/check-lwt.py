@@ -12,6 +12,7 @@ Validates:
   - overlay .dts headers (Summary; Pins rows match gpio.map)
   - dt.map values name real non-symlink overlay basenames
   - dt.deps providers/consumers exist
+  - boot.config exists and states EMMC_BOOT_PARTITIONS as yes, no or unknown
 
 Exit 0 always unless --strict (then non-zero if any WARNING).
 Prints WARNING: lines for make to surface.
@@ -162,6 +163,50 @@ def load_gpio_map(path: Path) -> list[dict]:
             }
         )
     return rows
+
+
+# boot.config: what the board's BootROM boots from, read by flashing tools.
+BOOT_CONFIG_KEYS = {"EMMC_BOOT_PARTITIONS": {"yes", "no", "unknown"}}
+
+
+def boot_config_warnings(bname: str, text: str | None) -> list[str]:
+    """Each required key once, with a value from its closed set; no other key."""
+    if text is None:
+        return [f"{bname}/boot.config: missing (EMMC_BOOT_PARTITIONS=yes|no|unknown)"]
+    out: list[str] = []
+    seen: dict[str, str] = {}
+    for n, raw in enumerate(text.splitlines(), 1):
+        line = raw.split("#", 1)[0].strip()
+        if not line:
+            continue
+        key, eq, val = line.partition("=")
+        if not eq:
+            out.append(f"{bname}/boot.config:{n}: not KEY=VALUE: {raw!r}")
+            continue
+        if key not in BOOT_CONFIG_KEYS:
+            out.append(f"{bname}/boot.config:{n}: unknown key {key!r}")
+        elif key in seen:
+            out.append(f"{bname}/boot.config:{n}: {key} set twice")
+        elif val not in BOOT_CONFIG_KEYS[key]:
+            out.append(f"{bname}/boot.config:{n}: {key}={val!r}, want one of "
+                       f"{'|'.join(sorted(BOOT_CONFIG_KEYS[key]))}")
+        seen[key] = val
+    for key in BOOT_CONFIG_KEYS:
+        if key not in seen:
+            out.append(f"{bname}/boot.config: {key} not set")
+    return out
+
+
+BOOT_CONFIG_CASES = [
+    ("valid no", "# c\nEMMC_BOOT_PARTITIONS=no # user area only\n", None),
+    ("valid unknown", "EMMC_BOOT_PARTITIONS=unknown\n", None),
+    ("missing file", None, "missing"),
+    ("key absent", "# nothing\n", "not set"),
+    ("bad value", "EMMC_BOOT_PARTITIONS=maybe\n", "want one of"),
+    ("set twice", "EMMC_BOOT_PARTITIONS=no\nEMMC_BOOT_PARTITIONS=yes\n", "set twice"),
+    ("unknown key", "EMMC_BOOT_PARTITIONS=no\nNOR=yes\n", "unknown key"),
+    ("not key=value", "EMMC_BOOT_PARTITIONS no\n", "not KEY=VALUE"),
+]
 
 
 def board_dirs(board_filter: str | None) -> list[Path]:
@@ -994,10 +1039,12 @@ def self_test() -> int:
     doc, why = export_board("case", _export_case_rows(["7J1\t1\t0\t8\t509\tGPIOAO_8*\tE15\tPWM\tPWM_AO_A"]), "7J1")
     got = [p["name"] for p in doc["pins"]] if doc else why
     judge("export", "a footnoted name exports bare", [] if got == ["GPIOAO_8"] else [f"{got}"], None)
+    for label, text, expect in BOOT_CONFIG_CASES:
+        judge("boot.config", label, boot_config_warnings("case", text), expect)
 
     print(f"check-lwt --self-test: {total - failed}/{total} cases pass "
           f"(identity, formula, rpi-header, lgpio-bcm, overlay-pins, requires, "
-          f"dt.map-grammar, export)",
+          f"dt.map-grammar, export, boot.config)",
           file=sys.stderr)
     return 1 if failed else 0
 
@@ -1254,6 +1301,10 @@ class Checker:
         self.check_lgpio_bcm()
         seen_maps: set = set()
         for board in boards:
+            bpath = board / "boot.config"
+            for w in boot_config_warnings(board.name,
+                                          bpath.read_text() if bpath.is_file() else None):
+                self.warn(w)
             gpath = board / "gpio.map"
             # A whole-board symlink shares one file; check it once so the
             # aliases do not triple every warning.

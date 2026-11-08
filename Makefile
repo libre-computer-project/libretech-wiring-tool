@@ -40,6 +40,7 @@ DTOS        := $(DTOS_REAL) $(DTOS_SYM)
 DESTGPIOMAPS	:= $(patsubst %,$(PREFIX)/%,$(wildcard libre-computer/*/gpio.map))
 DESTDTMAPS	:= $(patsubst %,$(PREFIX)/%,$(wildcard libre-computer/*/dt.map))
 DESTDTOCFG	:= $(patsubst %,$(PREFIX)/%,$(wildcard libre-computer/*/dt.config))
+DESTBOOTCFG	:= $(patsubst %,$(PREFIX)/%,$(wildcard libre-computer/*/boot.config))
 DESTGPIOCFG	:= $(patsubst %,$(PREFIX)/%,$(wildcard libre-computer/*/gpio.config))
 # lgpio debug sources the GPIO_DEBUG_PATH named in gpio.config, relative to
 # the install root.
@@ -242,6 +243,9 @@ $(PREFIX)/libre-computer/%/dt.map: boarddirs
 $(PREFIX)/libre-computer/%/dt.config: boarddirs
 	install -p -m 644 $(patsubst $(PREFIX)/%,%,$@) $@
 
+$(PREFIX)/libre-computer/%/boot.config: boarddirs
+	install -p -m 644 $(patsubst $(PREFIX)/%,%,$@) $@
+
 # Prerequisite on the built overlay so install never runs ahead of the build.
 # Whole-dir symlink boards are not in DESTDTBOS/DESTDTS; dtodirs links their
 # dt/ to the real one, and the guard below stops a write through that link.
@@ -273,7 +277,7 @@ $(PREFIX)/libre-computer/%.dts: libre-computer/%.dts | boarddirs dtodirs
 		install -p -m 644 "$<" $@; \
 	fi
 
-install-ldto: boarddirs $(DESTDTOCFG) $(DESTDTMAPS) $(DESTDTBOS) $(DESTDTS) $(DEPS_FILES)
+install-ldto: boarddirs $(DESTDTOCFG) $(DESTBOOTCFG) $(DESTDTMAPS) $(DESTDTBOS) $(DESTDTS) $(DEPS_FILES)
 	install -p -m 755 ldto $(PREFIX)
 	install -d -m 755 $(PREFIX)/scripts
 	install -p -m 755 scripts/overlay-deps.py $(PREFIX)/scripts/overlay-deps.py

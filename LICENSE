@@ -14,7 +14,7 @@ Summary of licenses used in project-authored files:
   packaging helpers, vendor board helpers)
       SPDX: GPL-2.0-only
 
-  Board maps and config/deps data (*.map, dt.config, gpio.config, dt.deps)
+  Board maps and config/deps data (*.map, dt.config, boot.config, gpio.config, dt.deps)
       SPDX: MIT
 
   This notice file, debian/copyright, REUSE.toml

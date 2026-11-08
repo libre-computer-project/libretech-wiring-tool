@@ -19,6 +19,7 @@ License: GPL-2.0-or-later OR MIT
 
 Files: libre-computer/*/*.map
        libre-computer/*/dt.config
+       libre-computer/*/boot.config
        libre-computer/*/gpio.config
        libre-computer/*/dt.deps
 Copyright: 2021-2026 Libre Computer Project contributors

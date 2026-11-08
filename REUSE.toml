@@ -56,6 +56,7 @@ SPDX-FileCopyrightText = "2021-2026 Libre Computer Project contributors"
 path = [
     "libre-computer/*/dt.deps",
     "libre-computer/*/dt.config",
+    "libre-computer/*/boot.config",
     "libre-computer/*/gpio.config",
 ]
 precedence = "aggregate"

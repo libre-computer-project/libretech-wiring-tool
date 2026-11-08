@@ -8,7 +8,7 @@ SPDX-License-Identifier: MIT
 | Package | Contents |
 |---------|----------|
 | **libretech-gpio** | `lgpio`, per-board `gpio.map` and `gpio.config`, `vendor/*/*/gpio_debug` (`lgpio debug`) |
-| **libretech-dtoverlay** | `ldto`, `scripts/overlay-deps.py`, `dt/*.dtbo` + their `dt/*.dts` sources, `dt.map`, `dt.deps`, `dt.config` |
+| **libretech-dtoverlay** | `ldto`, `scripts/overlay-deps.py`, `dt/*.dtbo` + their `dt/*.dts` sources, `dt.map`, `dt.deps`, `dt.config`, `boot.config` |
 
 The `.dts` sources ship beside the `.dtbo`: `ldto list`, `info`, `conflicts`
 and the `enable` preflight read `Summary:`, `Pins:` and `Resource-*` from them.
@@ -39,10 +39,21 @@ Default: `/opt/librecomputer/libretech-wiring-tool/`
     dt.map
     dt.deps
     dt.config
+    boot.config
     dt/*.dtbo
     dt/*.dts
   vendor/aml/gxl/gpio_debug
 ```
+
+`boot.config` (in `libretech-dtoverlay`) says what the board's BootROM boots
+from, for flashing tools; nothing in LWT itself reads it.
+`EMMC_BOOT_PARTITIONS=yes` means the bootloader can live in the eMMC `boot0` /
+`boot1` hardware partitions; `no` means the BootROM reads the eMMC user area
+only, so the bootloader sits at the vendor boot sector before the first
+partition; `unknown` means not shown and is treated as `no`. A tool that writes
+a whole OS image to such a board, from an image with no bootloader, checks
+that the bootloader fits before the first partition and writes it there, or
+warns that the board will not boot. `make check` validates every board's file.
 
 The packages register `/usr/bin/lgpio` and `/usr/bin/ldto` with
 `update-alternatives`; `install.sh` (git checkout) registers
