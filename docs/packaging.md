@@ -50,10 +50,13 @@ from, for flashing tools; nothing in LWT itself reads it.
 `EMMC_BOOT_PARTITIONS=yes` means the bootloader can live in the eMMC `boot0` /
 `boot1` hardware partitions; `no` means the BootROM reads the eMMC user area
 only, so the bootloader sits at the vendor boot sector before the first
-partition; `unknown` means not shown and is treated as `no`. A tool that writes
-a whole OS image to such a board, from an image with no bootloader, checks
-that the bootloader fits before the first partition and writes it there, or
-warns that the board will not boot. `make check` validates every board's file.
+partition; `unknown` means not shown and is treated as `no`. `SPI_NOR=yes`
+means the board has SPI NOR, which holds its bootloader; `no` means none is
+fitted; `unknown` means it varies by build or is not shown, and is treated as
+`no`. On a board where both read `no`, a tool that writes a whole OS image
+with no bootloader in it checks that the bootloader fits before the first
+partition and writes it there, or warns that the board will not boot.
+`make check` validates every board's file.
 
 The packages register `/usr/bin/lgpio` and `/usr/bin/ldto` with
 `update-alternatives`; `install.sh` (git checkout) registers

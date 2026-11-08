@@ -12,7 +12,8 @@ Validates:
   - overlay .dts headers (Summary; Pins rows match gpio.map)
   - dt.map values name real non-symlink overlay basenames
   - dt.deps providers/consumers exist
-  - boot.config exists and states EMMC_BOOT_PARTITIONS as yes, no or unknown
+  - boot.config exists and states EMMC_BOOT_PARTITIONS and SPI_NOR as yes, no
+    or unknown
 
 Exit 0 always unless --strict (then non-zero if any WARNING).
 Prints WARNING: lines for make to surface.
@@ -166,13 +167,14 @@ def load_gpio_map(path: Path) -> list[dict]:
 
 
 # boot.config: what the board's BootROM boots from, read by flashing tools.
-BOOT_CONFIG_KEYS = {"EMMC_BOOT_PARTITIONS": {"yes", "no", "unknown"}}
+BOOT_CONFIG_KEYS = {"EMMC_BOOT_PARTITIONS": {"yes", "no", "unknown"},
+                    "SPI_NOR": {"yes", "no", "unknown"}}
 
 
 def boot_config_warnings(bname: str, text: str | None) -> list[str]:
     """Each required key once, with a value from its closed set; no other key."""
     if text is None:
-        return [f"{bname}/boot.config: missing (EMMC_BOOT_PARTITIONS=yes|no|unknown)"]
+        return [f"{bname}/boot.config: missing (EMMC_BOOT_PARTITIONS, SPI_NOR = yes|no|unknown)"]
     out: list[str] = []
     seen: dict[str, str] = {}
     for n, raw in enumerate(text.splitlines(), 1):
@@ -198,14 +200,15 @@ def boot_config_warnings(bname: str, text: str | None) -> list[str]:
 
 
 BOOT_CONFIG_CASES = [
-    ("valid no", "# c\nEMMC_BOOT_PARTITIONS=no # user area only\n", None),
-    ("valid unknown", "EMMC_BOOT_PARTITIONS=unknown\n", None),
+    ("valid no", "# c\nEMMC_BOOT_PARTITIONS=no # user area only\nSPI_NOR=no\n", None),
+    ("valid unknown", "EMMC_BOOT_PARTITIONS=unknown\nSPI_NOR=unknown\n", None),
     ("missing file", None, "missing"),
     ("key absent", "# nothing\n", "not set"),
-    ("bad value", "EMMC_BOOT_PARTITIONS=maybe\n", "want one of"),
-    ("set twice", "EMMC_BOOT_PARTITIONS=no\nEMMC_BOOT_PARTITIONS=yes\n", "set twice"),
-    ("unknown key", "EMMC_BOOT_PARTITIONS=no\nNOR=yes\n", "unknown key"),
-    ("not key=value", "EMMC_BOOT_PARTITIONS no\n", "not KEY=VALUE"),
+    ("SPI_NOR absent", "EMMC_BOOT_PARTITIONS=no\n", "SPI_NOR not set"),
+    ("bad value", "EMMC_BOOT_PARTITIONS=maybe\nSPI_NOR=no\n", "want one of"),
+    ("set twice", "EMMC_BOOT_PARTITIONS=no\nEMMC_BOOT_PARTITIONS=yes\nSPI_NOR=no\n", "set twice"),
+    ("unknown key", "EMMC_BOOT_PARTITIONS=no\nSPI_NOR=no\nNOR=yes\n", "unknown key"),
+    ("not key=value", "EMMC_BOOT_PARTITIONS no\nSPI_NOR=no\n", "not KEY=VALUE"),
 ]
 
 
