@@ -915,6 +915,25 @@ PINS_CASES = [
 
 
 EXPORT_FORMAT = "lwt-gpio-export/1"
+BOOT_EXPORT_FORMAT = "lwt-boot-export/1"
+
+
+def export_boot(bname: str, text: str | None) -> tuple[dict | None, list[str]]:
+    """One board's boot.config as JSON for programs that are not LWT, so the
+    file keeps one parser. Refused (None, the reasons) on any boot.config
+    warning."""
+    why = boot_config_warnings(bname, text)
+    if why:
+        return None, why
+    vals: dict[str, str] = {}
+    for raw in (text or "").splitlines():
+        line = raw.split("#", 1)[0].strip()
+        if line:
+            key, _, val = line.partition("=")
+            vals[key] = val
+    return {"format": BOOT_EXPORT_FORMAT, "board": bname,
+            "spiNor": vals["SPI_NOR"],
+            "emmcBootPartitions": vals["EMMC_BOOT_PARTITIONS"]}, []
 
 
 def export_board(bname: str, rows: list[dict], rpi: str | None) -> tuple[dict | None, list[str]]:
@@ -1044,6 +1063,11 @@ def self_test() -> int:
     judge("export", "a footnoted name exports bare", [] if got == ["GPIOAO_8"] else [f"{got}"], None)
     for label, text, expect in BOOT_CONFIG_CASES:
         judge("boot.config", label, boot_config_warnings("case", text), expect)
+    doc, why = export_boot("case", "EMMC_BOOT_PARTITIONS=no\nSPI_NOR=yes # NOR\n")
+    judge("boot.config", "export carries both keys",
+          [] if doc and doc["spiNor"] == "yes" and doc["emmcBootPartitions"] == "no" else [f"{doc} {why}"], None)
+    doc, why = export_boot("case", "EMMC_BOOT_PARTITIONS=maybe\nSPI_NOR=yes\n")
+    judge("boot.config", "export refuses a file the check rejects", why if doc is None else [], "want one of")
 
     print(f"check-lwt --self-test: {total - failed}/{total} cases pass "
           f"(identity, formula, rpi-header, lgpio-bcm, overlay-pins, requires, "
@@ -1367,9 +1391,26 @@ def main() -> int:
         help=f"print libre-computer/BOARD/gpio.map as JSON ({EXPORT_FORMAT}); "
              "exit 1, printing nothing, when the checks reject the map",
     )
+    ap.add_argument(
+        "--export-boot",
+        metavar="BOARD",
+        default=None,
+        help=f"print libre-computer/BOARD/boot.config as JSON ({BOOT_EXPORT_FORMAT}); "
+             "exit 1, printing nothing, when the checks reject it",
+    )
     args = ap.parse_args()
     if args.self_test:
         return self_test()
+    if args.export_boot:
+        bpath = LC / args.export_boot / "boot.config"
+        doc, why = export_boot(args.export_boot,
+                               bpath.read_text() if bpath.is_file() else None)
+        if doc is None:
+            for w in why:
+                print(f"check-lwt --export-boot: {w}", file=sys.stderr)
+            return 1
+        print(json.dumps(doc, indent=1))
+        return 0
     if args.export:
         board = LC / args.export
         gpath = board / "gpio.map"
