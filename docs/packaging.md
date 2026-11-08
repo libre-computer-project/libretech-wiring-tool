@@ -53,9 +53,11 @@ only, so the bootloader sits at the vendor boot sector before the first
 partition; `unknown` means not shown and is treated as `no`. `SPI_NOR=yes`
 means the board has SPI NOR, which holds its bootloader; `no` means none is
 fitted; `unknown` means it varies by build or is not shown, and is treated as
-`no`. On a board where both read `no`, a tool that writes a whole OS image
-with no bootloader in it checks that the bootloader fits before the first
-partition and writes it there, or warns that the board will not boot.
+`no`. On a board with no SPI NOR, a tool that writes a whole OS image with no
+bootloader in it to an SD card, or to an eMMC whose boot partitions the BootROM
+does not boot, checks that the bootloader fits before the first partition and
+writes it there, or warns that the board will not boot. An SD card has no boot
+partitions, so there the bootloader is always in the user area.
 `make check` validates every board's file.
 
 The packages register `/usr/bin/lgpio` and `/usr/bin/ldto` with
