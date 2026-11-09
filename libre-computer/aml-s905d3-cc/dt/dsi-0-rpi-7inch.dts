@@ -23,6 +23,7 @@
 /dts-v1/;
 /plugin/;
 
+#include <dt-bindings/clock/g12a-clkc.h>
 #include <dt-bindings/gpio/gpio.h>
 
 / {
@@ -76,6 +77,27 @@
 		__overlay__ {
 			#address-cells = <1>;
 			#size-cells = <0>;
+
+			/*
+			 * GP0 at 1 GHz: the bit clock, and the encoder's 83.33 MHz
+			 * pixel clock (the panel mode's) through VCLK2. The base
+			 * gives GP0 no rate.
+			 */
+			assigned-clocks = <&clkc CLKID_GP0_PLL>,
+					  <&clkc CLKID_MIPI_DSI_PXCLK_SEL>,
+					  <&clkc CLKID_MIPI_DSI_PXCLK>,
+					  <&clkc CLKID_CTS_ENCL_SEL>,
+					  <&clkc CLKID_VCLK2_SEL>;
+			assigned-clock-parents = <0>,
+						 <&clkc CLKID_GP0_PLL>,
+						 <0>,
+						 <&clkc CLKID_VCLK2_DIV1>,
+						 <&clkc CLKID_GP0_PLL>;
+			assigned-clock-rates = <1000000000>,
+					       <0>,
+					       <1000000000>,
+					       <0>,
+					       <0>;
 
 			panel@0 {
 				compatible = "raspberrypi,dsi-7inch", "ilitek,ili9881c";
