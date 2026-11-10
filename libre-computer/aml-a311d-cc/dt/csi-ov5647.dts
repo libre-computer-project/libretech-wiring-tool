@@ -1,0 +1,78 @@
+// SPDX-License-Identifier: (GPL-2.0-or-later OR MIT)
+/*
+ * Copyright (C) 2026 Libre Computer, Inc.
+ */
+/*
+ * Summary: OV5647 camera (Raspberry Pi Camera v1) on the MIPI CSI connector
+ *
+ * Notes:
+ *   The base DT enables the analog D-PHY, the D-PHY with this connector's
+ *   lane order, the CSI-2 receiver, the capture bridge and the connector's
+ *   I2C bus (i2c3); this overlay adds the sensor and its link to the
+ *   receiver. No 40-pin header pin is claimed: PWDN (GPIOA_12, active low,
+ *   pin 17 with 8SW1 toward the board center) is a connector signal, and
+ *   pin 18 carries CSI clock B, so there is no camera-enable LED. The
+ *   module's 25 MHz oscillator is the sensor clock, so XCLK is a fixed
+ *   clock.
+ */
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/gpio/meson-g12a-gpio.h>
+#include <dt-bindings/gpio/gpio.h>
+
+/ {
+	compatible = "libre-computer,aml-a311d-cc",
+		"libretech,aml-a311d-cc",
+		"amlogic,a311d",
+		"amlogic,g12b";
+
+	fragment@0 {
+		target-path = "/";
+
+		__overlay__ {
+			cam_xclk: cam-xclk {
+				compatible = "fixed-clock";
+				#clock-cells = <0>;
+				clock-frequency = <25000000>;
+			};
+		};
+	};
+
+	/* OV5647 sensor on I2C3 */
+	fragment@1 {
+		target = <&i2c3>;
+
+		__overlay__ {
+			ov5647: camera@36 {
+				compatible = "ovti,ov5647";
+				reg = <0x36>;
+				clocks = <&cam_xclk>;
+				pwdn-gpios = <&gpio GPIOA_12 GPIO_ACTIVE_LOW>;
+
+				port {
+					ov5647_ep: endpoint {
+						remote-endpoint = <&csi_in>;
+						data-lanes = <1 2>;
+					};
+				};
+			};
+		};
+	};
+
+	/* Wire CSI-2 host input to OV5647 */
+	fragment@2 {
+		target = <&csi>;
+
+		__overlay__ {
+			ports {
+				port@0 {
+					csi_in: endpoint {
+						remote-endpoint = <&ov5647_ep>;
+						data-lanes = <1 2>;
+					};
+				};
+			};
+		};
+	};
+};
