@@ -20,28 +20,36 @@ AutoReqProv: no
 %description
 Libre Computer header GPIO lookup (lgpio) and device-tree overlays with the ldto tool.
 
-%package -n libretech-gpio
+%package -n libre-computer-gpio
 Summary: Libre Computer header GPIO lookup and control (lgpio)
+# renamed from libretech-gpio (package-naming policy rule 6.5): an upgrade replaces the old name
+Obsoletes: libretech-gpio < %{version}-%{release}
+Provides: libretech-gpio = %{version}-%{release}
 Requires: libgpiod-utils
 Requires(post): /usr/sbin/alternatives
 Requires(preun): /usr/sbin/alternatives
+Requires(posttrans): /usr/sbin/alternatives
 
-%description -n libretech-gpio
+%description -n libre-computer-gpio
 Translates 40-pin header pin numbers and BCM (RPi) GPIO numbers to chip/line, sysfs, pad, and schematic names for
 Libre Computer boards. Includes get/set helpers for interactive use (not a high-performance API).
 
 Board data lives under /opt/librecomputer/libretech-wiring-tool/libre-computer/.
 
-%package -n libretech-dtoverlay
+%package -n libre-computer-dtoverlay
 Summary: Libre Computer device-tree overlays and ldto tool
+# renamed from libretech-dtoverlay (package-naming policy rule 6.5)
+Obsoletes: libretech-dtoverlay < %{version}-%{release}
+Provides: libretech-dtoverlay = %{version}-%{release}
 Requires: dtc
-Requires: libretech-gpio = %{version}-%{release}
+Requires: libre-computer-gpio = %{version}-%{release}
 Recommends: i2c-tools
 Recommends: spi-tools
 Requires(post): /usr/sbin/alternatives
 Requires(preun): /usr/sbin/alternatives
+Requires(posttrans): /usr/sbin/alternatives
 
-%description -n libretech-dtoverlay
+%description -n libre-computer-dtoverlay
 Compiles and installs per-board device-tree overlays (.dtbo) for header buses and accessories (I2C, SPI, UART, PWM,
 displays, etc.), plus the ldto CLI to apply overlays at runtime (configfs) or merge them into the EFI/boot DTB for the
 next boot.
@@ -51,18 +59,26 @@ Board overlays and H40P_* alias maps live under /opt/librecomputer/libretech-wir
 %install
 cp -a %{lc_stage}/. %{buildroot}/
 
-%post -n libretech-gpio
+%post -n libre-computer-gpio
 /usr/sbin/alternatives --install /usr/bin/lgpio lgpio %{lc_prefix}/lgpio 50 || :
 
-%preun -n libretech-gpio
+%preun -n libre-computer-gpio
 if [ "$1" -eq 0 ]; then /usr/sbin/alternatives --remove lgpio %{lc_prefix}/lgpio || :; fi
 
-%post -n libretech-dtoverlay
+%post -n libre-computer-dtoverlay
 /usr/sbin/alternatives --install /usr/bin/ldto ldto %{lc_prefix}/ldto 50 || :
 
-%preun -n libretech-dtoverlay
+%preun -n libre-computer-dtoverlay
 if [ "$1" -eq 0 ]; then /usr/sbin/alternatives --remove ldto %{lc_prefix}/ldto || :; fi
 
-%files -n libretech-gpio -f %{lc_lists}/libretech-gpio.files
+# An upgrade from the old names runs the old package's %preun after the new one's %post, and that %preun
+# removes the same alternative (same path): register again once the transaction is over.
+%posttrans -n libre-computer-gpio
+/usr/sbin/alternatives --install /usr/bin/lgpio lgpio %{lc_prefix}/lgpio 50 || :
 
-%files -n libretech-dtoverlay -f %{lc_lists}/libretech-dtoverlay.files
+%posttrans -n libre-computer-dtoverlay
+/usr/sbin/alternatives --install /usr/bin/ldto ldto %{lc_prefix}/ldto 50 || :
+
+%files -n libre-computer-gpio -f %{lc_lists}/libre-computer-gpio.files
+
+%files -n libre-computer-dtoverlay -f %{lc_lists}/libre-computer-dtoverlay.files

@@ -8,7 +8,7 @@ chip/line, sysfs, SoC name, pad, schematic ref, and mux description.
 Interactive get/set/watch for debugging — not a high-performance API
 (lookup cost is non-trivial).
 
-Package: `libretech-gpio` (depends on `gpiod`).  
+Package: `libre-computer-gpio` (depends on `gpiod`).  
 Data: `libre-computer/<board>/gpio.map` (see [gpio-map.md](gpio-map.md)).
 
 ## Board detection

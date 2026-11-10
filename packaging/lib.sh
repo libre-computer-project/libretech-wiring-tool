@@ -8,7 +8,7 @@
 PKG_ROOT=$(dirname "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")")
 readonly PKG_ROOT
 readonly PREFIX_REL=opt/librecomputer/libretech-wiring-tool
-readonly PACKAGES=(libretech-gpio libretech-dtoverlay)
+readonly PACKAGES=(libre-computer-gpio libre-computer-dtoverlay)
 readonly BUILD_HOST=deb.libre.computer      # what a package header names, never the machine that built it
 
 log() { printf '%s: %s\n' "$(basename "$0")" "$*" >&2; }

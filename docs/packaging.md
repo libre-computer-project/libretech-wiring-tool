@@ -7,8 +7,8 @@ SPDX-License-Identifier: MIT
 
 | Package | Contents |
 |---------|----------|
-| **libretech-gpio** | `lgpio`, per-board `gpio.map` and `gpio.config`, `vendor/*/*/gpio_debug` (`lgpio debug`) |
-| **libretech-dtoverlay** | `ldto`, `scripts/overlay-deps.py`, `dt/*.dtbo` + their `dt/*.dts` sources, `dt.map`, `dt.deps`, `dt.config`, `boot.config` |
+| **libre-computer-gpio** | `lgpio`, per-board `gpio.map` and `gpio.config`, `vendor/*/*/gpio_debug` (`lgpio debug`) |
+| **libre-computer-dtoverlay** | `ldto`, `scripts/overlay-deps.py`, `dt/*.dtbo` + their `dt/*.dts` sources, `dt.map`, `dt.deps`, `dt.config`, `boot.config` |
 
 The `.dts` sources ship beside the `.dtbo`: `ldto list`, `info`, `conflicts`
 and the `enable` preflight read `Summary:`, `Pins:` and `Resource-*` from them.
@@ -21,8 +21,8 @@ Build: `./build.sh` (stamps a dated `debian/changelog` entry, then runs
 
 Depends:
 
-- `libretech-gpio` → `gpiod`  
-- `libretech-dtoverlay` → `device-tree-compiler`, `libretech-gpio` (ldto reads `gpio.map`)  
+- `libre-computer-gpio` → `gpiod`  
+- `libre-computer-dtoverlay` → `device-tree-compiler`, `libre-computer-gpio` (ldto reads `gpio.map`)  
 
 ## Install prefix
 
@@ -45,7 +45,7 @@ Default: `/opt/librecomputer/libretech-wiring-tool/`
   vendor/aml/gxl/gpio_debug
 ```
 
-`boot.config` (in `libretech-dtoverlay`) says what the board's BootROM boots
+`boot.config` (in `libre-computer-dtoverlay`) says what the board's BootROM boots
 from, for flashing tools; nothing in LWT itself reads it.
 `EMMC_BOOT_PARTITIONS=yes` means the bootloader can live in the eMMC `boot0` /
 `boot1` hardware partitions; `no` means the BootROM reads the eMMC user area

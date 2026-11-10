@@ -3,7 +3,7 @@
 # Built by build-arch.sh, which puts the staged tree in $startdir/root and the per-package file lists beside it, and
 # sets LC_VERSION; nothing is built here. Arch has no alternatives: each command is a plain /usr/bin link.
 pkgbase=libretech-wiring-tool
-pkgname=(libretech-gpio libretech-dtoverlay)
+pkgname=(libre-computer-gpio libre-computer-dtoverlay)
 pkgver=${LC_VERSION:?}
 pkgrel=1
 arch=(any)
@@ -20,19 +20,27 @@ _install_list() { # <list>: copy each listed path from the staged tree, links an
   done <"$startdir/$1"
 }
 
-package_libretech-gpio() {
+package_libre-computer-gpio() {
   pkgdesc='Libre Computer header GPIO lookup and control (lgpio)'
   depends=(libgpiod)
-  _install_list libretech-gpio.list
+  # renamed from libretech-gpio (package-naming policy rule 6.5)
+  provides=("libretech-gpio=$pkgver-$pkgrel")
+  conflicts=(libretech-gpio)
+  replaces=(libretech-gpio)
+  _install_list libre-computer-gpio.list
   mkdir -p "$pkgdir/usr/bin"
   ln -s "/$_prefix/lgpio" "$pkgdir/usr/bin/lgpio"
 }
 
-package_libretech-dtoverlay() {
+package_libre-computer-dtoverlay() {
   pkgdesc='Libre Computer device-tree overlays and ldto tool'
-  depends=(dtc "libretech-gpio=$pkgver-$pkgrel")
+  depends=(dtc "libre-computer-gpio=$pkgver-$pkgrel")
   optdepends=('i2c-tools: I2C bus tools for header I2C overlays')
-  _install_list libretech-dtoverlay.list
+  # renamed from libretech-dtoverlay (package-naming policy rule 6.5)
+  provides=("libretech-dtoverlay=$pkgver-$pkgrel")
+  conflicts=(libretech-dtoverlay)
+  replaces=(libretech-dtoverlay)
+  _install_list libre-computer-dtoverlay.list
   mkdir -p "$pkgdir/usr/bin"
   ln -s "/$_prefix/ldto" "$pkgdir/usr/bin/ldto"
 }

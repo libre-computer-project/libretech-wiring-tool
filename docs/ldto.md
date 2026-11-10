@@ -7,7 +7,7 @@ Apply Libre Computer device-tree overlays at runtime (configfs) or merge
 them into the EFI/boot DTB for the next boot. Resolves `dt.map` aliases
 and auto-applies providers from `dt.deps`.
 
-Package: `libretech-dtoverlay` (depends on `device-tree-compiler`).  
+Package: `libre-computer-dtoverlay` (depends on `device-tree-compiler`).  
 Data: `libre-computer/<board>/dt/*.dtbo`, `dt.map`, `dt.deps`, `dt.config`.
 
 ## Board detection

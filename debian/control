@@ -12,9 +12,11 @@ Standards-Version: 4.6.2
 Homepage: https://github.com/libre-computer-project/libretech-wiring-tool
 Rules-Requires-Root: no
 
-Package: libretech-gpio
+Package: libre-computer-gpio
 Architecture: all
 Depends: gpiod, ${misc:Depends}
+Breaks: libretech-gpio (<< ${binary:Version})
+Replaces: libretech-gpio (<< ${binary:Version})
 Description: Libre Computer header GPIO lookup and control (lgpio)
  Translates 40-pin header pin numbers and BCM (RPi) GPIO numbers to
  chip/line, sysfs, pad, and schematic names for Libre Computer boards.
@@ -22,13 +24,15 @@ Description: Libre Computer header GPIO lookup and control (lgpio)
  .
  Board data lives under /opt/librecomputer/libretech-wiring-tool/libre-computer/.
 
-Package: libretech-dtoverlay
+Package: libre-computer-dtoverlay
 Architecture: all
 Depends: device-tree-compiler,
-         libretech-gpio (= ${binary:Version}),
+         libre-computer-gpio (= ${binary:Version}),
          ${misc:Depends}
 Recommends: i2c-tools,
             spi-tools
+Breaks: libretech-dtoverlay (<< ${binary:Version})
+Replaces: libretech-dtoverlay (<< ${binary:Version})
 Description: Libre Computer device-tree overlays and ldto tool
  Compiles and installs per-board device-tree overlays (.dtbo) for header
  buses and accessories (I2C, SPI, UART, PWM, displays, etc.), plus the
@@ -37,3 +41,19 @@ Description: Libre Computer device-tree overlays and ldto tool
  .
  Board overlays and H40P_* alias maps live under
  /opt/librecomputer/libretech-wiring-tool/libre-computer/.
+
+Package: libretech-gpio
+Architecture: all
+Section: oldlibs
+Depends: libre-computer-gpio (= ${binary:Version}), ${misc:Depends}
+Description: transitional package for libre-computer-gpio
+ The Libre Computer GPIO tool (lgpio) is now libre-computer-gpio. This
+ package pulls it in and can be removed.
+
+Package: libretech-dtoverlay
+Architecture: all
+Section: oldlibs
+Depends: libre-computer-dtoverlay (= ${binary:Version}), ${misc:Depends}
+Description: transitional package for libre-computer-dtoverlay
+ The Libre Computer device-tree overlays and ldto are now
+ libre-computer-dtoverlay. This package pulls it in and can be removed.

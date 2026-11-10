@@ -29,3 +29,7 @@ debian/libretech-dtoverlay/
 /libretech-wiring-tool_*.changes
 /libretech-gpio_*.deb
 /libretech-dtoverlay_*.deb
+debian/libre-computer-gpio/
+debian/libre-computer-dtoverlay/
+/libre-computer-gpio_*.deb
+/libre-computer-dtoverlay_*.deb

@@ -1,6 +1,6 @@
 #!/bin/bash
 # SPDX-License-Identifier: GPL-2.0-only
-# build-arch.sh -- build libretech-gpio and libretech-dtoverlay for Arch / Arch Linux ARM (`any` packages), the same
+# build-arch.sh -- build libre-computer-gpio and libre-computer-dtoverlay for Arch / Arch Linux ARM (`any` packages), the same
 # files as the .deb.
 #
 #   build-arch.sh --src <exported source tree> --version YYYY.MM.DD [--out DIR]
@@ -34,7 +34,7 @@ stage_tree "$src" "$T"
 split_tree "$T"
 cp "$PKG_ROOT/packaging/arch/PKGBUILD" "$T/"
 mkdir -p "$out"
-log "building libretech-gpio, libretech-dtoverlay $version"
+log "building libre-computer-gpio, libre-computer-dtoverlay $version"
 (cd "$T" && LC_VERSION=$version BUILDDIR=$T/b PKGDEST=$T/pkg PKGEXT=.pkg.tar.zst SRCDEST=$T \
   PACKAGER='autobuild <autobuild@deb.libre.computer>' makepkg --nodeps --noconfirm --force >"$T/makepkg.log" 2>&1) ||
   { tail -20 "$T/makepkg.log" >&2; die "makepkg failed"; }

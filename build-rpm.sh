@@ -1,6 +1,6 @@
 #!/bin/bash
 # SPDX-License-Identifier: GPL-2.0-only
-# build-rpm.sh -- build libretech-gpio and libretech-dtoverlay for Fedora (noarch RPMs), the same files as the .deb.
+# build-rpm.sh -- build libre-computer-gpio and libre-computer-dtoverlay for Fedora (noarch RPMs), the same files as the .deb.
 #
 #   build-rpm.sh --src <exported source tree> --version YYYY.MM.DD [--release N] [--out DIR]
 #
@@ -49,7 +49,7 @@ done
 
 mkdir -p "$T/rpm/SPECS" "$out"
 cp "$PKG_ROOT/packaging/rpm/libretech-wiring-tool.spec" "$T/rpm/SPECS/"
-log "building libretech-gpio, libretech-dtoverlay $version"
+log "building libre-computer-gpio, libre-computer-dtoverlay $version"
 rpmbuild --define "_topdir $T/rpm" --define "_buildhost $BUILD_HOST" --define "lc_version $version" --define "lc_release $release" \
   --define "lc_stage $T/root" --define "lc_lists $T" -bb "$T/rpm/SPECS/libretech-wiring-tool.spec" \
   >"$T/rpmbuild.log" 2>&1 || { tail -20 "$T/rpmbuild.log" >&2; die "rpmbuild failed"; }

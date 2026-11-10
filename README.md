@@ -13,10 +13,10 @@ On a Libre Computer image (or any Debian system with the packages):
 
 ```bash
 # GPIO tool + gpio.map data
-sudo apt install libretech-gpio
+sudo apt install libre-computer-gpio
 
 # Overlay tool + .dtbo / dt.map / dt.deps
-sudo apt install libretech-dtoverlay
+sudo apt install libre-computer-dtoverlay
 ```
 
 From this tree:
