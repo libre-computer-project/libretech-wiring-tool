@@ -9,9 +9,19 @@
  * Pins (Header.Pin  Name  Pad  Ref — cross-ref gpio.map):
  *   J1.3    GPIO2_D1      R17     I2C0_SDA
  *   J1.5    GPIO2_D0      P17     I2C0_SCL
+ *
+ * Notes:
+ *   The board has no pull-ups on I2C0, and the SoC's i2c0_xfer group sets
+ *   none, so the overlay muxes SDA/SCL with the pads' internal pull-up. With
+ *   nothing attached the bus then idles high and NACKs; without it an empty
+ *   bus false-ACKs every address and a read times out. A device that carries
+ *   its own pull-ups is unaffected; at 400 kHz or on a long cable, add
+ *   external pull-ups.
  */
 /dts-v1/;
 /plugin/;
+
+#include <dt-bindings/pinctrl/rockchip.h>
 
 / {
 	compatible = "libre-computer,roc-rk3328-cc",
@@ -22,8 +32,23 @@
 		"rockchip,rk3328";
 
 	fragment@0 {
+		target = <&pinctrl>;
+		__overlay__ {
+			i2c0-pull-up {
+				i2c0_xfer_pull_up: i2c0-xfer-pull-up {
+					rockchip,pins =
+						<2 RK_PD0 1 &pcfg_pull_up>,
+						<2 RK_PD1 1 &pcfg_pull_up>;
+				};
+			};
+		};
+	};
+
+	fragment@1 {
 		target = <&i2c0>;
 		__overlay__ {
+			pinctrl-names = "default";
+			pinctrl-0 = <&i2c0_xfer_pull_up>;
 			status = "okay";
 		};
 	};
