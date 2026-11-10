@@ -22,7 +22,6 @@
 / {
 	compatible = "libre-computer,med-mt83-ace",
 		     "libretech,med-mt83-ace",
-		     "librecomputer,med-mt83-ace",
 		     "mediatek,mt8183";
 
 	fragment@0 {
