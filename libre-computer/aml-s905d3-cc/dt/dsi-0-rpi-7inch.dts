@@ -8,10 +8,13 @@
  * Requires: dsi-0
  *
  * Resource-requires: bus:mipi_dsi
- * Resource-provides: i2c:i2c3@0x45, label:backlight
+ * Resource-provides: i2c:i2c3@0x45, i2c:i2c3@0x5d, label:backlight
  *
  * Notes:
  *   The panel MCU at I2C 0x45 owns reset and the backlight PWM.
+ *   Touch is a Goodix GT911 at I2C 0x5d. Its reset is the MCU's
+ *   second GPIO (high releases it); the connector carries no touch
+ *   interrupt, so the driver polls.
  *   Connector I2C is I2C_M3 (i2c3, GPIOA_14/15), pins 20 and 21.
  *   Power is the board VCC_3V3 on pins 22 and 23.
  *   Lane count is the raspberrypi,dsi-7inch driver descriptor (2).
@@ -53,6 +56,12 @@
 				gpio-controller;
 				#gpio-cells = <2>;
 				#pwm-cells = <3>;
+			};
+
+			touchscreen@5d {
+				compatible = "goodix,gt911";
+				reg = <0x5d>;
+				reset-gpios = <&display_mcu 1 GPIO_ACTIVE_HIGH>;
 			};
 		};
 	};
