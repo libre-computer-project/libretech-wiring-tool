@@ -17,6 +17,7 @@ Architecture: all
 Depends: gpiod, ${misc:Depends}
 Breaks: libretech-gpio (<< ${binary:Version})
 Replaces: libretech-gpio (<< ${binary:Version})
+Provides: libretech-gpio (= ${binary:Version})
 Description: Libre Computer header GPIO lookup and control (lgpio)
  Translates 40-pin header pin numbers and BCM (RPi) GPIO numbers to
  chip/line, sysfs, pad, and schematic names for Libre Computer boards.
@@ -33,6 +34,7 @@ Recommends: i2c-tools,
             spi-tools
 Breaks: libretech-dtoverlay (<< ${binary:Version})
 Replaces: libretech-dtoverlay (<< ${binary:Version})
+Provides: libretech-dtoverlay (= ${binary:Version})
 Description: Libre Computer device-tree overlays and ldto tool
  Compiles and installs per-board device-tree overlays (.dtbo) for header
  buses and accessories (I2C, SPI, UART, PWM, displays, etc.), plus the

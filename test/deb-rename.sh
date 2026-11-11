@@ -31,6 +31,10 @@ deb() { find "$debs" -maxdepth 1 -name "$1_*_all.deb" -print -quit; }
 for p in libre-computer-gpio libre-computer-dtoverlay libretech-gpio libretech-dtoverlay; do
 	[[ -n "$(deb "$p")" ]] || { echo "no $p .deb in $debs" >&2; exit 1; }
 done
+# a package that Depends on an old name keeps it satisfied once the transitional package is gone (rule 6.5)
+for p in gpio dtoverlay; do
+	check "P: libre-computer-$p Provides libretech-$p at its own version" bash -c "[[ \$(dpkg-deb -f '$(deb libre-computer-$p)' Provides) == *'libretech-$p (= '\$(dpkg-deb -f '$(deb libre-computer-$p)' Version)')'* ]]"
+done
 setup() {
 	cp --reflink=auto "$img" "$W/t.img"
 	loop=$(losetup -fP --show "$W/t.img")
