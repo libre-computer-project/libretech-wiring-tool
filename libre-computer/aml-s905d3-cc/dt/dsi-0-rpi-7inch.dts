@@ -22,6 +22,8 @@
  *   The base DTB enables i2c3 and muxes its pins, so fragment@0
  *   only adds the panel's devices and composes with any other
  *   overlay on the same connector bus (the camera's sensor).
+ *   The base DTB also enables the DSI host; dsi-0 stays a dependency
+ *   for a base DTB that does not.
  */
 /dts-v1/;
 /plugin/;
@@ -79,7 +81,9 @@
 			/*
 			 * GP0 at 1 GHz: the bit clock, and the encoder's 83.33 MHz
 			 * pixel clock (the panel mode's) through VCLK2. The base
-			 * gives GP0 no rate.
+			 * gives GP0 no rate. A kernel that enables GP0 when the
+			 * DSI host probes needs one here; a kernel that enables
+			 * it in phy_init sets the same rates from the mode.
 			 */
 			assigned-clocks = <&clkc CLKID_GP0_PLL>,
 					  <&clkc CLKID_MIPI_DSI_PXCLK_SEL>,
