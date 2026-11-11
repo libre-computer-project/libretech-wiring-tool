@@ -3,9 +3,9 @@
 # H40P / product alias map: KEY<TAB><overlay-basename>
 # Values MUST name a real .dts/.dtbo under this board's dt/ (canonical name,
 # not a same-dir legacy alias). Consumed by ldto (MAP_ALIAS_DT).
-# v01 stub tree (opp + spifc only); header accessories use aml-a311d-cc map/overlays
-# No H40P slot is served here: enable cpu-b-opp-2304 / cpu-l-opp-2208 /
-# spifc-nor by their overlay names.
+# The V01 header differs from the V1 header (pins 3/5, 8/10, 13, 27/28, 32,
+# 33, 36), so only this dt/ applies to a V01 board, never the V1 overlays.
+# Enable cpu-b-opp-2304 / cpu-l-opp-2208 / spifc-nor by their overlay names.
 
 # Header pins 27/28 are I2C_M3, also the CSI and DSI connector I2C.
 H40P_I2C_1	i2c-3
