@@ -294,7 +294,14 @@ REUSE ?= reuse
 reuse-lint:
 	$(REUSE) lint
 
+# The SBOM describes the committed tree: reuse runs on an export of HEAD, so
+# untracked files and uncommitted edits in the working tree never enter it.
 sbom:
-	$(REUSE) spdx -o sbom.spdx
-	@echo "Wrote sbom.spdx (SPDX SBOM). Re-run after license changes."
+	@set -e; tmp=$$(mktemp -d "$$HOME/local/build/lwt-sbom-XXXXXX"); \
+	trap 'rm -rf "$$tmp"' EXIT; \
+	git archive HEAD | tar -x -C "$$tmp"; \
+	rm -f "$$tmp/sbom.spdx"; \
+	(cd "$$tmp" && $(REUSE) spdx -o sbom.spdx); \
+	cp "$$tmp/sbom.spdx" sbom.spdx
+	@echo "Wrote sbom.spdx (SPDX SBOM of HEAD). Re-run after license changes."
 
