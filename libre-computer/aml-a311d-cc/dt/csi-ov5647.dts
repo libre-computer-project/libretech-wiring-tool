@@ -5,7 +5,14 @@
 /*
  * Summary: OV5647 camera (Raspberry Pi Camera v1) on the MIPI CSI connector
  *
+ * Resource-provides: excl:csi.8sw1, i2c:i2c3@0x36
+ *
  * Notes:
+ *   Needs the slide switch 8SW1 at 1+3 (pin 17 = GPIOA_12); the board
+ *   ships at 1+2 (pin 17 = CSI clock B, for two 2-lane cameras). Software
+ *   cannot read the switch: at 1+2 the sensor's power enable is not
+ *   driven and it does not answer at I2C 0x36. excl:csi.8sw1 keeps this
+ *   overlay from being combined with one that needs the other position.
  *   The base DT enables the analog D-PHY, the D-PHY with this connector's
  *   lane order, the CSI-2 receiver, the capture bridge and the connector's
  *   I2C bus (i2c3); this overlay adds the sensor and its link to the

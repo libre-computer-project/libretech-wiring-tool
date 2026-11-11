@@ -5,15 +5,19 @@
 /*
  * Summary: OV5647 camera (Raspberry Pi Camera v1) on the MIPI CSI connector
  *
+ * Resource-provides: excl:csi.8sw1, i2c:i2c3@0x36
+ *
  * Notes:
+ *   Needs the slide switch 8SW1 at 1+3, the only position for this board:
+ *   at 1+2 pin 17 joins ball W46, which this BOM wires to HDMI HPD through
+ *   8R6 / 8C5. Software cannot read the switch; at 1+2 the sensor's power
+ *   enable is not driven and it does not answer at I2C 0x36.
  *   The base DT enables the CSI-2 receiver, the D-PHY with this connector's
  *   lane order, the capture bridge and the connector's I2C bus (i2c3); this
  *   overlay adds the sensor and its link to the receiver. No 40-pin header
  *   pin is claimed: PWDN (GPIOA_12, active low) and the camera-enable LED
- *   (GPIOAO_10) are connector signals, pins 17 and 18. Pin 17 carries
- *   GPIOA_12 with the slide switch 8SW1 at 1+3, the S905D3 position.
- *   The module's 25 MHz oscillator is the sensor clock, so XCLK is a
- *   fixed clock.
+ *   (GPIOAO_10) are connector signals, pins 17 and 18. The module's
+ *   25 MHz oscillator is the sensor clock, so XCLK is a fixed clock.
  */
 /dts-v1/;
 /plugin/;
