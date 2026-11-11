@@ -19,9 +19,9 @@
  *   Power is the board VCC_3V3 on pins 22 and 23.
  *   Lane count is the raspberrypi,dsi-7inch driver descriptor (2).
  *   Pins 17 and 18 are not claimed.
- *   The Solitude base DTB already enables i2c3, so this fragment
- *   does not. Setting status here would make the overlay the I2C3
- *   bus provider and pull this panel in behind the camera overlay.
+ *   The base DTB enables i2c3 and muxes its pins, so fragment@0
+ *   only adds the panel's devices and composes with any other
+ *   overlay on the same connector bus (the camera's sensor).
  */
 /dts-v1/;
 /plugin/;
@@ -39,9 +39,6 @@
 		target = <&i2c3>;
 
 		__overlay__ {
-			pinctrl-0 = <&i2c3_sda_a_pins>, <&i2c3_sck_a_pins>;
-			pinctrl-names = "default";
-
 			display_mcu: regulator@45 {
 				compatible = "raspberrypi,touchscreen-panel-regulator-v2";
 				reg = <0x45>;
