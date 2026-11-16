@@ -21,10 +21,14 @@
  *   overlay on the same connector bus (the camera's sensor).
  *   The V01 boards have their own copy (their DSI pins 17/18 and
  *   header I2C differ), and the AML-S905D3-CC has its own copy.
+ *   The panel's pixel clock needs VCLK2 on GP0. The base DTB leaves
+ *   VCLK2 on vid_pll for CVBS, so fragment@2 sets the parent; CVBS
+ *   then has no clock while the panel is attached.
  */
 /dts-v1/;
 /plugin/;
 
+#include <dt-bindings/clock/g12a-clkc.h>
 #include <dt-bindings/gpio/gpio.h>
 
 / {
@@ -67,6 +71,12 @@
 		__overlay__ {
 			#address-cells = <1>;
 			#size-cells = <0>;
+			assigned-clocks = <&clkc CLKID_MIPI_DSI_PXCLK_SEL>,
+					  <&clkc CLKID_CTS_ENCL_SEL>,
+					  <&clkc CLKID_VCLK2_SEL>;
+			assigned-clock-parents = <&clkc CLKID_GP0_PLL>,
+						 <&clkc CLKID_VCLK2_DIV1>,
+						 <&clkc CLKID_GP0_PLL>;
 
 			panel@0 {
 				compatible = "raspberrypi,dsi-7inch", "ilitek,ili9881c";
