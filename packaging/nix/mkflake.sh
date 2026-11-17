@@ -6,8 +6,8 @@
 #   packaging/nix/mkflake.sh --commit <sha> --version YYYY.MM.DD --out DIR [--repo PATH]
 #
 # Writes, under DIR:
-#   flake/                          this directory's flake.nix, flake.lock and package.nix, the commit's tree at
-#                                   src/ (git archive: an untracked file never reaches it) and version.nix
+#   flake/                          this directory's flake.nix, flake.lock and package.nix, the commit's tree as
+#                                   src.tar (git archive: an untracked file never reaches it) and version.nix
 #   libretech-wiring-tool.tar.gz    flake/ under one top directory (Nix's tarball flakes), to publish
 # The source is open and travels inside the flake, so a host evaluates the derivation the builders built and takes
 # its output from the cache. --version is the release's date, the same as build-rpm.sh / build-arch.sh take. Runs
@@ -32,11 +32,13 @@ repo=${repo:-$(cd "$here/../.." && pwd)}
 commit=$(git -C "$repo" rev-parse --verify "$commit^{commit}") || die "no commit $commit"
 mkdir -p "$out"
 rm -rf "$out/flake" "$out/libretech-wiring-tool.tar.gz"
-mkdir -p "$out/flake/src"
+mkdir -p "$out/flake"
 for f in flake.nix flake.lock package.nix; do
   git -C "$repo" show "$commit:packaging/nix/$f" >"$out/flake/$f" || die "$commit has no packaging/nix/$f"
 done
-git -C "$repo" archive --format=tar "$commit" | tar -x -C "$out/flake/src"
+# the tree as one plain tar member: it has links (board aliases), and the signing box's nix-publish takes only plain
+# files and directories in a flake tarball (it reads every file's bytes, so a tar is still scanned)
+git -C "$repo" archive --format=tar --prefix=src/ "$commit" >"$out/flake/src.tar"
 printf '"%s"\n' "$version" >"$out/flake/version.nix"
 tar -C "$out" --transform="s|^flake|libretech-wiring-tool-$version|" --owner=0 --group=0 --numeric-owner \
   --mtime=@0 --sort=name -czf "$out/libretech-wiring-tool.tar.gz" flake
