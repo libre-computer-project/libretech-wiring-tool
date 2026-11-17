@@ -21,6 +21,7 @@ path = [
     "debian/copyright",
     "REUSE.toml",
     "sbom.spdx",
+    "packaging/nix/flake.lock",
 ]
 precedence = "aggregate"
 SPDX-FileCopyrightText = "2021-2026 Libre Computer Project contributors"
@@ -35,7 +36,13 @@ path = [
     "README.md",
     "docs/*.md",
     "build.sh",
+    "build-arch.sh",
+    "build-rpm.sh",
     "install.sh",
+    "packaging/arch/PKGBUILD",
+    "packaging/lib.sh",
+    "packaging/rpm/libretech-wiring-tool.spec",
+    "test/deb-rename.sh",
     "include/update.sh",
     "debian/control",
     "debian/rules",
