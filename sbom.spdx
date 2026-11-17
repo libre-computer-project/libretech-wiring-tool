@@ -1,18 +1,18 @@
 SPDXVersion: SPDX-2.1
 DataLicense: CC0-1.0
 SPDXID: SPDXRef-DOCUMENT
-DocumentName: lwt-sbom-2xXdIn
-DocumentNamespace: http://spdx.org/spdxdocs/spdx-v2.1-93fbaa5a-9fb4-4911-aff9-9ad9ba7d61ab
+DocumentName: lwt-sbom-4U6aT1
+DocumentNamespace: http://spdx.org/spdxdocs/spdx-v2.1-d10d5908-df25-4f6d-aba3-091fcdf164c0
 Creator: Person: Anonymous ()
 Creator: Organization: Anonymous ()
 Creator: Tool: reuse-6.3.0
-Created: 2026-11-17T05:33:17Z
+Created: 2026-11-17T05:55:26Z
 CreatorComment: <text>This document was created automatically using available reuse information consistent with REUSE.</text>
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-881f63b021a3ba9e8240b7327830e6ad
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-d938d438979f6a1140109c5ba23a42f8
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-fd1a7d9e877dd3d8a3c2f48f85ec95ee
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-13f03d299671d5be496e9102c0e16029
-Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-646b17ca756ae5f69b739a08b7daeb6d
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-a4bbc556124e28af409c733173975bbe
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-e7be297892c519dd6793875a808e97c6
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-7bc4847fe488181c6b829083d5701042
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-28ef10e59318f8f3b9da718bccbf262b
@@ -351,6 +351,10 @@ Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-303eeddcc7dc66e353321649e80be07
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-2d883f43e38e42d7188b5ad0df16e326
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-9e624671ec39ea80dfa319228beffa07
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-1789afe23f71d1ecb02b395c47d893b1
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-b3a41e1198c83a7b31a12ddba1251acb
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-ff71a7ad07c381b2d3d7c690b2c479f4
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-0c4e86fe51f16e560d2bd8d609e8ab1b
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-44aa7eaa1d4c996e57b5ef5897feebdc
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-397f7c8c4cf2cf43c4d5fa410ceaf384
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-faa0b9895e7abcaec73354f5d5592b4c
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-83edd56a4dcb5585ccec05c5baf8ac71
@@ -400,14 +404,14 @@ SPDXID: SPDXRef-13f03d299671d5be496e9102c0e16029
 FileChecksum: SHA1: 9ede0fa598cfd2df0ab04bf5baf30f9231351e45
 LicenseConcluded: NOASSERTION
 LicenseInfoInFile: GPL-2.0-only
-FileCopyrightText: NONE
+FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
 
 FileName: ./build-rpm.sh
-SPDXID: SPDXRef-646b17ca756ae5f69b739a08b7daeb6d
-FileChecksum: SHA1: cfac7c30f9449da4a1626e5be2029aaa701a473a
+SPDXID: SPDXRef-a4bbc556124e28af409c733173975bbe
+FileChecksum: SHA1: fd01c9c116d61507c3b87f04a8e10966dc149669
 LicenseConcluded: NOASSERTION
 LicenseInfoInFile: GPL-2.0-only
-FileCopyrightText: NONE
+FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
 
 FileName: ./build.sh
 SPDXID: SPDXRef-e7be297892c519dd6793875a808e97c6
@@ -3071,21 +3075,49 @@ SPDXID: SPDXRef-9e624671ec39ea80dfa319228beffa07
 FileChecksum: SHA1: a82d935266c786d90052f4f36fcbaa7737e6de3d
 LicenseConcluded: NOASSERTION
 LicenseInfoInFile: GPL-2.0-only
-FileCopyrightText: NONE
+FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
 
 FileName: ./packaging/lib.sh
 SPDXID: SPDXRef-1789afe23f71d1ecb02b395c47d893b1
 FileChecksum: SHA1: 1d22db9fca4296faee32e137c6a880c3e9125067
 LicenseConcluded: NOASSERTION
 LicenseInfoInFile: GPL-2.0-only
-FileCopyrightText: NONE
+FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
+
+FileName: ./packaging/nix/flake.lock
+SPDXID: SPDXRef-b3a41e1198c83a7b31a12ddba1251acb
+FileChecksum: SHA1: a892364f6a8f96cfbd5ae71ad7cb7cef2271295f
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: CC0-1.0
+FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
+
+FileName: ./packaging/nix/flake.nix
+SPDXID: SPDXRef-ff71a7ad07c381b2d3d7c690b2c479f4
+FileChecksum: SHA1: a8e865d3ab2c3f6a2aa1d4f95af3add814941aec
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-only
+FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
+
+FileName: ./packaging/nix/mkflake.sh
+SPDXID: SPDXRef-0c4e86fe51f16e560d2bd8d609e8ab1b
+FileChecksum: SHA1: 4ea38934fbdef526147ae037b9282ab0a8e21444
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-only
+FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
+
+FileName: ./packaging/nix/package.nix
+SPDXID: SPDXRef-44aa7eaa1d4c996e57b5ef5897feebdc
+FileChecksum: SHA1: 71e79ce623bfdccacafc2f6d290e6e255fdf8664
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-only
+FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
 
 FileName: ./packaging/rpm/libretech-wiring-tool.spec
 SPDXID: SPDXRef-397f7c8c4cf2cf43c4d5fa410ceaf384
 FileChecksum: SHA1: d7e4a177cfb45dd09895fb71060c032c55e2d5fe
 LicenseConcluded: NOASSERTION
 LicenseInfoInFile: GPL-2.0-only
-FileCopyrightText: NONE
+FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
 
 FileName: ./scripts/annotate-resources.py
 SPDXID: SPDXRef-faa0b9895e7abcaec73354f5d5592b4c
@@ -3155,7 +3187,7 @@ SPDXID: SPDXRef-003458e260a700af79caa0e11e5ea0a4
 FileChecksum: SHA1: bf7b644b7bd1d357f018cd8d169cb0b2d7050501
 LicenseConcluded: NOASSERTION
 LicenseInfoInFile: GPL-2.0-only
-FileCopyrightText: NONE
+FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
 
 FileName: ./test/dt_map_check.sh
 SPDXID: SPDXRef-b6fb5aeb74c5520da00d9b93f32fbe6d
