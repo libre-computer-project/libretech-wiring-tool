@@ -164,8 +164,12 @@ deps: $(DEPS_FILES)
 # The .dts files must be prerequisites for that to hold: with only the script
 # listed, a new Resource-requires/-provides token never reached dt.deps.
 # Secondary expansion lets the pattern stem name the board's dt/ directory.
+# X.pre.dts is filtered out: the .dtbo rule's transient preprocessor output, in
+# the same directory while X compiles. Under make -j the wildcard caught one and
+# the compile deleted it before dt.deps was considered ("No rule to make target
+# '.../spi-0-1cs-spidev.pre.dts', needed by '.../dt.deps'").
 .SECONDEXPANSION:
-libre-computer/%/dt.deps: scripts/overlay-deps.py $$(wildcard libre-computer/$$*/dt/*.dts)
+libre-computer/%/dt.deps: scripts/overlay-deps.py $$(filter-out %.pre.dts,$$(wildcard libre-computer/$$*/dt/*.dts))
 	@dt=libre-computer/$*/dt; 	if [ -L "$$dt" ]; then dt=$$(readlink -f "$$dt"); fi; 	python3 scripts/overlay-deps.py "$$dt" -o $@
 
 ifneq ($(strip $(DTOS_SYM)),)

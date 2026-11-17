@@ -294,6 +294,10 @@ def resolve_board(dt_dir: Path) -> dict[str, list[str]]:
     entries: list[dict] = []  # name, provides, requires, is_alias
 
     for dts in sorted(dt_dir.glob("*.dts")):
+        # X.pre.dts is the Makefile's transient preprocessor output of X.dts, there only while X.dtbo compiles
+        # (a parallel make runs that beside this): never an overlay
+        if dts.name.endswith(".pre.dts"):
+            continue
         name = dts.stem
         real = Path(os.path.realpath(dts))
         body = read_text(real)
