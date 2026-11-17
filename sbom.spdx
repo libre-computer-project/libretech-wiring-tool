@@ -1,35 +1,35 @@
 SPDXVersion: SPDX-2.1
 DataLicense: CC0-1.0
 SPDXID: SPDXRef-DOCUMENT
-DocumentName: lwt-sbom-q47nAD
-DocumentNamespace: http://spdx.org/spdxdocs/spdx-v2.1-c04219d8-9618-4988-8eca-a13ea2395845
+DocumentName: lwt-sbom-2xXdIn
+DocumentNamespace: http://spdx.org/spdxdocs/spdx-v2.1-93fbaa5a-9fb4-4911-aff9-9ad9ba7d61ab
 Creator: Person: Anonymous ()
 Creator: Organization: Anonymous ()
 Creator: Tool: reuse-6.3.0
-Created: 2026-11-11T19:07:48Z
+Created: 2026-11-17T05:33:17Z
 CreatorComment: <text>This document was created automatically using available reuse information consistent with REUSE.</text>
-Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-397fcd2bc2f5330d9713af53a7ff5b46
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-881f63b021a3ba9e8240b7327830e6ad
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-d938d438979f6a1140109c5ba23a42f8
-Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-a5ed0c9409baa08733385ee3e37353b0
-Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-ffeae80977b748270ecfb8c5e4e099c5
-Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-b4a4b572f7b2c48f964819363fc4e06a
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-fd1a7d9e877dd3d8a3c2f48f85ec95ee
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-13f03d299671d5be496e9102c0e16029
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-646b17ca756ae5f69b739a08b7daeb6d
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-e7be297892c519dd6793875a808e97c6
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-7bc4847fe488181c6b829083d5701042
-Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-46b84e0d80a2e2850d7702710014e911
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-28ef10e59318f8f3b9da718bccbf262b
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-77ce931d16e5c6901c99faa1994586df
-Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-f5d036d4e0844bda9356ac5ea0bc8690
-Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-e6f6bfeab975ffc277f04eb9f1bd3995
-Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-44db1deadbd2912c493646ab63985061
-Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-517212c3ab35d7bb465b56f77ff54131
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-324d209acf280aad60e6d013846bb252
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-aaeef9095447bacf344bf6c5949841ea
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-25451658a9209b3c10698b507f756b5f
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-672828f0e7fdf2ee374f5b31099e716f
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-e295eb870b40bf0e94f7e686a23a3bc9
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-78a8e0109054034145089b29ef85db67
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-6578bf01612a2b47c6b2706fe60ad859
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-e55090ea0ccb2d2432c91ffb3926480b
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-037a88f7e3877c00d7c0c44ab62d2cdc
-Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-739c06795248f4c5ebc296e26b82b016
-Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-1e931dd50b9a17c55f32eefe00c2e133
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-9c0754c893a902f6b3a74ca45096c4b5
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-91abbf9083e1072c094a0ee3924df946
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-20a97a096097414fe8865612645b9fc2
-Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-8d551fb0d94117e37878e6e22d27c7eb
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-8723328dfca5242a9c93d9cc5c0a679f
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-c02d1b0d1506d64a21f176664b3cbffc
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-cc6f216aaad3c57f49fd56dd510f781d
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-520a1a69133738513d4c58b48a304c48
@@ -101,7 +101,7 @@ Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-2ddea1a02f5bd22978713aa4178c3b9
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-ab31788ed5ef9ad869970ed65599afdb
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-dd5c6859246772435e827eefec52e421
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-92c054585825bc24a912a362642e735b
-Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-c80b8364d758b2d44af06222e0e74714
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-c2507b1b3f9337df1781d532e9342cf9
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-0442ee41f5a5e3933639c6e15bd353be
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-30b3dfe8b0fb247b4a41b93db08dd266
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-682ecd4a87b43357848277347771fb78
@@ -349,9 +349,9 @@ Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-aa17c4fab38021147ed7876a184d776
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-186d40915114d0b089d3260a186033b3
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-303eeddcc7dc66e353321649e80be072
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-2d883f43e38e42d7188b5ad0df16e326
-Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-943448cb70ad9f8e46d3e11340762188
-Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-13bc3f9dd93f6e16b0a5b5adc2e6fdb6
-Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-c64ccf8fd5ad23382b6d100cde37847c
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-9e624671ec39ea80dfa319228beffa07
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-1789afe23f71d1ecb02b395c47d893b1
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-397f7c8c4cf2cf43c4d5fa410ceaf384
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-faa0b9895e7abcaec73354f5d5592b4c
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-83edd56a4dcb5585ccec05c5baf8ac71
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-1838250348099fd225ef958c82d0cb52
@@ -361,6 +361,7 @@ Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-5063647fd495e8da818a42f4dec995c
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-ab53e68aa1cf8f84968b4d5d2edd9876
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-9bddc0797682261fdac07e090a24f22f
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-c8c4f1df13252b845d64b0be4637c11d
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-003458e260a700af79caa0e11e5ea0a4
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-b6fb5aeb74c5520da00d9b93f32fbe6d
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-58e6529128e17d40504981844edc933f
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-9d5014eb3c52ea7218227cc0f65bf0c5
@@ -374,8 +375,8 @@ Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-5c79d864e8117596a60f802d162056c
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-22bcc25e49391e82c75eaca82196546b
 
 FileName: ./.gitignore
-SPDXID: SPDXRef-397fcd2bc2f5330d9713af53a7ff5b46
-FileChecksum: SHA1: 9387733a0f4eb3e9b6014499a20a851139ca08f1
+SPDXID: SPDXRef-881f63b021a3ba9e8240b7327830e6ad
+FileChecksum: SHA1: f21af2f3111f23d389dc5f245b6c64f47dcc8cd2
 LicenseConcluded: NOASSERTION
 LicenseInfoInFile: GPL-2.0-only
 FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
@@ -388,22 +389,22 @@ LicenseInfoInFile: GPL-2.0-only
 FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
 
 FileName: ./README.md
-SPDXID: SPDXRef-a5ed0c9409baa08733385ee3e37353b0
-FileChecksum: SHA1: 191c9ea55826462b712e8a05309b8dfb2bc066d1
+SPDXID: SPDXRef-fd1a7d9e877dd3d8a3c2f48f85ec95ee
+FileChecksum: SHA1: b620eb644596d728b97297294403fbdb564b59e8
 LicenseConcluded: NOASSERTION
 LicenseInfoInFile: MIT
 FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
 
 FileName: ./build-arch.sh
-SPDXID: SPDXRef-ffeae80977b748270ecfb8c5e4e099c5
-FileChecksum: SHA1: 1408840f8d077d37d0226295943f033fc70e5ae3
+SPDXID: SPDXRef-13f03d299671d5be496e9102c0e16029
+FileChecksum: SHA1: 9ede0fa598cfd2df0ab04bf5baf30f9231351e45
 LicenseConcluded: NOASSERTION
 LicenseInfoInFile: GPL-2.0-only
 FileCopyrightText: NONE
 
 FileName: ./build-rpm.sh
-SPDXID: SPDXRef-b4a4b572f7b2c48f964819363fc4e06a
-FileChecksum: SHA1: d21c0ac420a8f7868d9e30164609198e1782e7e0
+SPDXID: SPDXRef-646b17ca756ae5f69b739a08b7daeb6d
+FileChecksum: SHA1: cfac7c30f9449da4a1626e5be2029aaa701a473a
 LicenseConcluded: NOASSERTION
 LicenseInfoInFile: GPL-2.0-only
 FileCopyrightText: NONE
@@ -423,8 +424,8 @@ LicenseInfoInFile: GPL-2.0-only
 FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
 
 FileName: ./debian/control
-SPDXID: SPDXRef-46b84e0d80a2e2850d7702710014e911
-FileChecksum: SHA1: 58401ee2b354233e2b050b07711702ea60ba55b7
+SPDXID: SPDXRef-28ef10e59318f8f3b9da718bccbf262b
+FileChecksum: SHA1: 871ebfa54df8b42450f534d2a66896fd9916b4b8
 LicenseConcluded: NOASSERTION
 LicenseInfoInFile: GPL-2.0-only
 FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
@@ -436,29 +437,29 @@ LicenseConcluded: NOASSERTION
 LicenseInfoInFile: CC0-1.0
 FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
 
-FileName: ./debian/libretech-dtoverlay.alternatives
-SPDXID: SPDXRef-f5d036d4e0844bda9356ac5ea0bc8690
+FileName: ./debian/libre-computer-dtoverlay.alternatives
+SPDXID: SPDXRef-324d209acf280aad60e6d013846bb252
 FileChecksum: SHA1: 42b6d482356deff3c0ea1b8531b79b95bf512e9e
 LicenseConcluded: NOASSERTION
 LicenseInfoInFile: GPL-2.0-only
 FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
 
-FileName: ./debian/libretech-dtoverlay.install
-SPDXID: SPDXRef-e6f6bfeab975ffc277f04eb9f1bd3995
+FileName: ./debian/libre-computer-dtoverlay.install
+SPDXID: SPDXRef-aaeef9095447bacf344bf6c5949841ea
 FileChecksum: SHA1: f7ebec0d7d0695b05729e00d431820c164f5fdfe
 LicenseConcluded: NOASSERTION
 LicenseInfoInFile: GPL-2.0-only
 FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
 
-FileName: ./debian/libretech-gpio.alternatives
-SPDXID: SPDXRef-44db1deadbd2912c493646ab63985061
+FileName: ./debian/libre-computer-gpio.alternatives
+SPDXID: SPDXRef-25451658a9209b3c10698b507f756b5f
 FileChecksum: SHA1: 679463ae474075b5fc22e2d06d40bb31b6365e26
 LicenseConcluded: NOASSERTION
 LicenseInfoInFile: GPL-2.0-only
 FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
 
-FileName: ./debian/libretech-gpio.install
-SPDXID: SPDXRef-517212c3ab35d7bb465b56f77ff54131
+FileName: ./debian/libre-computer-gpio.install
+SPDXID: SPDXRef-672828f0e7fdf2ee374f5b31099e716f
 FileChecksum: SHA1: 426261bd0eb6c46b638947542b1e8f18012e0ef3
 LicenseConcluded: NOASSERTION
 LicenseInfoInFile: GPL-2.0-only
@@ -500,15 +501,15 @@ LicenseInfoInFile: MIT
 FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
 
 FileName: ./docs/ldto.md
-SPDXID: SPDXRef-739c06795248f4c5ebc296e26b82b016
-FileChecksum: SHA1: 5bad01e02231278cb4fe4ef9030c7d6e6e6703d8
+SPDXID: SPDXRef-9c0754c893a902f6b3a74ca45096c4b5
+FileChecksum: SHA1: 48e3165f1972710af70122e3b94fd5799800dea3
 LicenseConcluded: NOASSERTION
 LicenseInfoInFile: MIT
 FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
 
 FileName: ./docs/lgpio.md
-SPDXID: SPDXRef-1e931dd50b9a17c55f32eefe00c2e133
-FileChecksum: SHA1: e26b90efdd67897879c18ab3c4ab0114d05a7cdb
+SPDXID: SPDXRef-91abbf9083e1072c094a0ee3924df946
+FileChecksum: SHA1: cbe153a9be74625ff7eb506222f02f8e9dbb3b16
 LicenseConcluded: NOASSERTION
 LicenseInfoInFile: MIT
 FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
@@ -521,8 +522,8 @@ LicenseInfoInFile: MIT
 FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
 
 FileName: ./docs/packaging.md
-SPDXID: SPDXRef-8d551fb0d94117e37878e6e22d27c7eb
-FileChecksum: SHA1: e89f9e0f11d0dc956159962946d49f6a4f6c2994
+SPDXID: SPDXRef-8723328dfca5242a9c93d9cc5c0a679f
+FileChecksum: SHA1: 760f32199badfdeb1d20ef5bba4a3e0e2b8e7e5c
 LicenseConcluded: NOASSERTION
 LicenseInfoInFile: MIT
 FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
@@ -1082,8 +1083,8 @@ LicenseInfoInFile: MIT
 FileCopyrightText: <text>Copyright (C) 2026 Libre Computer, Inc.</text>
 
 FileName: ./libre-computer/aml-a311d-cc/dt/dsi-0-rpi-7inch.dts
-SPDXID: SPDXRef-c80b8364d758b2d44af06222e0e74714
-FileChecksum: SHA1: 3edfd9d4a16d2f75a2f2194a06057dbf562289e6
+SPDXID: SPDXRef-c2507b1b3f9337df1781d532e9342cf9
+FileChecksum: SHA1: c474a00b8a6745d6083e9f75a686418d4ffed485
 LicenseConcluded: NOASSERTION
 LicenseInfoInFile: GPL-2.0-or-later
 LicenseInfoInFile: MIT
@@ -3066,22 +3067,22 @@ LicenseInfoInFile: MIT
 FileCopyrightText: <text>Copyright (C) 2026 Da Xue <da@libre.computer></text>
 
 FileName: ./packaging/arch/PKGBUILD
-SPDXID: SPDXRef-943448cb70ad9f8e46d3e11340762188
-FileChecksum: SHA1: 923f749c822d7647bd711b944246e93bebad4549
+SPDXID: SPDXRef-9e624671ec39ea80dfa319228beffa07
+FileChecksum: SHA1: a82d935266c786d90052f4f36fcbaa7737e6de3d
 LicenseConcluded: NOASSERTION
 LicenseInfoInFile: GPL-2.0-only
 FileCopyrightText: NONE
 
 FileName: ./packaging/lib.sh
-SPDXID: SPDXRef-13bc3f9dd93f6e16b0a5b5adc2e6fdb6
-FileChecksum: SHA1: 8cccb1c6e88e5ccab2c3abe1f02ed2f1b9d32bc1
+SPDXID: SPDXRef-1789afe23f71d1ecb02b395c47d893b1
+FileChecksum: SHA1: 1d22db9fca4296faee32e137c6a880c3e9125067
 LicenseConcluded: NOASSERTION
 LicenseInfoInFile: GPL-2.0-only
 FileCopyrightText: NONE
 
 FileName: ./packaging/rpm/libretech-wiring-tool.spec
-SPDXID: SPDXRef-c64ccf8fd5ad23382b6d100cde37847c
-FileChecksum: SHA1: 28d97758d34ee53f81aaa9f101b55a7f321be948
+SPDXID: SPDXRef-397f7c8c4cf2cf43c4d5fa410ceaf384
+FileChecksum: SHA1: d7e4a177cfb45dd09895fb71060c032c55e2d5fe
 LicenseConcluded: NOASSERTION
 LicenseInfoInFile: GPL-2.0-only
 FileCopyrightText: NONE
@@ -3148,6 +3149,13 @@ FileChecksum: SHA1: 42fb3007b73141f93223a69b3c2280dbd7f29cb6
 LicenseConcluded: NOASSERTION
 LicenseInfoInFile: GPL-2.0-only
 FileCopyrightText: <text>Copyright (C) 2026 Da Xue <da@libre.computer></text>
+
+FileName: ./test/deb-rename.sh
+SPDXID: SPDXRef-003458e260a700af79caa0e11e5ea0a4
+FileChecksum: SHA1: bf7b644b7bd1d357f018cd8d169cb0b2d7050501
+LicenseConcluded: NOASSERTION
+LicenseInfoInFile: GPL-2.0-only
+FileCopyrightText: NONE
 
 FileName: ./test/dt_map_check.sh
 SPDXID: SPDXRef-b6fb5aeb74c5520da00d9b93f32fbe6d
