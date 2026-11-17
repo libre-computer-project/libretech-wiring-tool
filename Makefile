@@ -167,9 +167,12 @@ deps: $(DEPS_FILES)
 # X.pre.dts is filtered out: the .dtbo rule's transient preprocessor output, in
 # the same directory while X compiles. Under make -j the wildcard caught one and
 # the compile deleted it before dt.deps was considered ("No rule to make target
-# '.../spi-0-1cs-spidev.pre.dts', needed by '.../dt.deps'").
+# '.../spi-0-1cs-spidev.pre.dts', needed by '.../dt.deps'"). The pattern is a
+# variable: a literal % in a pattern rule's prerequisites is replaced by the
+# stem first, so `filter-out %.pre.dts` would filter out <board>.pre.dts only.
+PRE_DTS := %.pre.dts
 .SECONDEXPANSION:
-libre-computer/%/dt.deps: scripts/overlay-deps.py $$(filter-out %.pre.dts,$$(wildcard libre-computer/$$*/dt/*.dts))
+libre-computer/%/dt.deps: scripts/overlay-deps.py $$(filter-out $$(PRE_DTS),$$(wildcard libre-computer/$$*/dt/*.dts))
 	@dt=libre-computer/$*/dt; 	if [ -L "$$dt" ]; then dt=$$(readlink -f "$$dt"); fi; 	python3 scripts/overlay-deps.py "$$dt" -o $@
 
 ifneq ($(strip $(DTOS_SYM)),)
