@@ -16,7 +16,8 @@ set -uo pipefail
 img=${1:?usage: sudo test/deb-rename.sh <image.img> <debs-dir>}
 debs=$(realpath -e "${2:?usage: sudo test/deb-rename.sh <image.img> <debs-dir>}")
 [[ $EUID -eq 0 ]] || { echo "needs root" >&2; exit 1; }
-W=$(mktemp -d)
+# the image copies go beside the image (a disk the caller chose), never /tmp (tmpfs)
+W=$(mktemp -d "$(dirname "$(realpath -e "$img")")/deb-rename.XXXXXX")
 PASS=0 FAIL=0
 check() { local what=$1; shift; if "$@" >/dev/null 2>&1; then PASS=$((PASS + 1)); echo "PASS  $what"; else FAIL=$((FAIL + 1)); echo "FAIL  $what"; fi; }
 mnt="" loop=""
