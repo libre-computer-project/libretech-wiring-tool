@@ -1,12 +1,12 @@
 SPDXVersion: SPDX-2.1
 DataLicense: CC0-1.0
 SPDXID: SPDXRef-DOCUMENT
-DocumentName: lwt-sbom-UO4TeJ
-DocumentNamespace: http://spdx.org/spdxdocs/spdx-v2.1-ce610ab9-8553-4c2d-828d-d15d92d6a9c2
+DocumentName: lwt-sbom-VHqF0t
+DocumentNamespace: http://spdx.org/spdxdocs/spdx-v2.1-bec1e508-c332-470e-b823-6a9625082fb5
 Creator: Person: Anonymous ()
 Creator: Organization: Anonymous ()
 Creator: Tool: reuse-6.3.0
-Created: 2026-11-17T06:26:00Z
+Created: 2026-11-17T15:25:15Z
 CreatorComment: <text>This document was created automatically using available reuse information consistent with REUSE.</text>
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-881f63b021a3ba9e8240b7327830e6ad
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-48edfcc02f4bdc70375024dd3bba928f
@@ -365,7 +365,7 @@ Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-5063647fd495e8da818a42f4dec995c
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-ab53e68aa1cf8f84968b4d5d2edd9876
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-39ea97c310fd4b42fb903c4149f6116f
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-c8c4f1df13252b845d64b0be4637c11d
-Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-003458e260a700af79caa0e11e5ea0a4
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-7c5d8d277cfcf557b5da30663fbdc345
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-b6fb5aeb74c5520da00d9b93f32fbe6d
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-58e6529128e17d40504981844edc933f
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-9d5014eb3c52ea7218227cc0f65bf0c5
@@ -3183,8 +3183,8 @@ LicenseInfoInFile: GPL-2.0-only
 FileCopyrightText: <text>Copyright (C) 2026 Da Xue <da@libre.computer></text>
 
 FileName: ./test/deb-rename.sh
-SPDXID: SPDXRef-003458e260a700af79caa0e11e5ea0a4
-FileChecksum: SHA1: bf7b644b7bd1d357f018cd8d169cb0b2d7050501
+SPDXID: SPDXRef-7c5d8d277cfcf557b5da30663fbdc345
+FileChecksum: SHA1: 1fba51952664dba19aa64f99e3c619b0337c2485
 LicenseConcluded: NOASSERTION
 LicenseInfoInFile: GPL-2.0-only
 FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
