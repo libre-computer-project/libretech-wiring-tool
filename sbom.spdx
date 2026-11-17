@@ -1,15 +1,15 @@
 SPDXVersion: SPDX-2.1
 DataLicense: CC0-1.0
 SPDXID: SPDXRef-DOCUMENT
-DocumentName: lwt-sbom-4U6aT1
-DocumentNamespace: http://spdx.org/spdxdocs/spdx-v2.1-d10d5908-df25-4f6d-aba3-091fcdf164c0
+DocumentName: lwt-sbom-7WGSNJ
+DocumentNamespace: http://spdx.org/spdxdocs/spdx-v2.1-527daa7c-4815-44ad-b592-c206b246dae9
 Creator: Person: Anonymous ()
 Creator: Organization: Anonymous ()
 Creator: Tool: reuse-6.3.0
-Created: 2026-11-17T05:55:26Z
+Created: 2026-11-17T06:01:35Z
 CreatorComment: <text>This document was created automatically using available reuse information consistent with REUSE.</text>
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-881f63b021a3ba9e8240b7327830e6ad
-Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-d938d438979f6a1140109c5ba23a42f8
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-3a73fd9168dded0a0aefee171a41f3f9
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-fd1a7d9e877dd3d8a3c2f48f85ec95ee
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-13f03d299671d5be496e9102c0e16029
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-a4bbc556124e28af409c733173975bbe
@@ -363,7 +363,7 @@ Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-f81fe2a09e934e3b5810f63c94e3541
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-db5e3df865bbc419f31bcb494b90bbdd
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-5063647fd495e8da818a42f4dec995ce
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-ab53e68aa1cf8f84968b4d5d2edd9876
-Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-9bddc0797682261fdac07e090a24f22f
+Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-39ea97c310fd4b42fb903c4149f6116f
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-c8c4f1df13252b845d64b0be4637c11d
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-003458e260a700af79caa0e11e5ea0a4
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-b6fb5aeb74c5520da00d9b93f32fbe6d
@@ -386,8 +386,8 @@ LicenseInfoInFile: GPL-2.0-only
 FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
 
 FileName: ./Makefile
-SPDXID: SPDXRef-d938d438979f6a1140109c5ba23a42f8
-FileChecksum: SHA1: 0a0e6fcfda815f025656a197c37baf06aacda187
+SPDXID: SPDXRef-3a73fd9168dded0a0aefee171a41f3f9
+FileChecksum: SHA1: 869d2eee20eb54f6cced3444cd63733ae911c2af
 LicenseConcluded: NOASSERTION
 LicenseInfoInFile: GPL-2.0-only
 FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
@@ -3169,8 +3169,8 @@ LicenseInfoInFile: MIT
 FileCopyrightText: <text>Copyright (C) 2026 Da Xue <da@libre.computer></text>
 
 FileName: ./scripts/overlay-deps.py
-SPDXID: SPDXRef-9bddc0797682261fdac07e090a24f22f
-FileChecksum: SHA1: b30dbf5f104c0bdf64c6e5056b29ef880b6d623b
+SPDXID: SPDXRef-39ea97c310fd4b42fb903c4149f6116f
+FileChecksum: SHA1: d32bcddad0b01061a3372705d9b2217903dcafe0
 LicenseConcluded: NOASSERTION
 LicenseInfoInFile: GPL-2.0-only
 FileCopyrightText: <text>SPDX-FileCopyrightText: 2021-2026 Libre Computer Project contributors</text>
