@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: GPL-2.0-only
 # build-rpm.sh -- build libre-computer-gpio and libre-computer-dtoverlay for Fedora (noarch RPMs), the same files as the .deb.
 #
-#   build-rpm.sh --src <exported source tree> --version YYYY.MM.DD [--release N] [--dist .fc<NN>|.tw|.lp<NNN>] [--out DIR]
+#   build-rpm.sh --src <exported source tree> --version YYYYMMDD.HHMMSS.g<sha8> [--release N] [--dist .fc<NN>|.tw|.lp<NNN>] [--out DIR]
 #
 # --release [1]: a packaging fix on the same source gets a new release -- a published file name never changes.
 # --dist: the same files with the release tagged for one release (.fc44 Fedora 44, .tw Tumbleweed, .lp160 Leap
@@ -19,7 +19,7 @@ IFS=$'\n\t'
 . "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/packaging/lib.sh"
 
 src="" version="" release=1 dist="" out=""
-usage="usage: build-rpm.sh --src <tree> --version YYYY.MM.DD [--release N] [--dist .fc<NN>|.tw|.lp<NNN>] [--out DIR]"
+usage="usage: build-rpm.sh --src <tree> --version YYYYMMDD.HHMMSS.g<sha8> [--release N] [--dist .fc<NN>|.tw|.lp<NNN>] [--out DIR]"
 while (($#)); do
   case $1 in
     --src) src=${2:?}; shift 2 ;;

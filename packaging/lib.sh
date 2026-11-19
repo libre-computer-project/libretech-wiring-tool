@@ -60,7 +60,8 @@ split_tree() {
   ((unclaimed == 0 && twice == 0)) || die "$unclaimed staged file(s) in no package, $twice in two"
 }
 
-# <version>: YYYY.MM.DD, the .deb's version scheme
+# <version>: the commit's date and the commit, YYYYMMDD.HHMMSS.g<8 hex> (committer time, UTC) -- the one version
+# every format takes (claude infra/libre-computer/packages/publishing-isolation-plan.md, rule 4)
 check_version() {
-  [[ $1 =~ ^[0-9]{4}\.[0-9]{2}\.[0-9]{2}$ ]] || die "version $1 is not YYYY.MM.DD"
+  [[ $1 =~ ^[0-9]{8}\.[0-9]{6}\.g[0-9a-f]{8}$ ]] || die "version $1 is not YYYYMMDD.HHMMSS.g<sha8>"
 }

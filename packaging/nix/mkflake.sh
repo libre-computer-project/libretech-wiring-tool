@@ -3,14 +3,14 @@
 # SPDX-License-Identifier: GPL-2.0-only
 # mkflake.sh -- cut the flake packages.libre.computer publishes for one commit.
 #
-#   packaging/nix/mkflake.sh --commit <sha> --version YYYY.MM.DD --out DIR [--repo PATH]
+#   packaging/nix/mkflake.sh --commit <sha> --version YYYYMMDD.HHMMSS.g<sha8> --out DIR [--repo PATH]
 #
 # Writes, under DIR:
 #   flake/                          this directory's flake.nix, flake.lock and package.nix, the commit's tree as
 #                                   src.tar (git archive: an untracked file never reaches it) and version.nix
 #   libretech-wiring-tool.tar.gz    flake/ under one top directory (Nix's tarball flakes), to publish
 # The source is open and travels inside the flake, so a host evaluates the derivation the builders built and takes
-# its output from the cache. --version is the release's date, the same as build-rpm.sh / build-arch.sh take. Runs
+# its output from the cache. --version is the commit's date and the commit, as every format takes it. Runs
 # git only to read the commit; writes nothing into the repository.
 set -euo pipefail
 IFS=$'\n\t'
@@ -22,14 +22,15 @@ while (($#)); do
     --version) version=${2:?}; shift 2 ;;
     --out) out=${2:?}; shift 2 ;;
     --repo) repo=${2:?}; shift 2 ;;
-    *) die "usage: mkflake.sh --commit <sha> --version YYYY.MM.DD --out DIR [--repo PATH]" ;;
+    *) die "usage: mkflake.sh --commit <sha> --version YYYYMMDD.HHMMSS.g<sha8> --out DIR [--repo PATH]" ;;
   esac
 done
-[[ -n $commit && -n $version && -n $out ]] || die "usage: mkflake.sh --commit <sha> --version YYYY.MM.DD --out DIR [--repo PATH]"
-[[ $version =~ ^[0-9]{4}\.[0-9]{2}\.[0-9]{2}$ ]] || die "--version $version is not YYYY.MM.DD"
+[[ -n $commit && -n $version && -n $out ]] || die "usage: mkflake.sh --commit <sha> --version YYYYMMDD.HHMMSS.g<sha8> --out DIR [--repo PATH]"
+[[ $version =~ ^[0-9]{8}\.[0-9]{6}\.g([0-9a-f]{8})$ ]] || die "--version $version is not YYYYMMDD.HHMMSS.g<sha8>"
 here=$(cd "$(dirname "$0")" && pwd)
 repo=${repo:-$(cd "$here/../.." && pwd)}
 commit=$(git -C "$repo" rev-parse --verify "$commit^{commit}") || die "no commit $commit"
+[[ $version == *.g${commit:0:8} ]] || die "--version $version does not name commit ${commit:0:8}"
 mkdir -p "$out"
 rm -rf "$out/flake" "$out/libretech-wiring-tool.tar.gz"
 mkdir -p "$out/flake"
