@@ -58,7 +58,9 @@ done
 mkdir -p "$T/rpm/SPECS" "$out"
 cp "$PKG_ROOT/packaging/rpm/libretech-wiring-tool.spec" "$T/rpm/SPECS/"
 log "building libre-computer-gpio, libre-computer-dtoverlay $version"
-rpmbuild --define "_topdir $T/rpm" --define "_buildhost $BUILD_HOST" --define "lc_version $version" --define "lc_release $release" \
+# vendor: the vendor zypper keeps an installed package with (the spec has no Vendor tag, so rpm takes the macro)
+rpmbuild --define "_topdir $T/rpm" --define "_buildhost $BUILD_HOST" --define "vendor Libre Computer" \
+  --define "lc_version $version" --define "lc_release $release" \
   --define "lc_stage $T/root" --define "lc_lists $T" -bb "$T/rpm/SPECS/libretech-wiring-tool.spec" \
   >"$T/rpmbuild.log" 2>&1 || { tail -20 "$T/rpmbuild.log" >&2; die "rpmbuild failed"; }
 for p in "${PACKAGES[@]}"; do

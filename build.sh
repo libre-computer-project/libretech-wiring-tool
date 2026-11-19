@@ -5,7 +5,9 @@ set -euo pipefail
 
 cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
 
-dateymd=$(date +%Y.%m.%d.%H-%M-%S)
+# the version: the build's date and time, without a hyphen (a native package's version has none; dpkg would read
+# what follows the last hyphen as a Debian revision)
+dateymd=$(date +%Y.%m.%d.%H%M%S)
 commit=$(git rev-parse HEAD 2>/dev/null || echo unknown)
 dateutc=$(date -Ru)
 
