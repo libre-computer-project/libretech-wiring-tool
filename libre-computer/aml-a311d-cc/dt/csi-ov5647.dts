@@ -20,7 +20,9 @@
  *   pin 17 with 8SW1 toward the board center) is a connector signal, and
  *   pin 18 carries CSI clock B, so there is no camera-enable LED. The
  *   module's 25 MHz oscillator is the sensor clock, so XCLK is a fixed
- *   clock.
+ *   clock. libretech,manual-black-level selects the ov5647 driver's fixed
+ *   black level and pedestal, which this board's Mali-C55 tuning
+ *   subtracts; a board without an ISP keeps the sensor's own.
  */
 /dts-v1/;
 /plugin/;
@@ -56,6 +58,8 @@
 				reg = <0x36>;
 				clocks = <&cam_xclk>;
 				pwdn-gpios = <&gpio GPIOA_12 GPIO_ACTIVE_LOW>;
+				/* the black level the Mali-C55 tuning expects */
+				libretech,manual-black-level;
 
 				port {
 					ov5647_ep: endpoint {
